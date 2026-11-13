@@ -1,0 +1,899 @@
+/* Toute la mise en page est exprimée en --u : 1 % de la largeur d'un cadre 16:9,
+   pour garder les mêmes proportions quelle que soit la résolution. */
+:root {
+  --u: min(1vw, 1.7778vh);
+
+  /* Relevés sur une capture du vrai menu : fond, cases vides, barre du bas. */
+  --bg: #ebedef;
+  --surface: #ffffff;
+  --slot: #f7f9fb;
+  --bar: #f5f7f9;
+  --icon: #5a5a5a;
+  --text: #2c2c2c;
+  --text-dim: #6c6c6c;
+  --accent: #2f6fe0;
+  --accent-soft: #35c8ee;
+  --shadow: rgba(0, 0, 0, 0.14);
+}
+
+:root[data-theme='dark'] {
+  --bg: #2b2b2b;
+  --surface: #3a3a3a;
+  --slot: #343434;
+  --bar: #383838;
+  --icon: #cfcfcf;
+  --text: #f4f4f4;
+  --text-dim: #a8a8a8;
+  --accent: #5aa2ff;
+  --accent-soft: #6fe6ff;
+  --shadow: rgba(0, 0, 0, 0.45);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif;
+  overflow: hidden;
+  user-select: none;
+  cursor: default;
+  transition: background 0.25s, color 0.25s;
+}
+
+/* ---------- Thèmes : fond d'écran et styles ---------- */
+
+.wallpaper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  display: none;
+  background: var(--wallpaper) center / cover no-repeat;
+}
+
+.wallpaper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, var(--wallpaper-dim, 0));
+}
+
+:root[data-wallpaper='on'] .wallpaper {
+  display: block;
+}
+
+/* Avec un fond d'écran, les écrans le laissent deviner : voile du fond et flou, pour que l'accueil
+   qui reste dessous ne transparaisse pas. */
+:root[data-wallpaper='on'] .screen {
+  background: color-mix(in srgb, var(--bg) 62%, transparent);
+  backdrop-filter: blur(calc(var(--u) * 2.4)) saturate(1.1);
+}
+
+/* Barre du bas flottante : seulement les icônes, sans fond. */
+:root[data-dock='floating'] .dock-bar {
+  background: transparent;
+}
+
+/* Icônes de la barre en une seule couleur. */
+:root[data-dockcolors='mono'] .dock-icon {
+  color: var(--icon);
+}
+
+:root[data-dockcolors='mono'] .dock-item.nso .dock-icon {
+  background: var(--slot);
+  color: var(--icon);
+}
+
+/* Curseur uni, sans l'effet irisé. */
+:root[data-cursor='solid'] .cursor,
+:root[data-cursor='solid'] .dock-cursor {
+  background: var(--accent);
+  animation: cursor-pulse 1.4s ease-in-out infinite;
+}
+
+.home {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Fond du jeu sélectionné : sa grande image sur tout l'écran ---------- */
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.backdrop-layer {
+  position: absolute;
+  inset: 0;
+  animation: art-in 0.38s ease both;
+}
+
+.backdrop-layer.out {
+  animation: art-out 0.3s ease both;
+}
+
+/* L'image couvre tout l'écran, derrière toute l'interface. */
+.art-main {
+  position: absolute;
+  inset: 0;
+}
+
+.art-main img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 35%;
+}
+/* Voile : léger et sombre en haut (heure lisible), léger et clair en bas (barre du bas lisible). */
+.art-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(20, 22, 28, 0.14) 0%,
+    rgba(20, 22, 28, 0) 40%,
+    color-mix(in srgb, var(--bg) 0%, transparent) 62%,
+    color-mix(in srgb, var(--bg) 50%, transparent) 100%
+  );
+}
+@keyframes art-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes art-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Sur une grande image : heure, titre du jeu et icônes passent en blanc avec une ombre. */
+.home.has-art .topbar {
+  --text: #fff;
+  color: #fff;
+  text-shadow: 0 calc(var(--u) * 0.1) calc(var(--u) * 0.8) rgba(0, 0, 0, 0.6);
+}
+
+.home.has-art .topbar .status svg,
+.home.has-art .topbar .battery-body {
+  filter: drop-shadow(0 calc(var(--u) * 0.1) calc(var(--u) * 0.4) rgba(0, 0, 0, 0.55));
+}
+
+.home.has-art .footer {
+  color: #fff;
+  text-shadow: 0 calc(var(--u) * 0.1) calc(var(--u) * 0.8) rgba(0, 0, 0, 0.8);
+}
+
+.home.has-art .tile-title {
+  color: #fff;
+  font-weight: 600;
+  text-shadow: 0 calc(var(--u) * 0.1) calc(var(--u) * 0.9) rgba(0, 0, 0, 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop-layer,
+  .backdrop-layer.out {
+    animation-duration: 0.01s;
+  }
+}
+
+/* ---------- Barre haute ---------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--u) * 3.7) calc(var(--u) * 3.6) 0 calc(var(--u) * 4);
+  height: calc(var(--u) * 8.1);
+  flex: none;
+}
+
+.avatar {
+  width: calc(var(--u) * 4.4);
+  height: calc(var(--u) * 4.4);
+  border-radius: 50%;
+  background: var(--accent);
+  border: calc(var(--u) * 0.28) solid var(--surface);
+  box-shadow: 0 calc(var(--u) * 0.1) calc(var(--u) * 0.5) var(--shadow);
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+
+.avatar svg {
+  width: 64%;
+  height: 64%;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 1.65);
+  font-size: calc(var(--u) * 2.1);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.status-icon {
+  width: calc(var(--u) * 2.04);
+  height: calc(var(--u) * 1.53);
+  display: grid;
+}
+
+.battery-body {
+  position: relative;
+  width: calc(var(--u) * 2.35);
+  height: calc(var(--u) * 1.4);
+  margin-right: calc(var(--u) * 0.35);
+  border: calc(var(--u) * 0.2) solid var(--text);
+  border-radius: calc(var(--u) * 0.45);
+  padding: calc(var(--u) * 0.14);
+}
+
+.battery-body::after {
+  content: '';
+  position: absolute;
+  right: calc(var(--u) * -0.5);
+  top: 26%;
+  width: calc(var(--u) * 0.24);
+  height: 48%;
+  background: var(--text);
+  border-radius: 0 calc(var(--u) * 0.1) calc(var(--u) * 0.1) 0;
+}
+
+.battery-fill {
+  display: block;
+  height: 100%;
+  background: var(--text);
+  border-radius: calc(var(--u) * 0.1);
+}
+
+/* ---------- Rangée de jeux ---------- */
+
+.row-viewport {
+  position: relative;
+  flex: none;
+  /* Espace au-dessus pour le titre du jeu sélectionné. */
+  padding-top: calc(var(--u) * 7.5);
+  height: calc(var(--u) * 29.4);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Mode « Image du jeu » : la tuile sélectionnée grandit vers le haut, le bas des tuiles reste aligné. */
+.home.backdrop-mode .row-viewport {
+  padding-top: calc(var(--u) * 9.5);
+  height: calc(var(--u) * 31.4);
+}
+
+.row {
+  --offset: 0;
+  --tile: calc(var(--u) * 20);
+  --gap: calc(var(--u) * 1.15);
+  /* Taille de la tuile sélectionnée, en multiple de la taille normale (1 = toutes pareilles). */
+  --k: 1;
+  /* Marge à gauche de la rangée. */
+  --pl: calc(var(--u) * 8.4);
+  display: flex;
+  align-items: flex-end;
+  height: calc(var(--tile) * var(--k));
+  gap: var(--gap);
+  padding-left: var(--pl);
+  transform: translateX(calc((var(--tile) + var(--gap)) * var(--offset) * -1));
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.tile {
+  position: relative;
+  flex: none;
+  width: var(--tile);
+  height: var(--tile);
+  pointer-events: auto;
+  transition:
+    width 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Jeu sélectionné : plus grand que les autres, il grandit vers le haut (le bas reste aligné). */
+.tile.focused {
+  width: calc(var(--tile) * var(--k));
+  height: calc(var(--tile) * var(--k));
+}
+
+/* Mode « Image du jeu » : tuiles plus petites, le jeu sélectionné nettement plus grand. */
+.home.backdrop-mode .row {
+  --tile: calc(var(--u) * 12);
+  --gap: calc(var(--u) * 1.9);
+  --k: 1.65;
+  --pl: calc(var(--u) * 5);
+}
+
+.tile.empty {
+  border-radius: calc(var(--u) * var(--tile-radius, 1));
+  background: var(--slot);
+}
+
+.tile-art {
+  width: 100%;
+  height: 100%;
+  border-radius: calc(var(--u) * var(--tile-radius, 1));
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 calc(var(--u) * 0.2) calc(var(--u) * 0.7) var(--shadow);
+}
+
+.tile-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Les jaquettes en portrait portent leur titre en haut : on cadre vers le haut. */
+  object-position: 50% 12%;
+}
+
+/* Tuile sans image : le titre du jeu sur un dégradé. */
+.tile-name {
+  padding: calc(var(--u) * 1.6);
+  font-size: calc(var(--u) * 2.7);
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  color: #fff;
+  text-shadow: 0 calc(var(--u) * 0.15) calc(var(--u) * 0.5) rgba(0, 0, 0, 0.35);
+}
+
+.row {
+  position: relative;
+}
+
+.home.backdrop-mode .tile-name {
+  font-size: calc(var(--u) * 1.7);
+}
+
+/* Curseur unique de la rangée : il glisse vers la tuile choisie (--i = son rang). */
+.cursor {
+  position: absolute;
+  top: calc(var(--u) * -0.8);
+  left: calc(var(--pl) + (var(--tile) + var(--gap)) * var(--i) - var(--u) * 0.8);
+  width: calc(var(--tile) * var(--k) + var(--u) * 1.6);
+  height: calc(var(--tile) * var(--k) + var(--u) * 1.6);
+  padding: calc(var(--u) * 0.5);
+  border-radius: calc(var(--u) * (var(--tile-radius, 1) + 0.8));
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    left 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.12s;
+  animation:
+    ring-spin 6s linear infinite,
+    cursor-pulse 1.4s ease-in-out infinite;
+  /* Liseré irisé (couleurs relevées sur la capture) : seul le contour reste visible. */
+  background: conic-gradient(from var(--ring-angle), #3a6bff, #7b6bff, #e6a2ff, #ffffff, #5fe3ff, #7ff0c8, #3a6bff);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.cursor.on {
+  opacity: 1;
+}
+
+.tile-title {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + var(--u) * 1.7);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: calc(var(--u) * 2.05);
+  font-weight: 500;
+  color: var(--accent);
+  animation: rise 0.16s ease-out;
+}
+
+.tile.launching {
+  z-index: 5;
+}
+
+/* L'image qui grandit est dessinée à part (.launch-zoom) : on cache l'originale. */
+.tile.launching .tile-art {
+  visibility: hidden;
+}
+
+.tile.launching .tile-title {
+  display: none;
+}
+
+.launch-zoom {
+  position: fixed;
+  z-index: 19;
+  overflow: hidden;
+  border-radius: calc(var(--u) * var(--tile-radius, 1));
+  pointer-events: none;
+  transition:
+    left 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    top 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 0.5s;
+}
+
+.launch-zoom.go {
+  left: 0 !important;
+  top: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  border-radius: 0;
+}
+
+.launch-zoom img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 12%;
+}
+
+.empty-hint {
+  position: absolute;
+  left: calc(var(--u) * 8.4);
+  top: calc(var(--u) * 2.6);
+  margin: 0;
+  font-size: calc(var(--u) * 1.7);
+  color: var(--text-dim);
+}
+
+/* ---------- Barre d'icônes ---------- */
+
+.dock {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: calc(var(--u) * 2.8);
+}
+
+/* Mode « Image du jeu » : barre du bas plus petite (zoom : tout est réduit, clics compris) et plus basse. */
+.home.backdrop-mode .dock {
+  padding-top: calc(var(--u) * 6.6);
+}
+
+.home.backdrop-mode .dock-bar {
+  zoom: 0.7;
+}
+
+.dock-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: calc(var(--u) * 7.2);
+  padding: 0 calc(var(--u) * 1.6);
+  border-radius: calc(var(--u) * 3.6);
+  background: var(--bar);
+}
+
+.dock-item {
+  position: relative;
+  width: calc(var(--u) * 6.4);
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: inherit;
+  outline: none;
+  display: grid;
+  place-items: center;
+}
+
+.dock-icon {
+  position: relative;
+  width: calc(var(--u) * 5.6);
+  height: calc(var(--u) * 5.6);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--item-color);
+  transition: background 0.12s, color 0.12s;
+}
+
+.dock-icon svg {
+  width: calc(var(--u) * 3);
+  height: calc(var(--u) * 3);
+}
+
+/* Icône sélectionnée : fond clair et icône gardant sa couleur, comme sur la capture. */
+.dock-item.focused .dock-icon {
+  background: var(--surface);
+}
+
+/* Nintendo Switch Online : un disque rouge plein, comme sur la capture (pas de logo officiel). */
+.dock-item.nso .dock-icon {
+  background: #e31c24;
+  color: #fff;
+}
+
+/* Anneau unique de la barre : il glisse d'une icône à l'autre (--i = son rang). */
+.dock-cursor {
+  position: absolute;
+  left: calc(var(--u) * (1.6 + 0.4 - 0.62) + var(--u) * 6.4 * var(--i));
+  top: calc(var(--u) * 0.18);
+  width: calc(var(--u) * 6.84);
+  height: calc(var(--u) * 6.84);
+  padding: calc(var(--u) * 0.34);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    left 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.12s;
+  animation:
+    ring-spin 6s linear infinite,
+    cursor-pulse 1.4s ease-in-out infinite;
+  background: conic-gradient(from var(--ring-angle), #3a6bff, #7b6bff, #e6a2ff, #ffffff, #5fe3ff, #7ff0c8, #3a6bff);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.dock-cursor.on {
+  opacity: 1;
+}
+
+.dock-label {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + var(--u) * 0.7);
+  transform: translateX(-50%);
+  font-size: calc(var(--u) * 2);
+  color: var(--accent);
+  white-space: nowrap;
+  visibility: hidden;
+}
+
+.dock-item.focused .dock-label {
+  visibility: visible;
+}
+
+/* ---------- Pied de page ---------- */
+
+.footer {
+  flex: none;
+  height: calc(var(--u) * 6.1);
+  padding: 0 calc(var(--u) * 4.8) 0 calc(var(--u) * 4.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: calc(var(--u) * 1.75);
+}
+
+.footer-glyph {
+  width: calc(var(--u) * 4.4);
+  display: grid;
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.8);
+}
+
+.hint-key {
+  min-width: calc(var(--u) * 2);
+  height: calc(var(--u) * 2);
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--bg);
+  display: grid;
+  place-items: center;
+  font-size: calc(var(--u) * 1.2);
+  font-weight: 700;
+}
+
+/* ---------- Fenêtres ---------- */
+
+.launch-fade {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 20;
+  animation: fade-in 0.55s ease-in forwards;
+  pointer-events: none;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(0, 0, 0, 0.5);
+  display: grid;
+  place-items: center;
+  animation: fade-in 0.15s ease-out;
+}
+
+.dialog {
+  width: min(680px, 92vw);
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 28px 32px;
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.4);
+  user-select: text;
+  font-size: 15px;
+}
+
+.dialog.small {
+  width: min(460px, 92vw);
+}
+
+.dialog h2 {
+  margin: 0 0 18px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.dialog h3 {
+  margin: 22px 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.dialog p {
+  margin: 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex: 1;
+}
+
+.field > span {
+  font-weight: 600;
+}
+
+.field small {
+  color: var(--text-dim);
+}
+
+.field-row,
+.game-edit {
+  display: flex;
+  gap: 8px;
+}
+
+.field-pair {
+  display: flex;
+  gap: 16px;
+}
+
+.dialog input:not([type='checkbox']) {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--text-dim);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.dialog input:focus-visible,
+.dialog button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.dialog button {
+  padding: 8px 16px;
+  border: 1px solid var(--text-dim);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.dialog button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.check input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--accent);
+}
+
+.game-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+/* ---------- Animations ---------- */
+
+@keyframes pulse {
+  0%,
+  100% {
+    border-color: var(--accent);
+  }
+  50% {
+    border-color: var(--accent-soft);
+  }
+}
+
+/* Pulsation du curseur : la couleur, un halo et un léger gonflement. */
+@keyframes cursor-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.022);
+  }
+}
+
+/* Ouverture du menu : le haut descend, la rangée et la barre montent en fondu. */
+.home.opening .topbar {
+  animation: drop-in 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+.home.opening .row-viewport {
+  animation: rise-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s backwards;
+}
+
+.home.opening .dock {
+  animation: rise-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.12s backwards;
+}
+
+.home.opening .footer {
+  animation: fade-in 0.5s ease-out 0.2s backwards;
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--u) * -2));
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--u) * 2.4));
+  }
+}
+
+/* Comme sur la console : « 2:22 » avec un petit « PM », une icône de batterie sans chiffre. */
+.clock {
+  white-space: nowrap;
+  font-size: calc(var(--u) * 2.3);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.clock .colon {
+  margin: 0 0.07em;
+}
+
+.clock small {
+  margin-left: 0.12em;
+  font-size: 0.56em;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* Le pourcentage n'apparaît que lorsque la zone est sélectionnée. */
+.battery-pct {
+  display: none;
+  white-space: nowrap;
+  font-size: calc(var(--u) * 2.1);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.status.focused .battery-pct {
+  display: inline;
+}
+
+.battery-body.charging .battery-fill {
+  background: #3fa34d;
+}
+
+.battery-bolt {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: calc(var(--u) * 1);
+  height: calc(var(--u) * 1.1);
+  color: var(--bg);
+  mix-blend-mode: normal;
+}
+
+/* Profils en haut à gauche : tous les utilisateurs, comme sur la console. */
+.profiles {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 1.2);
+}
+
+.avatar.mini {
+  cursor: inherit;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 30%);
+  }
+}
+
+@keyframes launch {
+  to {
+    transform: scale(1.35);
+    opacity: 0.2;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
