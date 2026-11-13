@@ -819,6 +819,9 @@ function createWindow(): void {
   applyBranding()
   win.webContents.on('did-fail-load', (_e, code, description) => log('page non chargée', code, description))
   win.webContents.on('render-process-gone', (_e, details) => log('interface arrêtée', details))
+  win.webContents.on('console-message', (_e, level, message) => {
+    if (message.startsWith('[visite]') || level >= 2) log('interface', message)
+  })
 
   // Diagnostic : CL_DIAG=<fichier> écrit l'état des tuiles et une capture, puis quitte.
   // CL_DIAG_KEYS="ArrowDown,Enter,..." envoie d'abord ces touches (une par seconde).

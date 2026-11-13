@@ -1851,6 +1851,7 @@ kbd {
   color: #fff;
 }
 
+.welcome-actions button.focused,
 .welcome-actions button:focus-visible {
   outline: calc(var(--u) * 0.3) solid var(--accent);
   outline-offset: calc(var(--u) * 0.3);

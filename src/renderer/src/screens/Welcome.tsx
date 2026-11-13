@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Screen from '../components/Screen'
+import { useInput } from '../hooks/useInput'
 
 interface Props {
   /** Choisit un dossier de jeux et les ajoute tous ; renvoie le nombre de jeux ajoutés. */
@@ -22,6 +23,17 @@ export default function Welcome({ onImport, onTour, onLater }: Props): JSX.Eleme
     if (count === 0) setMessage('Aucun jeu trouvé dans ce dossier. Le lanceur cherche un programme (.exe) par sous-dossier.')
   }
 
+  // Clavier et manette : les flèches choisissent un bouton, Valider l'active ; seul Échap (clavier) ferme.
+  const [index, setIndex] = useState(0)
+  const actions = [onTour, () => void importFolder(), onLater]
+  useInput((action, source) => {
+    if (action === 'left' || action === 'up') setIndex((i) => Math.max(0, i - 1))
+    else if (action === 'right' || action === 'down') setIndex((i) => Math.min(actions.length - 1, i + 1))
+    else if (action === 'confirm' && !busy) actions[index]()
+    else if (action === 'back' && source === 'key') onLater()
+  })
+  const cls = (i: number, base = ''): string => `${base}${index === i ? ' focused' : ''}`.trim()
+
   return (
     <Screen title="Bienvenue" onBack={onLater}>
       <div className="welcome">
@@ -30,13 +42,13 @@ export default function Welcome({ onImport, onTour, onLater }: Props): JSX.Eleme
           ton propre fichier de jeu. On te montre comment faire.
         </p>
         <div className="welcome-actions">
-          <button className="primary" disabled={busy} onClick={onTour}>
+          <button className={cls(0, 'primary')} disabled={busy} onClick={onTour} onMouseEnter={() => setIndex(0)}>
             Commencer la visite
           </button>
-          <button disabled={busy} onClick={() => void importFolder()}>
+          <button className={cls(1)} disabled={busy} onClick={() => void importFolder()} onMouseEnter={() => setIndex(1)}>
             Importer un dossier de jeux…
           </button>
-          <button disabled={busy} onClick={onLater}>
+          <button className={cls(2)} disabled={busy} onClick={onLater} onMouseEnter={() => setIndex(2)}>
             Plus tard
           </button>
         </div>

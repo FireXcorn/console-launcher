@@ -12,18 +12,22 @@ interface Step {
 const STEPS: Step[] = [
   {
     target: '.tile.missing',
-    title: 'Ce jeu n’a pas de cartouche',
-    text: 'Sélectionne-le, appuie sur A, puis ajoute ton fichier de jeu (.nup) : le lanceur prépare le reste et ton jeu sera prêt.'
+    title: 'Ici, il manque ta cartouche',
+    text: 'Un jeu « Cartouche vide » n’a pas encore son fichier. Sélectionne-le et appuie sur A : une fenêtre s’ouvre, tu y choisis ton fichier de jeu (.nup) ou ta ROM, et le lanceur prépare tout seul le jeu.'
   },
   {
     target: '.topbar .avatar',
-    title: 'Choisis ton profil',
-    text: 'Chaque profil a ses propres sauvegardes de jeu, comme sur la console.'
+    title: 'Ton profil',
+    text: 'En haut à gauche : ton profil. Chaque profil a ses propres sauvegardes de jeu, comme sur la console.'
   },
   {
     target: '.dock-item[aria-label*="Paramètres"], .dock-item:nth-last-child(2)',
-    title: 'Les paramètres',
-    text: 'Ajouter un jeu, changer le thème, sauvegarder tes profils : tout se règle ici.'
+    title: 'Ajouter ton fichier ici aussi',
+    text: 'Dans Paramètres → Ajouter des jeux, tu retrouves la même chose : tu mets ton fichier .nup ou ta ROM pour chaque jeu, ou tu importes tout un dossier. C’est aussi là que se règlent le thème et les sauvegardes.'
+  },
+  {
+    title: 'Pour jouer',
+    text: 'Quand le jeu est prêt, sa tuile n’est plus « Cartouche vide » : sélectionne-la, appuie sur A, et le jeu se lance en plein écran.'
   },
   {
     title: 'Pour quitter un jeu',
@@ -64,15 +68,29 @@ export default function Tour({ onDone }: Props): JSX.Element {
     engine.play('retour')
     onDone()
   }
+  useLayoutEffect(() => {
+    console.log(`[visite] étape ${index + 1} affichée`)
+    return () => console.log(`[visite] étape ${index + 1} retirée`)
+  }, [index])
   const next = (): void => {
-    engine.play('valider')
+    console.log(`[visite] suivant depuis l’étape ${index + 1}`)
     if (last) onDone()
     else setIndex((i) => i + 1)
+    try {
+      engine.play('valider')
+    } catch (e) {
+      console.error('[visite] son impossible', e)
+    }
   }
 
-  useInput((action) => {
+  useInput((action, source) => {
+    console.log(`[visite] entrée ${action} (${source}) à l’étape ${index + 1}`)
     if (action === 'confirm') next()
-    else if (action === 'back') finish()
+    // Manette : Retour revient d'une étape (un bouton pris pour un autre ne doit pas fermer la visite) ; Échap la quitte.
+    else if (action === 'back') {
+      if (source === 'key') finish()
+      else setIndex((i) => Math.max(0, i - 1))
+    }
   })
 
   const stepKey = useMemo(() => index, [index])
@@ -119,10 +137,10 @@ export default function Tour({ onDone }: Props): JSX.Element {
         <h3>{step.title}</h3>
         <p>{step.text}</p>
         <div className="tour-foot">
-          <button className="tour-skip" onClick={finish}>
-            B  Passer
+          <button className="tour-skip" tabIndex={-1} onMouseDown={(e) => e.preventDefault()} onClick={finish}>
+            Passer la visite
           </button>
-          <button className="primary" onClick={next}>
+          <button className="primary" tabIndex={-1} onMouseDown={(e) => e.preventDefault()} onClick={next}>
             {last ? 'A  Terminer' : 'A  Suivant'}
           </button>
         </div>

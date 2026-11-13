@@ -42,7 +42,7 @@ npm run dev
 
 ## Premier démarrage
 
-Au premier lancement, un écran **Bienvenue** propose une visite guidée (flèches et bulles) : elle montre une tuile **« Cartouche vide »**, ton profil, les Paramètres, et comment quitter un jeu.
+Au premier lancement, un écran **Bienvenue** propose une visite guidée (flèches et bulles) : elle montre une tuile **« Cartouche vide »**, ton profil, les Paramètres, comment lancer un jeu prêt et comment quitter un jeu. Elle se mène à la souris, au clavier (Entrée pour continuer, Échap pour quitter) ou à la manette (Valider pour continuer, Retour pour revenir d'une étape). L'écran Bienvenue se commande aussi à la manette : flèches pour choisir un bouton, Valider pour l'activer.
 
 Les jeux livrés avec leur outil (Mario Kart World, Donkey Kong Bananza, Pokémon Pokopia, Zelda Ocarina of Time) sont déjà dans le menu avec la mention **« Cartouche vide »**. Sélectionne-en un et appuie sur **A** : une fenêtre te dit quoi apporter (ton propre fichier de jeu), te laisse le choisir, prépare le jeu et le rend jouable. Aucun jeu n'est fourni.
 
