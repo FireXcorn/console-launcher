@@ -33,6 +33,7 @@ import type {
 import { captureFileName, insideDir, isImageFile, listImageFiles } from './album'
 import { findAudioFile, isAudioName } from './audio'
 import { findBackdrop, findCover, missingEntries } from './catalog'
+import { findPrograms } from './importer'
 import { ConfigStore } from './config'
 import { Launcher } from './launcher'
 import { scanLibrary, type ScannedGame } from './library'
@@ -120,6 +121,24 @@ function unregisterCapture(): void {
   captureKeyRegistered = null
 }
 
+/** Pendant un jeu : Ctrl+Alt+Q l'arrête et ramène au menu (sur manette : Retour + Menu maintenus 2 s). */
+const STOP_KEY = 'CommandOrControl+Alt+Q'
+let stopKeyRegistered = false
+
+function registerStop(): void {
+  try {
+    stopKeyRegistered = globalShortcut.register(STOP_KEY, () => launcher.stop())
+  } catch (err) {
+    log("raccourci d'arrêt invalide", String(err))
+  }
+}
+
+function unregisterStop(): void {
+  if (!stopKeyRegistered) return
+  globalShortcut.unregister(STOP_KEY)
+  stopKeyRegistered = false
+}
+
 /** Le lanceur se retire seul si le jeu ne se signale pas : plus court pour un jeu émulé, qui charge vite. */
 const HIDE_FALLBACK_MS = 120_000
 const HIDE_FALLBACK_EMULATED_MS = 45_000
@@ -141,8 +160,10 @@ const launcher: Launcher = new Launcher(
     if (state.status === 'running') {
       session = { id: state.id, start: Date.now() }
       registerCapture()
+      registerStop()
     } else {
       unregisterCapture()
+      unregisterStop()
       if (session) {
         const seconds = Math.round((Date.now() - session.start) / 1000)
         if (seconds >= 5) addPlaytime(session.id, seconds)
@@ -549,6 +570,8 @@ function registerIpc(): void {
     return cfg
   })
   ipcMain.handle('library:scan', () => scan())
+  ipcMain.handle('library:findPrograms', (_e, dir: unknown) => (typeof dir === 'string' ? findPrograms(dir) : []))
+  ipcMain.handle('game:stop', () => launcher.stop())
   // Grande image de fond d'un jeu : celle choisie pour lui, sinon <titre>.jpg dans le dossier des fonds.
   ipcMain.handle('game:backdrop', (_e, id: unknown, title: unknown) => {
     if (typeof id !== 'string' || typeof title !== 'string') return null
@@ -678,6 +701,7 @@ if (!app.requestSingleInstanceLock()) {
     const data = app.getPath('userData')
     initLog(join(data, 'launcher.log'))
     store = new ConfigStore(join(data, 'config.json'))
+    if (store.recovery) log(store.recovery)
     log('démarrage', {
       version: app.getVersion(),
       exe: process.execPath,

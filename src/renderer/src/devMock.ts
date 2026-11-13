@@ -13,6 +13,8 @@ export function installDevMock(): void {
     activeTheme: 'clair',
     fullscreen: false,
     autoStart: false,
+    // Aperçu : `?welcome` montre l'assistant du premier lancement (aucun jeu, assistant jamais vu).
+    onboarded: !new URLSearchParams(location.search).has('welcome'),
     // Aperçu : `?plain` montre le mode « Sans thème ».
     gameBackdrop: !new URLSearchParams(location.search).has('plain'),
     backdropsDir: 'C:\\Images\\Fonds de jeux',
@@ -38,7 +40,8 @@ export function installDevMock(): void {
     lastPlayed: {}
   }
   let userThemes: Theme[] = []
-  const titles = ['Aventure des Cimes', 'Circuit Turbo', 'Royaume Perdu', 'Puzzle Lab', 'Étoiles', 'Kart Fiesta', 'Donjon 64']
+  const noGames = new URLSearchParams(location.search).has('welcome')
+  const titles = noGames ? [] : ['Aventure des Cimes', 'Circuit Turbo', 'Royaume Perdu', 'Puzzle Lab', 'Étoiles', 'Kart Fiesta', 'Donjon 64']
   const games: Game[] = titles.map((title, i) => ({
     id: `c:\\jeux\\${i}`,
     title,
@@ -50,7 +53,7 @@ export function installDevMock(): void {
     available: true
   }))
   // Quelques exclusivités « cartouche non insérée », comme le fait le vrai scan.
-  const missing = ['Mario Kart World', 'Donkey Kong Bananza', 'Kirby Air Riders', 'Splatoon Raiders', 'The Duskbloods']
+  const missing = noGames ? [] : ['Mario Kart World', 'Donkey Kong Bananza', 'Kirby Air Riders', 'Splatoon Raiders', 'The Duskbloods']
   missing.forEach((title) =>
     games.push({
       id: `catalog:${title.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
@@ -129,6 +132,12 @@ export function installDevMock(): void {
         reader.readAsDataURL(blob)
       })
     },
+    findPrograms: async () => [
+      { title: 'Super Aventure', exe: 'D:\\Jeux\\Super Aventure\\jeu.exe' },
+      { title: 'Circuit Turbo', exe: 'D:\\Jeux\\Circuit Turbo\\turbo.exe' },
+      { title: 'Puzzle Lab', exe: 'D:\\Jeux\\Puzzle Lab\\lab.exe' }
+    ],
+    stopGame: async () => console.info('[mock] arrêt du jeu'),
     power: async (action) => console.info('[mock] alimentation', action),
     profileImages: async () => ({}),
     // Faux personnages de l'utilisateur : des pastilles que je génère, aucune image réelle.

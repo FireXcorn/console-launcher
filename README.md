@@ -31,7 +31,10 @@ Le lanceur est **un menu** : il lance **tes** jeux. Il fonctionne avec :
 ## Fonctionnalités
 
 - **Accueil en plein écran** : rangée de jeux avec curseur animé, barre de dix icônes, horloge, Wi-Fi et batterie.
+- **Ajout de jeux depuis l'interface** : un bouton pour un jeu PC, un pour un jeu sur émulateur, et l'import d'un dossier entier ; un assistant au premier lancement.
 - **Jeux natifs** : un dossier de jeux analysé automatiquement, avec titres et images.
+- **Retour au menu depuis un jeu** : Ctrl+Alt+Q, ou Retour + Menu maintenus 2 secondes sur manette.
+- **Réglages protégés** : écriture sûre, copie de secours automatique, fichier abîmé mis de côté au lieu d'être écrasé.
 - **Jeux sur émulateur** : l'émulateur reste caché derrière un écran noir jusqu'à ce que le jeu tourne.
 - **Fenêtre du jeu à ton image** : titre du jeu et jaquette en icône (barre des tâches, Alt+Tab), jamais le nom de l'émulateur.
 - **Profils** : plusieurs utilisateurs, avec personnage, arrière-plan, pseudo et temps de jeu propres à chacun.

@@ -19,6 +19,12 @@ export interface Game {
   sourceTitle?: string
 }
 
+/** Un jeu trouvé dans un dossier par l'import : son titre et son programme. */
+export interface ProgramCandidate {
+  title: string
+  exe: string
+}
+
 export interface GameOverride {
   title?: string
   /** Chemin absolu d'une image choisie par l'utilisateur. */
@@ -93,6 +99,8 @@ export interface Config {
   activeTheme: string
   /** Lancer le lanceur à l'ouverture de session (Windows, macOS, Linux). */
   autoStart: boolean
+  /** L'assistant du premier lancement a été vu (ou n'est pas nécessaire). */
+  onboarded: boolean
   /** Fond animé : la jaquette du jeu sélectionné s'étire en bandes obliques derrière le menu. */
   gameBackdrop: boolean
   /** Dossier des grandes images de fond : une image par jeu, nommée comme le jeu. */
@@ -220,6 +228,10 @@ export interface Api {
   /** Ouvre une adresse https ou un réglage Windows autorisé. */
   openExternal(url: string): Promise<boolean>
   networkInfo(): Promise<NetworkInfo>
+  /** Jeux trouvés dans un dossier (un programme par sous-dossier). */
+  findPrograms(dir: string): Promise<ProgramCandidate[]>
+  /** Arrête le jeu en cours et revient au menu. */
+  stopGame(): Promise<void>
   /** Grande image de fond d'un jeu (URL data:), ou null s'il n'en a pas. */
   gameBackdrop(id: string, title: string): Promise<string | null>
   power(action: PowerAction): Promise<void>

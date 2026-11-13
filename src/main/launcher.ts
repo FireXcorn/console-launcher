@@ -336,8 +336,53 @@ export function startWindowDresser(
   return child
 }
 
+/**
+ * Surveille les manettes (XInput, lecture seule) : Retour (Back) et Menu (Start) maintenus ensemble pendant 2 secondes
+ * écrivent QUIT. Fonctionne même quand la fenêtre du lanceur est cachée, ce que l'API manette du navigateur ne permet pas.
+ */
+const QUIT_WATCHER_SCRIPT = String.raw`Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class XI {
+  [StructLayout(LayoutKind.Sequential)] public struct GP { public ushort Buttons; public byte LT, RT; public short LX, LY, RX, RY; }
+  [StructLayout(LayoutKind.Sequential)] public struct ST { public uint Packet; public GP Pad; }
+  [DllImport("xinput1_4.dll")] static extern uint XInputGetState(uint i, out ST s);
+  public static bool Combo() {
+    for (uint i = 0; i < 4; i++) {
+      ST s;
+      if (XInputGetState(i, out s) == 0 && (s.Pad.Buttons & 0x30) == 0x30) return true;
+    }
+    return false;
+  }
+}
+'@
+$held = $null
+while ($true) {
+  $on = $false
+  try { $on = [XI]::Combo() } catch { }
+  if ($on) {
+    if ($null -eq $held) { $held = Get-Date }
+    elseif (((Get-Date) - $held).TotalSeconds -ge 2) { Write-Output 'QUIT'; $held = $null; Start-Sleep -Seconds 4 }
+  } else { $held = $null }
+  Start-Sleep -Milliseconds 100
+}
+`
+
+/** Arrête tout ce qui tourne dans le dossier du jeu. */
+function killProcessesUnder(dir: string): Promise<void> {
+  return new Promise((resolve) => {
+    execFile(
+      'powershell.exe',
+      ['-NoProfile', '-NonInteractive', '-EncodedCommand', encode(UNDER_DIR + 'Get-GameProcs | Stop-Process -Force -ErrorAction SilentlyContinue')],
+      { env: { ...process.env, CL_DIR: dir }, windowsHide: true },
+      () => resolve()
+    )
+  })
+}
+
 export class Launcher {
   private running: string | null = null
+  private stopCurrent: (() => void) | null = null
 
   /** `onWindowReady` : le jeu est affiché ; `onLog` : traces du suivi, pour le journal du lanceur. */
   constructor(
@@ -348,6 +393,11 @@ export class Launcher {
 
   get isRunning(): boolean {
     return this.running !== null
+  }
+
+  /** Arrête le jeu en cours (et tout ce qui tourne dans son dossier) : le lanceur revient au menu. */
+  stop(): void {
+    this.stopCurrent?.()
   }
 
   /** `iconPng` : image carrée (PNG) à donner à la fenêtre du jeu, ou null. */
@@ -364,10 +414,13 @@ export class Launcher {
     const started = Date.now()
     let settled = false
     let dresser: ChildProcess | null = null
+    let quitWatcher: ChildProcess | null = null
     const finish = (state: GameState): void => {
       if (settled) return
       settled = true
       dresser?.kill()
+      quitWatcher?.kill()
+      this.stopCurrent = null
       this.running = null
       this.emit(state)
     }
@@ -385,6 +438,20 @@ export class Launcher {
     )
     dresser.once('error', () => {
       // La surveillance de la fenêtre est facultative : le jeu tourne quand même.
+    })
+    // Combinaison manette (Retour + Menu, 2 s) : même effet que l'arrêt demandé par le lanceur.
+    quitWatcher = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', encode(QUIT_WATCHER_SCRIPT)], {
+      windowsHide: true,
+      stdio: ['ignore', 'pipe', 'ignore']
+    })
+    quitWatcher.once('error', () => undefined)
+    this.stopCurrent = () => {
+      this.onLog('arrêt du jeu demandé')
+      child.kill()
+      void killProcessesUnder(game.dir)
+    }
+    quitWatcher.stdout?.on('data', (chunk: Buffer) => {
+      if (String(chunk).includes('QUIT')) this.stopCurrent?.()
     })
     child.once('error', (err) => {
       finish({ status: 'error', id: game.id, message: `Lancement impossible : ${err.message}` })

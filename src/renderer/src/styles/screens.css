@@ -1645,3 +1645,52 @@ kbd {
   margin-top: calc(var(--u) * 0.8);
   color: var(--text-dim);
 }
+
+/* ---------- Assistant du premier lancement ---------- */
+
+.welcome {
+  max-width: calc(var(--u) * 70);
+  margin: 0 auto;
+  padding: calc(var(--u) * 2) calc(var(--u) * 4);
+  font-size: calc(var(--u) * 2.1);
+  line-height: 1.5;
+}
+
+.welcome-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--u) * 1.4);
+  margin: calc(var(--u) * 3) 0;
+}
+
+.welcome-hint {
+  display: block;
+  color: var(--text-dim);
+  font-size: calc(var(--u) * 1.6);
+}
+
+.welcome-actions button {
+  padding: calc(var(--u) * 1) calc(var(--u) * 2.2);
+  font: inherit;
+  font-size: calc(var(--u) * 1.9);
+  border: 0;
+  border-radius: calc(var(--u) * 3);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 calc(var(--u) * 0.1) calc(var(--u) * 0.5) var(--shadow);
+  cursor: pointer;
+}
+
+.welcome-actions button.primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.welcome-actions button:focus-visible {
+  outline: calc(var(--u) * 0.3) solid var(--accent);
+  outline-offset: calc(var(--u) * 0.3);
+}
+
+.field-row.wrap {
+  flex-wrap: wrap;
+}

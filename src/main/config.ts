@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'fs'
 import { homedir } from 'os'
 import { dirname, join } from 'path'
 import type { Config, Profile } from '../shared/types'
@@ -86,6 +86,7 @@ export function defaultConfig(): Config {
     activeTheme: 'clair',
     fullscreen: true,
     autoStart: false,
+    onboarded: false,
     gameBackdrop: true,
     backdropsDir: join(homedir(), 'Pictures', 'Fonds de jeux'),
     swapConfirm: false,
@@ -108,23 +109,57 @@ export function defaultConfig(): Config {
   }
 }
 
+/** Texte JSON d'un fichier de réglages : le caractère invisible (BOM) que certains éditeurs ajoutent est ignoré. */
+export function parseConfigText(text: string): Record<string, unknown> | null {
+  try {
+    const raw = JSON.parse(text.replace(/^\uFEFF/, ''))
+    return raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : null
+  } catch {
+    return null
+  }
+}
+
 export class ConfigStore {
   private data: Config
+  /** Ce qui s'est passé à la lecture, si le fichier n'était pas utilisable (affiché dans le journal). */
+  recovery: string | null = null
 
   constructor(private file: string) {
     this.data = defaultConfig()
-    try {
-      const raw = JSON.parse(readFileSync(file, 'utf8'))
-      if (raw && typeof raw === 'object') {
-        const merged = { ...this.data, ...raw, ...normalizeProfiles(raw) }
-        delete (merged as Record<string, unknown>).profile // ancien profil unique, migré dans `profiles`
-        // Avant les thèmes, seul « clair / sombre » existait : on le retrouve comme thème actif.
-        if (typeof raw.activeTheme !== 'string') merged.activeTheme = raw.theme === 'dark' ? 'sombre' : 'clair'
-        this.data = merged as Config
+    const raw = this.read()
+    if (raw) {
+      const merged = { ...this.data, ...raw, ...normalizeProfiles(raw) }
+      delete (merged as Record<string, unknown>).profile // ancien profil unique, migré dans `profiles`
+      // Avant les thèmes, seul « clair / sombre » existait : on le retrouve comme thème actif.
+      if (typeof raw.activeTheme !== 'string') merged.activeTheme = raw.theme === 'dark' ? 'sombre' : 'clair'
+      // Une configuration d'avant l'assistant de premier lancement, qui a déjà des jeux, n'a pas besoin de l'assistant.
+      if (typeof raw.onboarded !== 'boolean') {
+        const hasGames = (typeof raw.gamesDir === 'string' && raw.gamesDir !== '' && !!raw.launchExe) || (Array.isArray(raw.emulated) && raw.emulated.length > 0)
+        merged.onboarded = hasGames
       }
-    } catch {
-      // Fichier absent ou illisible : on garde les valeurs par défaut.
+      this.data = merged as Config
     }
+  }
+
+  /**
+   * Lit les réglages. Un fichier illisible n'est jamais écrasé en silence : il est mis de côté
+   * (`config.json.casse-…`) et la dernière copie de secours (`config.json.bak`) est reprise si elle est valide.
+   */
+  private read(): Record<string, unknown> | null {
+    if (!existsSync(this.file)) return null
+    const raw = parseConfigText(readFileSync(this.file, 'utf8'))
+    if (raw) return raw
+    try {
+      copyFileSync(this.file, `${this.file}.casse-${Date.now()}`)
+    } catch {
+      // Impossible de garder une copie : on continue quand même.
+    }
+    const backup = `${this.file}.bak`
+    const fromBackup = existsSync(backup) ? parseConfigText(readFileSync(backup, 'utf8')) : null
+    this.recovery = fromBackup
+      ? 'config.json illisible : copie de secours reprise (le fichier abîmé est gardé à côté).'
+      : 'config.json illisible : réglages par défaut (le fichier abîmé est gardé à côté).'
+    return fromBackup
   }
 
   get(): Config {
@@ -134,7 +169,12 @@ export class ConfigStore {
   set(patch: Partial<Config>): Config {
     this.data = { ...this.data, ...patch }
     mkdirSync(dirname(this.file), { recursive: true })
-    writeFileSync(this.file, JSON.stringify(this.data, null, 2), 'utf8')
+    // Copie de secours de l'état précédent, puis écriture complète dans un fichier voisin et remplacement :
+    // une coupure en pleine écriture ne laisse jamais un fichier à moitié écrit.
+    if (existsSync(this.file) && parseConfigText(readFileSync(this.file, 'utf8'))) copyFileSync(this.file, `${this.file}.bak`)
+    const tmp = `${this.file}.tmp`
+    writeFileSync(tmp, JSON.stringify(this.data, null, 2), 'utf8')
+    renameSync(tmp, this.file)
     return this.data
   }
 }

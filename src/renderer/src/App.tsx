@@ -21,6 +21,7 @@ import EditNameScreen from './screens/EditName'
 import MyPageScreen from './screens/MyPage'
 import ProfilePicker from './screens/ProfilePicker'
 import UserSettingsScreen from './screens/UserSettings'
+import Welcome from './screens/Welcome'
 import SettingsScreen from './screens/Settings'
 import VirtualCardScreen from './screens/VirtualCard'
 
@@ -76,6 +77,8 @@ export default function App(): JSX.Element | null {
   const [origin, setOrigin] = useState<UserOrigin>('mypage')
   const askedProfile = useRef(false)
   const [notice, setNotice] = useState<Notice | null>(null)
+  const [scanned, setScanned] = useState(false)
+  const [settingsStart, setSettingsStart] = useState<string | undefined>(undefined)
   const [running, setRunning] = useState(false)
   const [launchingId, setLaunchingId] = useState<string | null>(null)
   const launchTimer = useRef<number | undefined>(undefined)
@@ -99,6 +102,7 @@ export default function App(): JSX.Element | null {
   const rescan = useCallback(async () => {
     const list = await window.api.scan()
     setGames(list)
+    setScanned(true)
     setFocus((f) => ({
       ...f,
       row: list.length === 0 && f.row === 'games' ? 'dock' : f.row,
@@ -390,6 +394,29 @@ export default function App(): JSX.Element | null {
         </div>
       )}
 
+      {screen === 'home' && scanned && !config.onboarded && !games.some((g) => g.available) && (
+        <Welcome
+          onImport={async () => {
+            const dir = await window.api.pickFolder()
+            if (!dir) return 0
+            const known = new Set(config.emulated.map((g) => g.emulatorExe.toLowerCase()))
+            const found = (await window.api.findPrograms(dir)).filter((c) => !known.has(c.exe.toLowerCase()))
+            if (found.length === 0) return 0
+            await updateConfig({
+              onboarded: true,
+              emulated: [...config.emulated, ...found.map((c) => ({ title: c.title, emulatorExe: c.exe, gameFile: '', args: [], readyTitle: '' }))]
+            })
+            await rescan()
+            return found.length
+          }}
+          onManual={() => {
+            void updateConfig({ onboarded: true })
+            setSettingsStart('emulator')
+            setScreen('settings')
+          }}
+          onLater={() => void updateConfig({ onboarded: true })}
+        />
+      )}
       {screen === 'album' && <AlbumScreen config={config} onBack={back} />}
       {screen === 'news' && <NewsScreen onBack={back} />}
       {screen === 'mypage' && editing && (
@@ -484,6 +511,7 @@ export default function App(): JSX.Element | null {
       )}
       {screen === 'settings' && (
         <SettingsScreen
+          startCategory={settingsStart}
           config={config}
           games={games}
           art={profileArt}

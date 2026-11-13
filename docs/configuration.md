@@ -45,6 +45,7 @@ Voir [Émulateurs](emulateurs.md).
 | `theme` | `light` / `dark` | Jeu de couleurs du thème actif (tenu à jour automatiquement). |
 | `fullscreen` | oui/non | Plein écran. |
 | `autoStart` | oui/non | Lance le lanceur à l'ouverture de session (application construite uniquement). |
+| `onboarded` | oui/non | L'assistant du premier lancement a été vu. Mettre `false` le fait réapparaître (s'il n'y a aucun jeu). |
 | `gameBackdrop` | oui/non | Fond du jeu sélectionné : sa grande image sur tout l'écran derrière le menu (oui par défaut ; un jeu sans grande image n'a pas de fond). |
 | `backdropsDir` | texte | Dossier des grandes images de fond (une image par jeu, nommée comme lui). |
 | `appTitle` | texte | Titre de la fenêtre. |

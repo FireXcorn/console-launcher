@@ -4,6 +4,16 @@
 
 Un jeu « natif » est un programme PC (`.exe`) que le lanceur démarre directement.
 
+## Le plus simple : l'écran « Ajouter des jeux »
+
+*Paramètres de la console → Ajouter des jeux* (et l'assistant qui s'affiche au premier lancement) propose trois boutons :
+
+- **Ajouter un jeu PC…** : tu choisis le programme (.exe) du jeu, c'est tout. Le titre est proposé d'après le nom du fichier.
+- **Ajouter un jeu sur émulateur…** : tu choisis le programme de l'émulateur, puis le fichier du jeu.
+- **Importer un dossier de jeux…** : le lanceur cherche un programme par sous-dossier (il écarte désinstalleurs, installeurs et rapporteurs d'erreurs), te montre la liste, et tu ajoutes la sélection.
+
+Chaque jeu ajouté se règle ensuite dans la même page : titre, arguments, et titre de la fenêtre du jeu (avancé). Les sections suivantes expliquent l'autre méthode, par dossier unique, et restent valables.
+
 ## Le principe
 
 Le lanceur analyse **un dossier** : le dossier lui-même et **chacun de ses sous-dossiers directs**. Dans chacun, il cherche **le même nom de programme** (par exemple `jeu.exe`). Quand il le trouve, le dossier devient une tuile.

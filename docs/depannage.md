@@ -32,9 +32,11 @@
 | Le menu est trop clair / trop sombre | *Paramètres → Thèmes*. |
 | Plus de son | *Paramètres → Son* : volumes et « Couper tous les sons ». |
 | La manette ne répond pas | Appuie sur un bouton pour la réveiller. Si A et B sont inversés, active *Paramètres → Manettes → Valider avec le bouton de droite*. |
+| Je veux quitter un jeu qui ne répond pas | `Ctrl+Alt+Q` ferme le jeu et ramène au menu. Sur manette : maintiens `Retour` et `Menu` ensemble 2 secondes. |
 | Le lanceur démarre avec la session alors que je ne le veux pas | Décoche *Écran → Lancer au démarrage de la session*. |
 | Un réglage est cassé | Ferme le lanceur, renomme `config.json` : au prochain démarrage, les valeurs par défaut reviennent. |
-| Mes réglages sont revenus à zéro après avoir modifié `config.json` à la main | Enregistre le fichier en **UTF-8 sans BOM** (certains éditeurs et commandes ajoutent un caractère invisible en tête de fichier, que le lanceur ne sait pas lire), et **ferme le lanceur** avant de le modifier. |
+| Le lanceur a dit que `config.json` était illisible | Rien n'est perdu : le fichier abîmé est gardé à côté (`config.json.casse-…`) et la dernière copie de secours (`config.json.bak`) est reprise si elle est valide. Le journal `launcher.log` le précise. |
+| Mes réglages sont revenus à zéro après avoir modifié `config.json` à la main | Le fichier doit rester du JSON valide (une virgule oubliée suffit à le rendre illisible : dans ce cas, voir la ligne précédente). Ferme le **lanceur** avant de le modifier, sinon il réécrit ses réglages à sa fermeture. Le caractère invisible (BOM) ajouté par certains éditeurs est maintenant accepté. |
 
 ## Le journal
 

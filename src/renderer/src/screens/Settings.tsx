@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import type { Config, EmulatedGame, Game, GameOverride, ProfileArt } from '../../../shared/types'
+import type { Config, EmulatedGame, Game, GameOverride, ProfileArt, ProgramCandidate } from '../../../shared/types'
 import { engine } from '../audio/engine'
 import { useMoveSound } from '../audio/useSound'
 import Avatar from '../components/Avatar'
@@ -21,7 +21,7 @@ function formatArgs(args: string[]): string {
 const CATEGORIES = [
   { id: 'users', label: 'Utilisateurs' },
   { id: 'library', label: 'Bibliothèque' },
-  { id: 'emulator', label: 'Jeux sur émulateur' },
+  { id: 'emulator', label: 'Ajouter des jeux' },
   { id: 'themes', label: 'Thèmes' },
   { id: 'display', label: 'Écran' },
   { id: 'sound', label: 'Son' },
@@ -41,14 +41,16 @@ interface Props {
   /** Ouvre les paramètres d'un utilisateur (les réglages en cours sont enregistrés avant). */
   onOpenUser: (id: string) => void
   onBack: () => void
+  /** Catégorie ouverte au départ (identifiant), par exemple « emulator » pour ajouter des jeux. */
+  startCategory?: string
 }
 
 /**
  * « Paramètres de la console » : catégories à gauche, réglages à droite. Comme sur la console, les
  * changements sont appliqués en quittant l'écran.
  */
-export default function SettingsScreen({ config, games, art, onSave, onRescan, onOpenUser, onBack }: Props): JSX.Element {
-  const [cat, setCat] = useState(0)
+export default function SettingsScreen({ config, games, art, onSave, onRescan, onOpenUser, onBack, startCategory }: Props): JSX.Element {
+  const [cat, setCat] = useState(() => Math.max(0, CATEGORIES.findIndex((c) => c.id === startCategory)))
   const paneRef = useRef<HTMLDivElement>(null)
 
   const [gamesDir, setGamesDir] = useState(config.gamesDir)
@@ -76,6 +78,46 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
   const [emulated, setEmulated] = useState<EmuDraft[]>(config.emulated.map((g) => ({ ...g, args: formatArgs(g.args) })))
   const [charactersDir, setCharactersDir] = useState(config.charactersDir)
   useMoveSound(cat)
+
+  const [candidates, setCandidates] = useState<(ProgramCandidate & { on: boolean })[] | null>(null)
+  const [importNote, setImportNote] = useState('')
+
+  /** Titre proposé pour un fichier : son nom sans extension ni signes de séparation. */
+  const titleFromPath = (path: string): string => {
+    const name = (path.split(/[\\/]/).pop() ?? path).replace(/\.[^.]+$/, '')
+    return name.replace(/\[[^\]]*\]|\([^)]*\)/g, ' ').replace(/[_.]+/g, ' ').replace(/\s+/g, ' ').trim() || name
+  }
+
+  const addPcGame = async (): Promise<void> => {
+    const exe = await window.api.pickFile()
+    if (!exe) return
+    setEmulated((list) => [...list, { title: titleFromPath(exe), emulatorExe: exe, gameFile: '', args: '', readyTitle: '' }])
+  }
+
+  const addEmulatedGame = async (): Promise<void> => {
+    const emulator = await window.api.pickFile()
+    if (!emulator) return
+    const game = await window.api.pickFile()
+    setEmulated((list) => [
+      ...list,
+      { title: game ? titleFromPath(game) : '', emulatorExe: emulator, gameFile: game ?? '', args: '-f -g {game}', readyTitle: '' }
+    ])
+  }
+
+  const importFolder = async (): Promise<void> => {
+    const dir = await window.api.pickFolder()
+    if (!dir) return
+    const known = new Set(emulated.map((g) => g.emulatorExe.toLowerCase()))
+    const found = (await window.api.findPrograms(dir)).filter((c) => !known.has(c.exe.toLowerCase()))
+    setImportNote('Aucun nouveau jeu trouvé dans ce dossier (un programme par sous-dossier est cherché).')
+    setCandidates(found.map((c) => ({ ...c, on: true })))
+  }
+
+  const addCandidates = (): void => {
+    const chosen = (candidates ?? []).filter((c) => c.on)
+    setEmulated((list) => [...list, ...chosen.map((c) => ({ title: c.title, emulatorExe: c.exe, gameFile: '', args: '', readyTitle: '' }))])
+    setCandidates(null)
+  }
 
   const patchEmu = (i: number, patch: Partial<EmuDraft>): void =>
     setEmulated((list) => list.map((g, j) => (j === i ? { ...g, ...patch } : g)))
@@ -250,42 +292,82 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
       case 'emulator':
         return (
           <>
-            {emulated.length === 0 && <p className="settings-note">Aucun jeu sur émulateur pour l’instant.</p>}
-            {emulated.map((g, i) => (
-              <div className="emu-card" key={i}>
-                <label className="field">
-                  <span>Titre du jeu</span>
-                  <input value={g.title} onChange={(e) => patchEmu(i, { title: e.target.value })} />
-                </label>
-                <label className="field">
-                  <span>Programme de l’émulateur</span>
-                  <div className="field-row">
-                    <input value={g.emulatorExe} onChange={(e) => patchEmu(i, { emulatorExe: e.target.value })} />
-                    <button onClick={() => pickInto(i, 'emulatorExe')}>Parcourir…</button>
-                  </div>
-                </label>
-                <label className="field">
-                  <span>Fichier du jeu (vide pour un jeu recompilé, lancé seul)</span>
-                  <div className="field-row">
-                    <input value={g.gameFile} onChange={(e) => patchEmu(i, { gameFile: e.target.value })} />
-                    <button onClick={() => pickInto(i, 'gameFile')}>Parcourir…</button>
-                  </div>
-                </label>
-                <label className="field">
-                  <span>Arguments</span>
-                  <input value={g.args} onChange={(e) => patchEmu(i, { args: e.target.value })} />
-                  <small>{'{game}'} = fichier du jeu. L’émulateur reste caché derrière un écran noir jusqu’au jeu.</small>
-                </label>
-                <button onClick={() => setEmulated((list) => list.filter((_, j) => j !== i))}>Retirer ce jeu</button>
+            <p className="settings-note">
+              Ajoute un jeu en choisissant son programme. Pour un jeu sur émulateur, choisis aussi le fichier du jeu. Tu peux aussi
+              importer d’un coup tous les jeux d’un dossier.
+            </p>
+            <div className="field-row wrap">
+              <button className="primary" onClick={() => void addPcGame()}>
+                Ajouter un jeu PC…
+              </button>
+              <button onClick={() => void addEmulatedGame()}>Ajouter un jeu sur émulateur…</button>
+              <button onClick={() => void importFolder()}>Importer un dossier de jeux…</button>
+            </div>
+
+            {candidates && (
+              <div className="emu-card">
+                <h3>Jeux trouvés</h3>
+                {candidates.length === 0 && <p className="settings-note">{importNote}</p>}
+                {candidates.map((c, i) => (
+                  <label key={c.exe} className="check">
+                    <input
+                      type="checkbox"
+                      checked={c.on}
+                      onChange={(e) => setCandidates((list) => (list ?? []).map((x, j) => (j === i ? { ...x, on: e.target.checked } : x)))}
+                    />
+                    {c.title} <small>{c.exe}</small>
+                  </label>
+                ))}
+                <div className="field-row">
+                  {candidates.some((c) => c.on) && <button className="primary" onClick={addCandidates}>Ajouter la sélection</button>}
+                  <button onClick={() => setCandidates(null)}>Fermer</button>
+                </div>
               </div>
-            ))}
-            <button
-              onClick={() =>
-                setEmulated((list) => [...list, { title: '', emulatorExe: '', gameFile: '', args: '-f -g {game}', readyTitle: '' }])
-              }
-            >
-              Ajouter un jeu sur émulateur
-            </button>
+            )}
+
+            {emulated.length === 0 && !candidates && <p className="settings-note">Aucun jeu ajouté à la main pour l’instant.</p>}
+            {emulated.map((g, i) => {
+              const withFile = g.gameFile.trim() !== '' || g.args.includes('{game}')
+              return (
+                <div className="emu-card" key={i}>
+                  <label className="field">
+                    <span>Titre du jeu</span>
+                    <input value={g.title} onChange={(e) => patchEmu(i, { title: e.target.value })} />
+                  </label>
+                  <label className="field">
+                    <span>{withFile ? 'Programme de l’émulateur' : 'Programme du jeu'}</span>
+                    <div className="field-row">
+                      <input value={g.emulatorExe} onChange={(e) => patchEmu(i, { emulatorExe: e.target.value })} />
+                      <button onClick={() => pickInto(i, 'emulatorExe')}>Parcourir…</button>
+                    </div>
+                  </label>
+                  {withFile && (
+                    <label className="field">
+                      <span>Fichier du jeu</span>
+                      <div className="field-row">
+                        <input value={g.gameFile} onChange={(e) => patchEmu(i, { gameFile: e.target.value })} />
+                        <button onClick={() => pickInto(i, 'gameFile')}>Parcourir…</button>
+                      </div>
+                    </label>
+                  )}
+                  <label className="field">
+                    <span>Arguments</span>
+                    <input value={g.args} onChange={(e) => patchEmu(i, { args: e.target.value })} />
+                    <small>
+                      {withFile
+                        ? '{game} = fichier du jeu. L’émulateur reste caché derrière un écran noir jusqu’au jeu.'
+                        : 'Laisse vide si tu n’es pas sûr : un programme qui ne connaît pas une option s’arrête.'}
+                    </small>
+                  </label>
+                  <label className="field">
+                    <span>Titre de la fenêtre du jeu (avancé)</span>
+                    <input value={g.readyTitle} onChange={(e) => patchEmu(i, { readyTitle: e.target.value })} />
+                    <small>Une expression qui reconnaît la fenêtre du jeu : l’écran noir part dès qu’elle apparaît.</small>
+                  </label>
+                  <button onClick={() => setEmulated((list) => list.filter((_, j) => j !== i))}>Retirer ce jeu</button>
+                </div>
+              )
+            })}
           </>
         )
       case 'themes':
