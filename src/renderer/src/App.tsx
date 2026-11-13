@@ -22,6 +22,8 @@ import MyPageScreen from './screens/MyPage'
 import ProfilePicker from './screens/ProfilePicker'
 import UserSettingsScreen from './screens/UserSettings'
 import Welcome from './screens/Welcome'
+import RecipeGuide from './components/RecipeGuide'
+import Tour from './components/Tour'
 import SettingsScreen from './screens/Settings'
 import VirtualCardScreen from './screens/VirtualCard'
 
@@ -77,6 +79,8 @@ export default function App(): JSX.Element | null {
   const [origin, setOrigin] = useState<UserOrigin>('mypage')
   const askedProfile = useRef(false)
   const [notice, setNotice] = useState<Notice | null>(null)
+  /** Jeu livré avec son outil dont on ajoute la cartouche (fenêtre guide). */
+  const [guideGame, setGuideGame] = useState<{ recipeId: string; title: string } | null>(null)
   const [scanned, setScanned] = useState(false)
   const [settingsStart, setSettingsStart] = useState<string | undefined>(undefined)
   const [running, setRunning] = useState(false)
@@ -202,6 +206,12 @@ export default function App(): JSX.Element | null {
       if (!game || launchingId) return
       setFocus((f) => ({ ...f, row: 'games', game: index }))
       if (!game.available) {
+        // Jeu livré avec son outil : la fenêtre guide explique quoi apporter.
+        if (game.recipeId) {
+          engine.play('ouvrir')
+          setGuideGame({ recipeId: game.recipeId, title: game.title })
+          return
+        }
         // Exclusivité du catalogue : comme une cartouche absente, on ne démarre rien.
         engine.play('refuser')
         setNotice({
@@ -394,7 +404,7 @@ export default function App(): JSX.Element | null {
         </div>
       )}
 
-      {screen === 'home' && scanned && !config.onboarded && !games.some((g) => g.available) && (
+      {screen === 'home' && scanned && !config.onboarded && (
         <Welcome
           onImport={async () => {
             const dir = await window.api.pickFolder()
@@ -409,13 +419,13 @@ export default function App(): JSX.Element | null {
             await rescan()
             return found.length
           }}
-          onManual={() => {
-            void updateConfig({ onboarded: true })
-            setSettingsStart('emulator')
-            setScreen('settings')
-          }}
-          onLater={() => void updateConfig({ onboarded: true })}
+          onTour={() => void updateConfig({ onboarded: true })}
+          onLater={() => void updateConfig({ onboarded: true, tourDone: true })}
         />
+      )}
+
+      {screen === 'home' && scanned && config.onboarded && !config.tourDone && !guideGame && !notice && (
+        <Tour onDone={() => void updateConfig({ tourDone: true })} />
       )}
       {screen === 'album' && <AlbumScreen config={config} onBack={back} />}
       {screen === 'news' && <NewsScreen onBack={back} />}
@@ -542,6 +552,15 @@ export default function App(): JSX.Element | null {
             await rescan()
           }}
           onClose={() => setOptionsId(null)}
+        />
+      )}
+
+      {guideGame && (
+        <RecipeGuide
+          recipeId={guideGame.recipeId}
+          title={guideGame.title}
+          onReady={() => void rescan()}
+          onClose={() => setGuideGame(null)}
         />
       )}
 

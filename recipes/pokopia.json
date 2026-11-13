@@ -17,5 +17,6 @@
   "doneFile": "pkp.exe",
   "saves": [
     "save"
-  ]
+  ],
+  "guide": "Prépare le jeu avec ton dossier de dump (base et mises à jour)."
 }

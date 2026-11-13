@@ -36,6 +36,8 @@ export interface Recipe {
   setup?: { mode?: 'gui' | 'cli'; exe: string; args?: string[]; note?: string }
   /** Fichier (relatif au dossier du jeu) dont la présence prouve que la préparation est faite. */
   doneFile?: string
+  /** Phrase affichée dans la fenêtre « Il manque ta cartouche » : ce que l'utilisateur doit apporter. */
+  guide?: string
   /** Dossiers de sauvegarde du jeu (relatifs à son dossier, ou avec {appdata}) : séparés par profil. */
   saves?: string[]
 }
@@ -81,7 +83,7 @@ export function gameBase(r: Recipe, paths: RecipePaths, inputs: RecipeInputs): s
 /** État d'une recette : outil présent ? entrées données ? préparation faite ? */
 export function recipeInfo(r: Recipe, paths: RecipePaths, inputs: RecipeInputs, exists: Exists = existsSync): RecipeInfo {
   const given = inputs[r.id] ?? {}
-  const base = { id: r.id, title: r.title, needs: r.needs ?? [], inputs: given, note: r.setup?.note ?? '', hasSetup: !!r.setup, cli: r.setup?.mode === 'cli' }
+  const base = { id: r.id, title: r.title, needs: r.needs ?? [], inputs: given, note: r.setup?.note ?? '', guide: r.guide ?? '', hasSetup: !!r.setup, cli: r.setup?.mode === 'cli' }
   // Le programme qui prépare (ou, sans préparation, qui lance) le jeu doit être dans le dossier de l'outil.
   if (!exists(join(paths.toolsDir, r.tool, r.setup?.exe ?? r.exe))) return { ...base, state: 'no-tool' }
   // Les entrées servant à la préparation (fichier de jeu…) d'abord ; le dossier de sortie indiqué par l'utilisateur ensuite.

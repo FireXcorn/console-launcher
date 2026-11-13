@@ -298,8 +298,32 @@ function toGame(g: ScannedGame): Game {
 /** Exclusivités Switch 2 absentes de la bibliothèque : affichées, jamais lançables. */
 function missingGames(installed: Game[]): Game[] {
   const cfg = store.get()
-  if (!cfg.showMissingGames) return []
-  return missingEntries(installed.map((g) => g.title)).map(({ id, title }) => {
+  // Jeux livrés avec leur outil mais pas encore prêts : une « cartouche vide » où l'on peut ajouter son fichier.
+  const have = new Set(installed.map((g) => emulatedId(g.title)))
+  const pending = recipeList().filter((r) => r.state !== 'ready' && !have.has(emulatedId(r.title)))
+  const pendingTiles: Game[] = pending.map((r) => {
+    const id = 'recipe:' + r.id
+    const override = cfg.overrides[id]
+    const cover = override?.icon && existsSync(override.icon) ? override.icon : findCover(cfg.coversDir, r.title)
+    return {
+      id,
+      title: override?.title?.trim() || r.title,
+      dir: '',
+      exe: '',
+      args: [],
+      icon: cover ? imageDataUrl(cover) : null,
+      lastPlayed: 0,
+      available: false,
+      recipeId: r.id
+    }
+  })
+  const taken = [...installed.map((g) => g.title), ...pending.map((r) => r.title)]
+  return [...pendingTiles, ...(cfg.showMissingGames ? catalogMissing(taken) : [])]
+}
+
+function catalogMissing(taken: string[]): Game[] {
+  const cfg = store.get()
+  return missingEntries(taken).map(({ id, title }) => {
     const override = cfg.overrides[id]
     const shown = override?.title?.trim() || title
     const cover = override?.icon && existsSync(override.icon) ? override.icon : findCover(cfg.coversDir, title)

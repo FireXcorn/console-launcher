@@ -17,6 +17,8 @@ export interface Game {
   emulated?: boolean
   /** Titre d'origine de l'entrée dans « jeux sur émulateur » (le titre affiché peut être renommé). */
   sourceTitle?: string
+  /** Jeu livré avec son outil, pas encore prêt : « cartouche vide » dont l'utilisateur peut ajouter le fichier. */
+  recipeId?: string
 }
 
 /** Un jeu trouvé dans un dossier par l'import : son titre et son programme. */
@@ -103,6 +105,8 @@ export interface RecipeInfo {
   needs: RecipeNeed[]
   inputs: Record<string, string>
   note: string
+  /** Ce que l'utilisateur doit apporter, en une phrase (fenêtre « Il manque ta cartouche »). */
+  guide: string
   hasSetup: boolean
   /** Préparation faite par le lanceur lui-même (avec progression), plutôt que dans la fenêtre de l'outil. */
   cli: boolean
@@ -182,6 +186,8 @@ export interface Config {
   recipeInputs: Record<string, Record<string, string>>
   /** Affiche les réglages avancés dans les Paramètres (arguments, noms de fenêtre, etc.). */
   showAdvanced: boolean
+  /** Vrai une fois la visite guidée du premier lancement terminée ou passée. */
+  tourDone: boolean
 }
 
 export type GameState =

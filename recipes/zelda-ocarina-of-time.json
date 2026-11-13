@@ -20,5 +20,6 @@
   "doneFile": "bin/hookshot.exe",
   "saves": [
     "user/save"
-  ]
+  ],
+  "guide": "Construis le jeu avec ton fichier (.nup), puis indique le dossier obtenu."
 }

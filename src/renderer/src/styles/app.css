@@ -831,19 +831,6 @@ body {
   letter-spacing: 0;
 }
 
-/* Le pourcentage n'apparaît que lorsque la zone est sélectionnée. */
-.battery-pct {
-  display: none;
-  white-space: nowrap;
-  font-size: calc(var(--u) * 2.1);
-  font-weight: 600;
-  letter-spacing: 0;
-}
-
-.status.focused .battery-pct {
-  display: inline;
-}
-
 .battery-body.charging .battery-fill {
   background: #3fa34d;
 }

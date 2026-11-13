@@ -35,5 +35,6 @@
     "profile/save",
     "profile/save-backup",
     "profile/save-tx"
-  ]
+  ],
+  "guide": "Ajoute ton fichier du jeu (.nup)."
 }

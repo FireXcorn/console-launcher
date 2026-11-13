@@ -33,6 +33,8 @@ export function installDevMock(): void {
     ],
     recipeInputs: {},
     showAdvanced: new URLSearchParams(location.search).has('advanced'),
+    // Aperçu : `?tour` lance la visite guidée.
+    tourDone: !new URLSearchParams(location.search).has('tour'),
     showMissingGames: true,
     coversDir: 'C:\\Images\\Jaquettes',
     audioDir: 'C:\\Musique\\Console Launcher',
@@ -67,7 +69,8 @@ export function installDevMock(): void {
       args: [],
       icon: null,
       lastPlayed: 0,
-      available: false
+      available: false,
+      recipeId: ({ 'Mario Kart World': 'a', 'Donkey Kong Bananza': 'd' } as Record<string, string>)[title]
     })
   )
 
@@ -96,10 +99,10 @@ export function installDevMock(): void {
 
   // Aperçu des jeux « à préparer » : un prêt, un qui attend son fichier, un qui attend sa préparation, un sans outil.
   const mockRecipes: RecipeInfo[] = [
-    { id: 'a', title: 'Mario Kart World', state: 'needs-input', hasSetup: false, cli: false, note: '', inputs: {}, needs: [{ id: 'game', label: 'Fichier du jeu (.nup)', kind: 'file' }] },
-    { id: 'b', title: 'Pokémon Pokopia', state: 'needs-setup', hasSetup: true, cli: false, note: 'Choisis ton dossier de dump dans la fenêtre qui s’ouvre.', inputs: {}, needs: [] },
-    { id: 'c', title: 'Zelda Ocarina of Time', state: 'ready', hasSetup: true, cli: false, note: '', inputs: {}, needs: [] },
-    { id: 'd', title: 'Donkey Kong Bananza', state: 'no-tool', hasSetup: false, cli: false, note: '', inputs: {}, needs: [] }
+    { id: 'a', title: 'Mario Kart World', state: 'needs-input', hasSetup: false, cli: false, note: '', guide: 'Ajoute ton fichier du jeu (.nup).', inputs: {}, needs: [{ id: 'game', label: 'Fichier du jeu (.nup)', kind: 'file' }] },
+    { id: 'b', title: 'Pokémon Pokopia', state: 'needs-setup', hasSetup: true, cli: false, guide: 'Prépare le jeu avec ton dossier de dump.', note: 'Choisis ton dossier de dump dans la fenêtre qui s’ouvre.', inputs: {}, needs: [] },
+    { id: 'c', title: 'Zelda Ocarina of Time', state: 'ready', hasSetup: true, cli: false, note: '', guide: '', inputs: {}, needs: [] },
+    { id: 'd', title: 'Donkey Kong Bananza', state: 'no-tool', hasSetup: false, cli: false, note: '', guide: '', inputs: {}, needs: [] }
   ]
 
   const mockBackups: BackupInfo[] = [

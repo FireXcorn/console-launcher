@@ -17,7 +17,7 @@ function WifiBars({ signal }: { signal: number | null }): JSX.Element {
 }
 /**
  * Heure, Wi-Fi et batterie : le coin en haut à droite de l'accueil et de chaque écran.
- * Le pourcentage de batterie apparaît au survol ou quand la zone est sélectionnée (voir app.css).
+ * Pas de pourcentage de batterie : seule la jauge est affichée.
  */
 export default function StatusCluster(): JSX.Element {
   const time = useClock()
@@ -60,7 +60,6 @@ export default function StatusCluster(): JSX.Element {
           <WifiBars signal={signal} />
         </span>
       )}
-      <span className="battery-pct">{Math.round(level * 100)} %</span>
       <span className={`battery-body${battery?.charging ? ' charging' : ''}`}>
         <span className="battery-fill" style={{ width: `${level * 100}%` }} />
         {battery?.charging && (

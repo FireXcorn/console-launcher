@@ -18,5 +18,6 @@
   "gameFileFrom": "game",
   "saves": [
     "{appdata}/eglantine/nand/user/save/0000000000000000"
-  ]
+  ],
+  "guide": "Ajoute ton fichier du jeu (.nup)."
 }

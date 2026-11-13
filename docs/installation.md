@@ -42,9 +42,11 @@ npm run dev
 
 ## Premier démarrage
 
-Au premier lancement, la bibliothèque est vide : un écran **Bienvenue** te propose d'**importer un dossier de jeux** (un programme par sous-dossier), d'**ajouter un jeu à la main** ou de le faire plus tard.
+Au premier lancement, un écran **Bienvenue** propose une visite guidée (flèches et bulles) : elle montre une tuile **« Cartouche vide »**, ton profil, les Paramètres, et comment quitter un jeu.
 
-Plus tard, tout se fait dans **Paramètres de la console → Ajouter des jeux** :
+Les jeux livrés avec leur outil (Mario Kart World, Donkey Kong Bananza, Pokémon Pokopia, Zelda Ocarina of Time) sont déjà dans le menu avec la mention **« Cartouche vide »**. Sélectionne-en un et appuie sur **A** : une fenêtre te dit quoi apporter (ton propre fichier de jeu), te laisse le choisir, prépare le jeu et le rend jouable. Aucun jeu n'est fourni.
+
+Tout se retrouve dans **Paramètres de la console → Ajouter des jeux** ; la visite se relance dans **Paramètres → Avancé → Revoir la visite guidée**.
 
 - [Jeux PC et jeux recompilés](jeux-natifs.md) : un programme, ou un dossier entier ;
 - [Jeux sur émulateur](emulateurs.md) : l'émulateur et le fichier du jeu.

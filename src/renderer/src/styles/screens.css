@@ -59,8 +59,8 @@
 }
 
 .status.focused::after {
-  inset: calc(var(--u) * -0.3);
-  border-radius: calc(var(--u) * 2.4);
+  inset: 0;
+  border-radius: calc(var(--u) * 2);
 }
 
 /* ---------- Cadre commun des écrans ---------- */
@@ -772,7 +772,7 @@ kbd {
 }
 
 .status.focused::after {
-  padding: calc(var(--u) * 0.34);
+  padding: calc(var(--u) * 0.22);
 }
 
 .album-tile.focused::after {
@@ -1922,4 +1922,121 @@ kbd {
 
 .settings-pane .backup-note {
   color: var(--accent);
+}
+
+/* Fenêtre « Il manque ta cartouche » */
+.recipe-guide-window {
+  width: min(620px, 92vw);
+}
+
+.recipe-guide-window .recipe-row {
+  display: grid;
+  gap: 12px;
+}
+
+.recipe-guide {
+  font-size: 1.05em;
+}
+
+.recipe-footnote {
+  margin-top: 14px !important;
+  color: var(--text-dim);
+  font-size: 0.85em;
+}
+
+/* ---------- Visite guidée ---------- */
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.tour-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 15, 20, 0.58);
+}
+
+.tour-spot {
+  position: absolute;
+  border-radius: calc(var(--u) * 1.6);
+  box-shadow:
+    0 0 0 calc(var(--u) * 0.3) #fff,
+    0 0 0 200vmax rgba(15, 15, 20, 0.58);
+  transition: all 0.25s ease;
+  pointer-events: none;
+}
+
+.tour-bubble {
+  position: absolute;
+  width: calc(var(--u) * 34);
+  padding: calc(var(--u) * 1.8) calc(var(--u) * 2.2);
+  border-radius: calc(var(--u) * 1.6);
+  background: #fff;
+  color: #1b1b1f;
+  box-shadow: 0 calc(var(--u) * 0.5) calc(var(--u) * 2.4) rgba(0, 0, 0, 0.35);
+  font-size: calc(var(--u) * 1.7);
+}
+
+.tour-bubble h3 {
+  margin: calc(var(--u) * 0.4) 0 calc(var(--u) * 0.6);
+  font-size: calc(var(--u) * 2.2);
+  font-weight: 600;
+}
+
+.tour-bubble p {
+  margin: 0;
+  line-height: 1.45;
+  color: #3a3a40;
+}
+
+.tour-count {
+  color: #777;
+  font-size: calc(var(--u) * 1.4);
+}
+
+.tour-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: calc(var(--u) * 1.6);
+}
+
+.tour-bubble button {
+  padding: calc(var(--u) * 0.8) calc(var(--u) * 2);
+  border: 0;
+  border-radius: calc(var(--u) * 2);
+  background: #d9dce1;
+  color: #1b1b1f;
+  font: inherit;
+  font-size: calc(var(--u) * 1.6);
+  cursor: inherit;
+  white-space: nowrap;
+}
+
+.tour-bubble button.primary {
+  background: #1b1b1f;
+  color: #fff;
+}
+
+.tour-bubble .tour-skip {
+  background: transparent;
+  color: #777;
+  padding-left: 0;
+}
+
+.tour-arrow {
+  position: absolute;
+  width: calc(var(--u) * 2);
+  height: calc(var(--u) * 2);
+  background: #fff;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.tour-arrow.bottom {
+  bottom: calc(var(--u) * -0.9);
+}
+
+.tour-arrow.top {
+  top: calc(var(--u) * -0.9);
 }

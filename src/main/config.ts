@@ -99,6 +99,7 @@ export function defaultConfig(): Config {
     emulated: [],
     recipeInputs: {},
     showAdvanced: false,
+    tourDone: false,
     showMissingGames: true,
     coversDir: join(homedir(), 'Pictures', 'Jaquettes'),
     audioDir: join(homedir(), 'Music', 'Console Launcher'),
@@ -139,6 +140,8 @@ export class ConfigStore {
         const hasGames = (typeof raw.gamesDir === 'string' && raw.gamesDir !== '' && !!raw.launchExe) || (Array.isArray(raw.emulated) && raw.emulated.length > 0)
         merged.onboarded = hasGames
       }
+      // Qui a déjà fait le premier lancement n'a pas besoin de la visite guidée.
+      if (typeof raw.tourDone !== 'boolean') merged.tourDone = merged.onboarded === true
       this.data = merged as Config
     }
   }

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Config, EmulatedGame, Game, GameOverride, BackupInfo, ProfileArt, ProgramCandidate, RecipeInfo, RecipeState } from '../../../shared/types'
+import type { Config, EmulatedGame, Game, GameOverride, BackupInfo, ProfileArt, ProgramCandidate } from '../../../shared/types'
 import { engine } from '../audio/engine'
 import { useMoveSound } from '../audio/useSound'
 import Avatar from '../components/Avatar'
+import RecipeCard, { useRecipes } from '../components/RecipeCard'
 import Screen from '../components/Screen'
 import { useInput } from '../hooks/useInput'
 import ThemesPanel from './ThemesPanel'
@@ -16,13 +17,6 @@ function parseArgs(text: string): string[] {
 
 function formatArgs(args: string[]): string {
   return args.map((a) => (/\s/.test(a) ? `"${a}"` : a)).join(' ')
-}
-
-const RECIPE_STATE: Record<RecipeState, string> = {
-  'no-tool': 'Outil absent de cette installation',
-  'needs-input': 'Il manque ton fichier de jeu',
-  'needs-setup': 'À préparer',
-  ready: 'Prêt'
 }
 
 const CATEGORIES = [
@@ -116,22 +110,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
     else setBackupNote('Import annulé ou fichier non valable.')
   }
 
-  const [recipes, setRecipes] = useState<RecipeInfo[]>([])
-  useEffect(() => {
-    void window.api.listRecipes().then(setRecipes)
-  }, [])
-  // Tant qu'une préparation tourne, on relit son avancement.
-  const anyRunning = recipes.some((r) => r.running)
-  useEffect(() => {
-    if (!anyRunning) return
-    const timer = setInterval(() => void window.api.listRecipes().then(setRecipes), 1500)
-    return () => clearInterval(timer)
-  }, [anyRunning])
-
-  const giveRecipeInput = async (id: string, need: RecipeInfo['needs'][number]): Promise<void> => {
-    const path = need.kind === 'folder' ? await window.api.pickFolder() : await window.api.pickFile()
-    if (path) setRecipes(await window.api.setRecipeInput(id, need.id, path))
-  }
+  const { recipes, setRecipes } = useRecipes()
 
   const [candidates, setCandidates] = useState<(ProgramCandidate & { on: boolean })[] | null>(null)
   const [importNote, setImportNote] = useState('')
@@ -231,6 +210,13 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
 
   const leave = async (): Promise<void> => {
     await save()
+    onBack()
+  }
+
+  /** Relance la visite guidée : les réglages sont enregistrés, puis l'accueil la montre. */
+  const replayTour = async (): Promise<void> => {
+    await save()
+    await onSave({ tourDone: false })
     onBack()
   }
 
@@ -353,35 +339,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
                   (actualise la bibliothèque).
                 </p>
                 {recipes.map((r) => (
-                  <div className="recipe-row" key={r.id}>
-                    <div className="recipe-head">
-                      <span className="recipe-title">{r.title}</span>
-                      <span className={'recipe-state ' + r.state}>{RECIPE_STATE[r.state]}</span>
-                    </div>
-                    {r.state !== 'no-tool' &&
-                      r.needs.map((n) => (
-                        <div className="field-row" key={n.id}>
-                          <input readOnly value={r.inputs[n.id] ?? ''} placeholder={n.label} aria-label={n.label} />
-                          <button onClick={() => void giveRecipeInput(r.id, n)}>Choisir…</button>
-                        </div>
-                      ))}
-                    {r.running && (
-                      <div className="field-row">
-                        <span className="recipe-progress">{r.progress || 'Préparation en cours…'}</span>
-                        <button onClick={() => void window.api.cancelRecipeSetup(r.id)}>Annuler</button>
-                      </div>
-                    )}
-                    {r.state === 'needs-setup' && r.hasSetup && !r.running && (
-                      <div className="field-row">
-                        <button className="primary" onClick={() => void window.api.runRecipeSetup(r.id).then(() => window.api.listRecipes().then(setRecipes))}>
-                          Préparer le jeu…
-                        </button>
-                        <button onClick={() => void window.api.listRecipes().then(setRecipes)}>Vérifier</button>
-                      </div>
-                    )}
-                    {!r.running && r.progress && <small className="recipe-error">{r.progress}</small>}
-                    {r.note && r.state !== 'ready' && r.state !== 'no-tool' && <small>{r.note}</small>}
-                  </div>
+                  <RecipeCard key={r.id} recipe={r} onChange={setRecipes} />
                 ))}
               </div>
             )}
@@ -652,6 +610,9 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
               Pour les utilisateurs expérimentés : arguments des jeux, noms et icône de la fenêtre, touche de capture, sons personnalisés,
               flux d’actualités. Tu n’en as pas besoin pour jouer.
             </p>
+            <div className="field-row wrap">
+              <button onClick={() => void replayTour()}>Revoir la visite guidée</button>
+            </div>
           </>
         )
     }
