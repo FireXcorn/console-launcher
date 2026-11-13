@@ -37,7 +37,7 @@ export default function ToolGuide({ title, onAdd, onClose }: Props): JSX.Element
         <p className="recipe-footnote">Tout se fait aussi dans Paramètres → Ajouter des jeux. Guide complet : docs/ajouter-un-outil.md.</p>
         <div className="dialog-actions">
           <button className="primary" onClick={onAdd}>
-            A  Ajouter mon outil
+            Ajouter mon outil
           </button>
           <button onClick={onClose}>Fermer</button>
         </div>
