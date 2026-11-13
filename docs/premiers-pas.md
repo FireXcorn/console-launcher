@@ -41,6 +41,6 @@ Chaque profil a **ses propres sauvegardes de jeu**, échangées automatiquement 
 ## Et ensuite ?
 
 - Ajouter un jeu PC ou un émulateur : [Jeux natifs](jeux-natifs.md), [Émulateurs](emulateurs.md).
-- Brancher un autre outil : [Intégrer un outil](integrer-un-outil.md).
+- Brancher ton propre outil pour un autre jeu (Kirby, Yoshi…) : [Ajouter ton propre outil](ajouter-un-outil.md), puis [Intégrer un outil](integrer-un-outil.md) pour les réglages détaillés.
 - Thèmes, jaquettes, album : [Personnalisation](personnalisation.md).
 - Un souci : [Dépannage](depannage.md).

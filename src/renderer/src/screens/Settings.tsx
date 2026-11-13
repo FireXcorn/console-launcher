@@ -46,13 +46,15 @@ interface Props {
   onBack: () => void
   /** Catégorie ouverte au départ (identifiant), par exemple « emulator » pour ajouter des jeux. */
   startCategory?: string
+  /** Titre du jeu pour lequel on ajoute son propre outil : il devient le titre du jeu ajouté. */
+  addForTitle?: string
 }
 
 /**
  * « Paramètres de la console » : catégories à gauche, réglages à droite. Comme sur la console, les
  * changements sont appliqués en quittant l'écran.
  */
-export default function SettingsScreen({ config, games, art, onSave, onRescan, onOpenUser, onBack, startCategory }: Props): JSX.Element {
+export default function SettingsScreen({ config, games, art, onSave, onRescan, onOpenUser, onBack, startCategory, addForTitle }: Props): JSX.Element {
   const [cat, setCat] = useState(() => Math.max(0, CATEGORIES.findIndex((c) => c.id === startCategory)))
   const paneRef = useRef<HTMLDivElement>(null)
 
@@ -124,7 +126,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
   const addPcGame = async (): Promise<void> => {
     const exe = await window.api.pickFile()
     if (!exe) return
-    setEmulated((list) => [...list, { title: titleFromPath(exe), emulatorExe: exe, gameFile: '', args: '', readyTitle: '' }])
+    setEmulated((list) => [...list, { title: addForTitle ?? titleFromPath(exe), emulatorExe: exe, gameFile: '', args: '', readyTitle: '' }])
   }
 
   const addEmulatedGame = async (): Promise<void> => {
@@ -133,7 +135,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
     const game = await window.api.pickFile()
     setEmulated((list) => [
       ...list,
-      { title: game ? titleFromPath(game) : '', emulatorExe: emulator, gameFile: game ?? '', args: '-f -g {game}', readyTitle: '' }
+      { title: addForTitle ?? (game ? titleFromPath(game) : ''), emulatorExe: emulator, gameFile: game ?? '', args: '-f -g {game}', readyTitle: '' }
     ])
   }
 
@@ -331,6 +333,12 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
               Ajoute un jeu en choisissant son programme. Pour un jeu sur émulateur, choisis aussi le fichier du jeu. Tu peux aussi
               importer d’un coup tous les jeux d’un dossier.
             </p>
+            {addForTitle && (
+              <p className="settings-note">
+                Tu ajoutes ton outil pour <strong>{addForTitle}</strong> : choisis « Ajouter un jeu sur émulateur… » (le programme de l’outil, puis
+                ton fichier de jeu), ou « Ajouter un jeu PC… » si l’outil a produit un programme prêt à lancer.
+              </p>
+            )}
             {recipes.length > 0 && (
               <div className="emu-card recipes">
                 <h3>Jeux livrés avec leur outil</h3>

@@ -23,6 +23,7 @@ import ProfilePicker from './screens/ProfilePicker'
 import UserSettingsScreen from './screens/UserSettings'
 import Welcome from './screens/Welcome'
 import RecipeGuide from './components/RecipeGuide'
+import ToolGuide from './components/ToolGuide'
 import Tour from './components/Tour'
 import SettingsScreen from './screens/Settings'
 import VirtualCardScreen from './screens/VirtualCard'
@@ -83,6 +84,9 @@ export default function App(): JSX.Element | null {
   const [guideGame, setGuideGame] = useState<{ recipeId: string; title: string } | null>(null)
   const [scanned, setScanned] = useState(false)
   const [settingsStart, setSettingsStart] = useState<string | undefined>(undefined)
+  /** Jeu pour lequel on ajoute son propre outil (depuis une « Cartouche vide » du catalogue). */
+  const [toolGame, setToolGame] = useState<string | null>(null)
+  const [addTitle, setAddTitle] = useState<string | undefined>(undefined)
   const [running, setRunning] = useState(false)
   const [launchingId, setLaunchingId] = useState<string | null>(null)
   const launchTimer = useRef<number | undefined>(undefined)
@@ -212,12 +216,9 @@ export default function App(): JSX.Element | null {
           setGuideGame({ recipeId: game.recipeId, title: game.title })
           return
         }
-        // Exclusivité du catalogue : comme une cartouche absente, on ne démarre rien.
-        engine.play('refuser')
-        setNotice({
-          title: 'Cartouche vide',
-          message: `« ${game.title} » n’est pas installé sur ce PC. Une fois le jeu prêt, il pourra se lancer depuis ici.`
-        })
+        // Jeu du catalogue sans outil livré : le guide explique comment brancher le sien.
+        engine.play('ouvrir')
+        setToolGame(game.title)
         return
       }
       engine.play('lancer')
@@ -522,6 +523,7 @@ export default function App(): JSX.Element | null {
       {screen === 'settings' && (
         <SettingsScreen
           startCategory={settingsStart}
+          addForTitle={addTitle}
           config={config}
           games={games}
           art={profileArt}
@@ -552,6 +554,19 @@ export default function App(): JSX.Element | null {
             await rescan()
           }}
           onClose={() => setOptionsId(null)}
+        />
+      )}
+
+      {toolGame && (
+        <ToolGuide
+          title={toolGame}
+          onClose={() => setToolGame(null)}
+          onAdd={() => {
+            setAddTitle(toolGame)
+            setSettingsStart('emulator')
+            setToolGame(null)
+            setScreen('settings')
+          }}
         />
       )}
 

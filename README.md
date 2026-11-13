@@ -91,6 +91,7 @@ Au premier lancement, un assistant te propose d'importer un dossier de jeux. Sin
 |---|---|
 | [Premiers pas](docs/premiers-pas.md) | Le tutoriel : de l'archive téléchargée au premier jeu lancé |
 | [Installation](docs/installation.md) | Télécharger ou construire l'application, premier lancement, démarrage automatique |
+| [Ajouter ton propre outil](docs/ajouter-un-outil.md) | Pas à pas, avec captures : brancher un émulateur ou un outil de recompilation trouvé sur GitHub |
 | [Intégrer un outil toi-même](docs/integrer-un-outil.md) | La méthode pour brancher n'importe quel émulateur ou outil de recompilation |
 | [Ce qui est inclus](docs/fichiers-de-jeu.md) | Jeux, émulateurs, recompilation : ce que tu dois fournir toi-même |
 | [Jeux natifs](docs/jeux-natifs.md) | Dossier des jeux, nom du programme, recompilations, titres et images |

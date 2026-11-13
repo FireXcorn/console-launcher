@@ -15,3 +15,5 @@ switch 2 luncher/
 # Outils livrés dans le ZIP de la version, jamais dans le dépôt
 /tools/
 /tools-src/
+
+/.obsidian/
