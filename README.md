@@ -5,10 +5,16 @@ Un lanceur de jeux **plein écran** pour PC, inspiré du menu d'accueil d'une co
 Il lance **tes** jeux : des programmes PC « natifs », ou des jeux qui passent par un **émulateur**.
 
 <p align="center">
-  <img src="docs/images/accueil.jpg" alt="Accueil du lanceur : une rangée de jeux et la barre d'icônes" width="720">
+  <img src="docs/images/accueil-sans-theme.jpg" alt="Accueil du lanceur, mode « Sans thème » : une rangée de jeux et la barre d'icônes" width="720"><br>
+  <em>Mode « Sans thème » : le menu d'origine.</em>
 </p>
 
-> **À savoir.** Console Launcher est un projet indépendant. Il n'est ni affilié ni approuvé par Nintendo ou par un autre constructeur de consoles, et il ne contient aucun jeu, émulateur ou fichier de console. Les noms de marques cités dans la documentation appartiennent à leurs propriétaires.
+<p align="center">
+  <img src="docs/images/accueil-image-du-jeu.jpg" alt="Accueil du lanceur, mode « Image du jeu » : la grande image du jeu sélectionné sur tout l'écran" width="720"><br>
+  <em>Mode « Image du jeu » : la grande image du jeu sélectionné derrière les jaquettes.</em>
+</p>
+
+> **À savoir.** Console Launcher est un projet indépendant. Il n'est ni affilié ni approuvé par Nintendo ou par un autre constructeur de consoles, et il ne contient aucun jeu, émulateur ou fichier de console. Les noms de marques cités dans la documentation appartiennent à leurs propriétaires. Les captures d'écran ci-dessus montrent des jaquettes et des images de jeux officielles, uniquement à titre d'illustration : elles appartiennent à leurs ayants droit et seront retirées sur simple demande.
 
 ## Ce qui est inclus, et ce qui ne l'est pas
 

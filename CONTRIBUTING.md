@@ -44,7 +44,7 @@ src/
 1. `npm run typecheck` et `npm test` passent.
 2. Une modification de comportement vient avec un test quand c'est possible (les tests sont à côté du code, `*.test.ts`).
 3. Tout ce qui vient d'un fichier ou de l'interface (chemins, noms, thèmes importés) est **vérifié** avant d'être utilisé : pas de chemin libre, pas de sortie du dossier prévu.
-4. Pas d'images, de logos, de sons ou de personnages protégés dans le dépôt. N'ajoute que des ressources dont tu as les droits, ou libres de droits.
+4. Pas d'images, de logos, de sons ou de personnages protégés dans le dépôt. N'ajoute que des ressources dont tu as les droits, ou libres de droits (seules exceptions : les captures d'écran du README, qui montrent des jaquettes à titre d'illustration).
 
 ## Publier
 
