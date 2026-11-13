@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Config, EmulatedGame, Game, GameOverride, ProfileArt, ProgramCandidate, RecipeInfo, RecipeState } from '../../../shared/types'
+import type { Config, EmulatedGame, Game, GameOverride, BackupInfo, ProfileArt, ProgramCandidate, RecipeInfo, RecipeState } from '../../../shared/types'
 import { engine } from '../audio/engine'
 import { useMoveSound } from '../audio/useSound'
 import Avatar from '../components/Avatar'
@@ -27,6 +27,7 @@ const RECIPE_STATE: Record<RecipeState, string> = {
 
 const CATEGORIES = [
   { id: 'users', label: 'Utilisateurs' },
+  { id: 'backups', label: 'Sauvegardes' },
   { id: 'library', label: 'Bibliothèque' },
   { id: 'emulator', label: 'Ajouter des jeux' },
   { id: 'themes', label: 'Thèmes' },
@@ -34,7 +35,8 @@ const CATEGORIES = [
   { id: 'sound', label: 'Son' },
   { id: 'controllers', label: 'Manettes' },
   { id: 'album', label: 'Album et captures' },
-  { id: 'news', label: 'Actualités' }
+  { id: 'news', label: 'Actualités' },
+  { id: 'advanced', label: 'Avancé' }
 ] as const
 
 interface Props {
@@ -84,7 +86,35 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
   const [muted, setMuted] = useState(config.muted)
   const [emulated, setEmulated] = useState<EmuDraft[]>(config.emulated.map((g) => ({ ...g, args: formatArgs(g.args) })))
   const [charactersDir, setCharactersDir] = useState(config.charactersDir)
+  const [showAdvanced, setShowAdvanced] = useState(config.showAdvanced === true)
   useMoveSound(cat)
+
+  const [backups, setBackups] = useState<BackupInfo[]>([])
+  const [backupNote, setBackupNote] = useState('')
+  const [confirmRestore, setConfirmRestore] = useState('')
+  useEffect(() => {
+    void window.api.listBackups().then(setBackups)
+  }, [])
+
+  const createBackup = async (): Promise<void> => {
+    setBackups(await window.api.createBackup())
+    setBackupNote('Sauvegarde créée.')
+  }
+  const exportBackup = async (): Promise<void> => {
+    const file = await window.api.exportBackup()
+    setBackupNote(file ? 'Enregistrée : ' + file : 'Export annulé.')
+  }
+  /** Après une restauration, l'écran est rechargé pour repartir des données restaurées. */
+  const restoreBackup = async (name: string): Promise<void> => {
+    const ok = await window.api.restoreBackup(name)
+    setConfirmRestore('')
+    if (ok) location.reload()
+    else setBackupNote('Cette sauvegarde n’est pas lisible.')
+  }
+  const importBackup = async (): Promise<void> => {
+    if (await window.api.importBackup()) location.reload()
+    else setBackupNote('Import annulé ou fichier non valable.')
+  }
 
   const [recipes, setRecipes] = useState<RecipeInfo[]>([])
   useEffect(() => {
@@ -162,6 +192,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
   const save = async (): Promise<void> => {
     await onSave({
       charactersDir: charactersDir.trim(),
+      showAdvanced,
       gamesDir: gamesDir.trim(),
       launchExe: launchExe.trim(),
       launchArgs: parseArgs(args),
@@ -258,6 +289,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
         return (
           <>
             {folderRow('Dossier des jeux', gamesDir, setGamesDir, 'Le dossier lui-même et ses sous-dossiers directs sont analysés.')}
+            {showAdvanced && (
             <div className="field-pair">
               <label className="field">
                 <span>Exécutable à lancer</span>
@@ -270,6 +302,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
                 <small>{'{dir}'} = dossier du jeu.</small>
               </label>
             </div>
+            )}
             {folderRow(
               'Dossier des jaquettes',
               coversDir,
@@ -298,14 +331,6 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
                         onChange={(e) => patchOverride(g.id, { title: e.target.value })}
                         aria-label={`Titre de ${g.title}`}
                       />
-                      <button
-                        onClick={async () => {
-                          const icon = await window.api.pickImage()
-                          if (icon) patchOverride(g.id, { icon })
-                        }}
-                      >
-                        {overrides[g.id]?.icon ? 'Image choisie ✓' : 'Image…'}
-                      </button>
                     </div>
                   ))}
                 </div>
@@ -414,6 +439,8 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
                       </div>
                     </label>
                   )}
+                  {showAdvanced && (
+                    <>
                   <label className="field">
                     <span>Arguments</span>
                     <input value={g.args} onChange={(e) => patchEmu(i, { args: e.target.value })} />
@@ -428,6 +455,8 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
                     <input value={g.readyTitle} onChange={(e) => patchEmu(i, { readyTitle: e.target.value })} />
                     <small>Une expression qui reconnaît la fenêtre du jeu : l’écran noir part dès qu’elle apparaît.</small>
                   </label>
+                    </>
+                  )}
                   <button onClick={() => setEmulated((list) => list.filter((_, j) => j !== i))}>Retirer ce jeu</button>
                 </div>
               )
@@ -458,6 +487,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
               <input type="checkbox" checked={autoStart} onChange={(e) => setAutoStart(e.target.checked)} />
               Lancer au démarrage de la session
             </label>
+            {showAdvanced && (
             <div className="field-pair">
               <label className="field">
                 <span>Nom de la fenêtre</span>
@@ -479,6 +509,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
                 <small>Fichier png, jpg ou ico.</small>
               </label>
             </div>
+            )}
           </>
         )
       case 'sound':
@@ -527,7 +558,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
               />
               Couper tous les sons
             </label>
-            {folderRow(
+            {showAdvanced && folderRow(
               'Dossier de tes propres sons',
               audioDir,
               setAudioDir,
@@ -546,20 +577,75 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
         return (
           <>
             {folderRow('Dossier de l’album', albumDir, setAlbumDir)}
+            {showAdvanced && (
             <label className="field">
               <span>Touche de capture</span>
               <input value={captureKey} onChange={(e) => setCaptureKey(e.target.value)} />
               <small>Pendant un jeu. Ex. F12, F9, CommandOrControl+Shift+S.</small>
             </label>
+            )}
+          </>
+        )
+      case 'news':
+        return (
+          <>
+            <p className="settings-note">Les actualités des jeux s’affichent dans le menu, depuis un flux choisi pour toi.</p>
+            {showAdvanced && (
+              <label className="field">
+                <span>Flux des actualités</span>
+                <input value={newsFeedUrl} onChange={(e) => setNewsFeedUrl(e.target.value)} />
+                <small>Adresse https d’un flux RSS ou Atom.</small>
+              </label>
+            )}
+          </>
+        )
+      case 'backups':
+        return (
+          <>
+            <p className="settings-note">
+              Tes profils, ton temps de jeu et tes dernières parties sont sauvegardés automatiquement, au lancement et à la fermeture
+              (les 30 dernières sont gardées). Restaurer une sauvegarde garde d’abord une copie de l’état actuel.
+            </p>
+            {backupNote && <p className="settings-note backup-note">{backupNote}</p>}
+            <div className="field-row wrap">
+              <button className="primary" onClick={() => void createBackup()}>
+                Sauvegarder maintenant
+              </button>
+              <button onClick={() => void exportBackup()}>Exporter dans un fichier…</button>
+              <button onClick={() => void importBackup()}>Importer un fichier…</button>
+              <button onClick={() => void window.api.openBackupFolder()}>Ouvrir le dossier</button>
+            </div>
+            {backups.length === 0 && <p className="settings-note">Aucune sauvegarde pour l’instant.</p>}
+            {backups.map((b) => (
+              <div className="backup-row" key={b.name}>
+                <div>
+                  <div className="backup-date">{new Date(b.createdAt).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' })}</div>
+                  <small>
+                    {b.reason || 'sauvegarde'} · {b.profiles.join(', ')}
+                  </small>
+                </div>
+                <button
+                  className={confirmRestore === b.name ? 'primary' : ''}
+                  onClick={() => (confirmRestore === b.name ? void restoreBackup(b.name) : setConfirmRestore(b.name))}
+                >
+                  {confirmRestore === b.name ? 'Confirmer' : 'Restaurer'}
+                </button>
+              </div>
+            ))}
           </>
         )
       default:
         return (
-          <label className="field">
-            <span>Flux des actualités</span>
-            <input value={newsFeedUrl} onChange={(e) => setNewsFeedUrl(e.target.value)} />
-            <small>Adresse https d’un flux RSS ou Atom.</small>
-          </label>
+          <>
+            <label className="check">
+              <input type="checkbox" checked={showAdvanced} onChange={(e) => setShowAdvanced(e.target.checked)} />
+              Afficher les réglages avancés
+            </label>
+            <p className="settings-note">
+              Pour les utilisateurs expérimentés : arguments des jeux, noms et icône de la fenêtre, touche de capture, sons personnalisés,
+              flux d’actualités. Tu n’en as pas besoin pour jouer.
+            </p>
+          </>
         )
     }
   })()

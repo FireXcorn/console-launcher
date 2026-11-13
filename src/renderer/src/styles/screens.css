@@ -1901,3 +1901,25 @@ kbd {
 .settings-pane .recipe-error {
   color: #d64545;
 }
+
+/* Sauvegardes des joueurs */
+.settings-pane .backup-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: calc(var(--u) * 2);
+  padding: calc(var(--u) * 1.2) calc(var(--u) * 1.4);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+.backup-date {
+  font-weight: 500;
+}
+
+.settings-pane .backup-row small {
+  color: var(--text-dim);
+}
+
+.settings-pane .backup-note {
+  color: var(--accent);
+}

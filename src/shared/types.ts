@@ -112,6 +112,15 @@ export interface RecipeInfo {
   progress?: string
 }
 
+/** Une sauvegarde des joueurs, telle que la liste l'affiche. */
+export interface BackupInfo {
+  name: string
+  createdAt: number
+  reason: string
+  /** Noms des profils qu'elle contient. */
+  profiles: string[]
+}
+
 export interface Config {
   /** Dossier scanné : lui-même et ses sous-dossiers directs. */
   gamesDir: string
@@ -171,6 +180,8 @@ export interface Config {
   lastPlayed: Record<string, number>
   /** Fichiers et dossiers donnés par l'utilisateur pour préparer chaque jeu à recette (recette, puis entrée, puis chemin). */
   recipeInputs: Record<string, Record<string, string>>
+  /** Affiche les réglages avancés dans les Paramètres (arguments, noms de fenêtre, etc.). */
+  showAdvanced: boolean
 }
 
 export type GameState =
@@ -269,6 +280,18 @@ export interface Api {
   /** Enregistre un fichier ou dossier donné pour une recette ; renvoie la liste mise à jour. */
   setRecipeInput(id: string, need: string, path: string): Promise<RecipeInfo[]>
   /** Ouvre l'outil de préparation du jeu. */
+  /** Sauvegardes des joueurs (profils, temps de jeu), de la plus récente à la plus ancienne. */
+  listBackups(): Promise<BackupInfo[]>
+  /** Crée une sauvegarde maintenant. */
+  createBackup(): Promise<BackupInfo[]>
+  /** Restaure une sauvegarde (une copie de l'état actuel est faite avant) ; renvoie faux si elle est illisible. */
+  restoreBackup(name: string): Promise<boolean>
+  /** Enregistre la sauvegarde du jour dans un fichier choisi ; renvoie le chemin, ou null si annulé. */
+  exportBackup(): Promise<string | null>
+  /** Restaure depuis un fichier choisi ; renvoie faux s'il est annulé ou illisible. */
+  importBackup(): Promise<boolean>
+  /** Ouvre le dossier des sauvegardes. */
+  openBackupFolder(): Promise<void>
   runRecipeSetup(id: string): Promise<boolean>
   /** Interrompt une préparation en cours. */
   cancelRecipeSetup(id: string): Promise<boolean>

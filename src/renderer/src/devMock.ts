@@ -1,5 +1,5 @@
 import type { Theme } from '../../shared/theme'
-import type { AlbumItem, Api, Config, Game, NewsItem, RecipeInfo } from '../../shared/types'
+import type { AlbumItem, Api, BackupInfo, Config, Game, NewsItem, RecipeInfo } from '../../shared/types'
 
 /** Fausse API pour travailler l'interface dans un simple navigateur (développement uniquement). */
 export function installDevMock(): void {
@@ -32,6 +32,7 @@ export function installDevMock(): void {
       { title: 'Super Aventure', emulatorExe: 'C:\\Outils\\mon-emulateur.exe', gameFile: 'D:\\Jeux\\super-aventure.xyz', args: ['-f', '-g', '{game}'], readyTitle: '' }
     ],
     recipeInputs: {},
+    showAdvanced: new URLSearchParams(location.search).has('advanced'),
     showMissingGames: true,
     coversDir: 'C:\\Images\\Jaquettes',
     audioDir: 'C:\\Musique\\Console Launcher',
@@ -101,6 +102,11 @@ export function installDevMock(): void {
     { id: 'd', title: 'Donkey Kong Bananza', state: 'no-tool', hasSetup: false, cli: false, note: '', inputs: {}, needs: [] }
   ]
 
+  const mockBackups: BackupInfo[] = [
+    { name: 'joueurs-a.json', createdAt: Date.now() - 3_600_000, reason: 'manuelle', profiles: ['Joueur', 'Invité'] },
+    { name: 'joueurs-b.json', createdAt: Date.now() - 90_000_000, reason: 'automatique', profiles: ['Joueur', 'Invité'] }
+  ]
+
   const api: Api = {
     getConfig: async () => config,
     setConfig: async (patch) => (config = { ...config, ...patch }),
@@ -151,6 +157,12 @@ export function installDevMock(): void {
     stopGame: async () => console.info('[mock] arrêt du jeu'),
     listRecipes: async () => mockRecipes,
     setRecipeInput: async () => mockRecipes,
+    listBackups: async () => mockBackups,
+    createBackup: async () => mockBackups,
+    restoreBackup: async () => true,
+    exportBackup: async () => null,
+    importBackup: async () => false,
+    openBackupFolder: async () => undefined,
     runRecipeSetup: async () => true,
     cancelRecipeSetup: async () => true,
     power: async (action) => console.info('[mock] alimentation', action),

@@ -12,7 +12,7 @@ import {
   shell
 } from 'electron'
 import { execFile } from 'child_process'
-import { existsSync, readFileSync, statSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'fs'
 import { mkdir, writeFile } from 'fs/promises'
 import { basename, extname, join } from 'path'
 import { playtimeKey } from '../shared/playtime'
@@ -39,6 +39,7 @@ import { findPrograms } from './importer'
 import { ConfigStore } from './config'
 import { Launcher } from './launcher'
 import { emulatedId, scanLibrary, type ScannedGame } from './library'
+import { autoBackup, listBackups, parseBackup, restorePatch, takeSnapshot, writeBackup, pruneBackups } from './backup'
 import { describeLine, loadRecipes, recipeEntries, recipeInfo, runSetup, type RecipePaths } from './recipes'
 import { initLog, log } from './log'
 import { parseFeed, safeHttpsUrl } from './news'
@@ -603,6 +604,44 @@ function registerIpc(): void {
   ipcMain.handle('library:scan', () => scan())
   ipcMain.handle('library:findPrograms', (_e, dir: unknown) => (typeof dir === 'string' ? findPrograms(dir) : []))
   ipcMain.handle('game:stop', () => launcher.stop())
+  // Sauvegardes des joueurs : profils, temps de jeu, dernières parties.
+  const backupsDir = (): string => join(app.getPath('userData'), 'backups')
+  const restoreFrom = (text: string): boolean => {
+    const data = parseBackup(text)
+    if (!data) return false
+    // Une copie de l'état actuel d'abord : une restauration ne perd jamais rien.
+    writeBackup(backupsDir(), takeSnapshot(store.get(), 'avant restauration'))
+    store.set(restorePatch(data, store.get(), join(app.getPath('userData'), 'profile-photos')))
+    pruneBackups(backupsDir(), 30)
+    log('sauvegarde restaurée', data.profiles.map((p) => p.name))
+    return true
+  }
+  ipcMain.handle('backups:list', () => listBackups(backupsDir()))
+  ipcMain.handle('backups:create', () => {
+    writeBackup(backupsDir(), takeSnapshot(store.get(), 'manuelle'))
+    pruneBackups(backupsDir(), 30)
+    return listBackups(backupsDir())
+  })
+  ipcMain.handle('backups:restore', (_e, name: unknown) => {
+    if (typeof name !== 'string' || name !== basename(name) || !/^joueurs-[\w-]+\.json$/i.test(name)) return false
+    const file = join(backupsDir(), name)
+    return existsSync(file) && restoreFrom(readFileSync(file, 'utf8'))
+  })
+  ipcMain.handle('backups:export', async () => {
+    const r = await dialog.showSaveDialog(win!, { defaultPath: 'sauvegarde-joueurs.json', filters: [{ name: 'Sauvegarde', extensions: ['json'] }] })
+    if (r.canceled || !r.filePath) return null
+    writeFileSync(r.filePath, JSON.stringify(takeSnapshot(store.get(), 'exportée')), 'utf8')
+    return r.filePath
+  })
+  ipcMain.handle('backups:import', async () => {
+    const r = await dialog.showOpenDialog(win!, { properties: ['openFile'], filters: [{ name: 'Sauvegarde', extensions: ['json'] }] })
+    if (r.canceled || r.filePaths.length === 0) return false
+    return restoreFrom(readFileSync(r.filePaths[0], 'utf8'))
+  })
+  ipcMain.handle('backups:folder', async () => {
+    mkdirSync(backupsDir(), { recursive: true })
+    await shell.openPath(backupsDir())
+  })
   ipcMain.handle('recipes:list', () => recipeList())
   ipcMain.handle('recipes:input', (_e, id: unknown, need: unknown, path: unknown) => {
     if (typeof id === 'string' && typeof need === 'string' && typeof path === 'string') {
@@ -779,10 +818,23 @@ if (!app.requestSingleInstanceLock()) {
       surcharges: store.get().overrides
     })
     applyAutoStart(store.get().autoStart, store.get().appTitle)
+    try {
+      const made = autoBackup(join(data, 'backups'), store.get())
+      if (made) log('sauvegarde automatique', made)
+    } catch (e) {
+      log('sauvegarde automatique impossible', String(e))
+    }
     registerIpc()
     createWindow()
   })
 
-  app.on('will-quit', () => globalShortcut.unregisterAll())
+  app.on('will-quit', () => {
+    globalShortcut.unregisterAll()
+    try {
+      autoBackup(join(app.getPath('userData'), 'backups'), store.get())
+    } catch {
+      // Sauvegarde de fin de session : sans importance si elle échoue.
+    }
+  })
   app.on('window-all-closed', () => app.quit())
 }
