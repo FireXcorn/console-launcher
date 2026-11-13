@@ -17,6 +17,7 @@ import { mkdir, writeFile } from 'fs/promises'
 import { basename, extname, join } from 'path'
 import { playtimeKey } from '../shared/playtime'
 import { applyAutoStart } from './autostart'
+import type { ChildProcess } from 'child_process'
 import { listCharacterFiles, resolveCharacterFile } from './characters'
 import type {
   AlbumItem,
@@ -28,7 +29,8 @@ import type {
   NetworkInfo,
   NewsItem,
   NewsResult,
-  PowerAction
+  PowerAction,
+  RecipeInfo
 } from '../shared/types'
 import { captureFileName, insideDir, isImageFile, listImageFiles } from './album'
 import { findAudioFile, isAudioName } from './audio'
@@ -36,7 +38,8 @@ import { findBackdrop, findCover, missingEntries } from './catalog'
 import { findPrograms } from './importer'
 import { ConfigStore } from './config'
 import { Launcher } from './launcher'
-import { scanLibrary, type ScannedGame } from './library'
+import { emulatedId, scanLibrary, type ScannedGame } from './library'
+import { describeLine, loadRecipes, recipeEntries, recipeInfo, runSetup, type RecipePaths } from './recipes'
 import { initLog, log } from './log'
 import { parseFeed, safeHttpsUrl } from './news'
 import { isAllowedExternal, parseSignal, parseSsid, powerCommand } from './system'
@@ -288,8 +291,36 @@ function missingGames(installed: Game[]): Game[] {
   })
 }
 
+/** Dossiers livrés avec le lanceur : les outils (émulateurs, recompilations) et les recettes qui les décrivent. */
+const bundledDir = (name: string): string =>
+  process.env.CL_BUNDLED ? join(process.env.CL_BUNDLED, name) : app.isPackaged ? join(process.resourcesPath, name) : join(app.getAppPath(), name)
+
+/** Jeux à recette prêts à lancer ; un jeu ajouté à la main sous le même titre garde la priorité. */
+function withRecipes(cfg: Config): Config {
+  const own = new Set(cfg.emulated.map((e) => emulatedId(e.title)))
+  const extra = recipeEntries(loadRecipes(bundledDir('recipes')), recipePaths(), cfg.recipeInputs ?? {}).filter((e) => !own.has(emulatedId(e.title)))
+  return extra.length ? { ...cfg, emulated: [...cfg.emulated, ...extra] } : cfg
+}
+
+const recipePaths = (): RecipePaths => ({ toolsDir: bundledDir('tools'), outRoot: join(app.getPath('userData'), 'games') })
+
+/** Préparations en cours (jeux dont le lanceur exécute lui-même l'outil), avec leur dernière ligne de progression. */
+/** Dernier échec d'une préparation, affiché jusqu'à la prochaine tentative. */
+const recipeLastError = new Map<string, string>()
+const recipeRuns = new Map<string, { child: ChildProcess | null; progress: string }>()
+
+const recipeList = (): RecipeInfo[] => {
+  const inputs = store.get().recipeInputs ?? {}
+  return loadRecipes(bundledDir('recipes')).map((r) => {
+    const info = recipeInfo(r, recipePaths(), inputs)
+    const run = recipeRuns.get(r.id)
+    const failed = recipeLastError.get(r.id)
+    return run ? { ...info, running: true, progress: run.progress } : failed ? { ...info, progress: failed } : info
+  })
+}
+
 async function scan(): Promise<Game[]> {
-  games = await scanLibrary(store.get())
+  games = await scanLibrary(withRecipes(store.get()))
   const installed = games.map(toGame)
   const result = [...installed, ...missingGames(installed)]
   log(
@@ -572,6 +603,45 @@ function registerIpc(): void {
   ipcMain.handle('library:scan', () => scan())
   ipcMain.handle('library:findPrograms', (_e, dir: unknown) => (typeof dir === 'string' ? findPrograms(dir) : []))
   ipcMain.handle('game:stop', () => launcher.stop())
+  ipcMain.handle('recipes:list', () => recipeList())
+  ipcMain.handle('recipes:input', (_e, id: unknown, need: unknown, path: unknown) => {
+    if (typeof id === 'string' && typeof need === 'string' && typeof path === 'string') {
+      const all = store.get().recipeInputs ?? {}
+      store.set({ recipeInputs: { ...all, [id]: { ...all[id], [need]: path } } })
+    }
+    return recipeList()
+  })
+  ipcMain.handle('recipes:setup', (_e, id: unknown) => {
+    const recipe = loadRecipes(bundledDir('recipes')).find((r) => r.id === id)
+    if (!recipe || recipeRuns.has(recipe.id)) return false
+    const inputs = store.get().recipeInputs ?? {}
+    log('préparation du jeu', recipe.id)
+    recipeLastError.delete(recipe.id)
+    const child = runSetup(
+      recipe,
+      recipePaths(),
+      inputs,
+      (line) => {
+        const run = recipeRuns.get(recipe.id)
+        const text = describeLine(line)
+        if (run) run.progress = text.length > 160 ? text.slice(0, 160) : text
+        if (line.startsWith('{') && line.includes('"type": "error"') || line.includes('"type":"error"')) recipeLastError.set(recipe.id, text)
+      },
+      (code) => {
+        log('préparation terminée', recipe.id, code)
+        recipeRuns.delete(recipe.id)
+        if (code === 0) recipeLastError.delete(recipe.id)
+        else if (!recipeLastError.has(recipe.id)) recipeLastError.set(recipe.id, 'La préparation s’est arrêtée (code ' + String(code) + ').')
+      }
+    )
+    if (child && recipe.setup?.mode === 'cli') recipeRuns.set(recipe.id, { child, progress: '' })
+    return child !== null
+  })
+  ipcMain.handle('recipes:cancel', (_e, id: unknown) => {
+    const run = typeof id === 'string' ? recipeRuns.get(id) : undefined
+    run?.child?.kill()
+    return true
+  })
   // Grande image de fond d'un jeu : celle choisie pour lui, sinon <titre>.jpg dans le dossier des fonds.
   ipcMain.handle('game:backdrop', (_e, id: unknown, title: unknown) => {
     if (typeof id !== 'string' || typeof title !== 'string') return null

@@ -80,6 +80,36 @@ export interface EmulatedGame {
    * Défaut : paramètres recommandés, plein écran.
    */
   dialogPattern?: string
+  /** Force la fenêtre du jeu en plein écran sans bordure (jeux recompilés dont la fenêtre est petite). */
+  borderless?: boolean
+}
+
+/** Ce qu'une recette demande à l'utilisateur (son fichier ou dossier de jeu). */
+export interface RecipeNeed {
+  id: string
+  label: string
+  kind: 'file' | 'folder'
+  hint?: string
+  optional?: boolean
+}
+
+export type RecipeState = 'no-tool' | 'needs-input' | 'needs-setup' | 'ready'
+
+/** État d'un jeu « à préparer » vu par l'interface. */
+export interface RecipeInfo {
+  id: string
+  title: string
+  state: RecipeState
+  needs: RecipeNeed[]
+  inputs: Record<string, string>
+  note: string
+  hasSetup: boolean
+  /** Préparation faite par le lanceur lui-même (avec progression), plutôt que dans la fenêtre de l'outil. */
+  cli: boolean
+  /** Préparation en cours. */
+  running?: boolean
+  /** Dernière ligne de progression de la préparation. */
+  progress?: string
 }
 
 export interface Config {
@@ -139,6 +169,8 @@ export interface Config {
   playtime: Record<string, number>
   overrides: Record<string, GameOverride>
   lastPlayed: Record<string, number>
+  /** Fichiers et dossiers donnés par l'utilisateur pour préparer chaque jeu à recette (recette, puis entrée, puis chemin). */
+  recipeInputs: Record<string, Record<string, string>>
 }
 
 export type GameState =
@@ -232,6 +264,14 @@ export interface Api {
   findPrograms(dir: string): Promise<ProgramCandidate[]>
   /** Arrête le jeu en cours et revient au menu. */
   stopGame(): Promise<void>
+  /** Jeux livrés avec leur outil (recettes) et leur état. */
+  listRecipes(): Promise<RecipeInfo[]>
+  /** Enregistre un fichier ou dossier donné pour une recette ; renvoie la liste mise à jour. */
+  setRecipeInput(id: string, need: string, path: string): Promise<RecipeInfo[]>
+  /** Ouvre l'outil de préparation du jeu. */
+  runRecipeSetup(id: string): Promise<boolean>
+  /** Interrompt une préparation en cours. */
+  cancelRecipeSetup(id: string): Promise<boolean>
   /** Grande image de fond d'un jeu (URL data:), ou null s'il n'en a pas. */
   gameBackdrop(id: string, title: string): Promise<string | null>
   power(action: PowerAction): Promise<void>

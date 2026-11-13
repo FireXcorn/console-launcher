@@ -97,6 +97,7 @@ export function defaultConfig(): Config {
     profiles: [defaultProfile()],
     activeProfile: 'p1',
     emulated: [],
+    recipeInputs: {},
     showMissingGames: true,
     coversDir: join(homedir(), 'Pictures', 'Jaquettes'),
     audioDir: join(homedir(), 'Music', 'Console Launcher'),

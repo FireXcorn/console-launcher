@@ -1,5 +1,5 @@
 import type { Theme } from '../../shared/theme'
-import type { AlbumItem, Api, Config, Game, NewsItem } from '../../shared/types'
+import type { AlbumItem, Api, Config, Game, NewsItem, RecipeInfo } from '../../shared/types'
 
 /** Fausse API pour travailler l'interface dans un simple navigateur (développement uniquement). */
 export function installDevMock(): void {
@@ -31,6 +31,7 @@ export function installDevMock(): void {
     emulated: [
       { title: 'Super Aventure', emulatorExe: 'C:\\Outils\\mon-emulateur.exe', gameFile: 'D:\\Jeux\\super-aventure.xyz', args: ['-f', '-g', '{game}'], readyTitle: '' }
     ],
+    recipeInputs: {},
     showMissingGames: true,
     coversDir: 'C:\\Images\\Jaquettes',
     audioDir: 'C:\\Musique\\Console Launcher',
@@ -92,6 +93,14 @@ export function installDevMock(): void {
     date: Date.now() - i * 43_200_000
   }))
 
+  // Aperçu des jeux « à préparer » : un prêt, un qui attend son fichier, un qui attend sa préparation, un sans outil.
+  const mockRecipes: RecipeInfo[] = [
+    { id: 'a', title: 'Mario Kart World', state: 'needs-input', hasSetup: false, cli: false, note: '', inputs: {}, needs: [{ id: 'game', label: 'Fichier du jeu (.nup)', kind: 'file' }] },
+    { id: 'b', title: 'Pokémon Pokopia', state: 'needs-setup', hasSetup: true, cli: false, note: 'Choisis ton dossier de dump dans la fenêtre qui s’ouvre.', inputs: {}, needs: [] },
+    { id: 'c', title: 'Zelda Ocarina of Time', state: 'ready', hasSetup: true, cli: false, note: '', inputs: {}, needs: [] },
+    { id: 'd', title: 'Donkey Kong Bananza', state: 'no-tool', hasSetup: false, cli: false, note: '', inputs: {}, needs: [] }
+  ]
+
   const api: Api = {
     getConfig: async () => config,
     setConfig: async (patch) => (config = { ...config, ...patch }),
@@ -140,6 +149,10 @@ export function installDevMock(): void {
       { title: 'Puzzle Lab', exe: 'D:\\Jeux\\Puzzle Lab\\lab.exe' }
     ],
     stopGame: async () => console.info('[mock] arrêt du jeu'),
+    listRecipes: async () => mockRecipes,
+    setRecipeInput: async () => mockRecipes,
+    runRecipeSetup: async () => true,
+    cancelRecipeSetup: async () => true,
     power: async (action) => console.info('[mock] alimentation', action),
     profileImages: async () => ({}),
     // Faux personnages de l'utilisateur : des pastilles que je génère, aucune image réelle.

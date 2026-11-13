@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
-import type { Config, EmulatedGame, Game, GameOverride, ProfileArt, ProgramCandidate } from '../../../shared/types'
+import { useEffect, useRef, useState } from 'react'
+import type { Config, EmulatedGame, Game, GameOverride, ProfileArt, ProgramCandidate, RecipeInfo, RecipeState } from '../../../shared/types'
 import { engine } from '../audio/engine'
 import { useMoveSound } from '../audio/useSound'
 import Avatar from '../components/Avatar'
@@ -16,6 +16,13 @@ function parseArgs(text: string): string[] {
 
 function formatArgs(args: string[]): string {
   return args.map((a) => (/\s/.test(a) ? `"${a}"` : a)).join(' ')
+}
+
+const RECIPE_STATE: Record<RecipeState, string> = {
+  'no-tool': 'Outil absent de cette installation',
+  'needs-input': 'Il manque ton fichier de jeu',
+  'needs-setup': 'À préparer',
+  ready: 'Prêt'
 }
 
 const CATEGORIES = [
@@ -78,6 +85,23 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
   const [emulated, setEmulated] = useState<EmuDraft[]>(config.emulated.map((g) => ({ ...g, args: formatArgs(g.args) })))
   const [charactersDir, setCharactersDir] = useState(config.charactersDir)
   useMoveSound(cat)
+
+  const [recipes, setRecipes] = useState<RecipeInfo[]>([])
+  useEffect(() => {
+    void window.api.listRecipes().then(setRecipes)
+  }, [])
+  // Tant qu'une préparation tourne, on relit son avancement.
+  const anyRunning = recipes.some((r) => r.running)
+  useEffect(() => {
+    if (!anyRunning) return
+    const timer = setInterval(() => void window.api.listRecipes().then(setRecipes), 1500)
+    return () => clearInterval(timer)
+  }, [anyRunning])
+
+  const giveRecipeInput = async (id: string, need: RecipeInfo['needs'][number]): Promise<void> => {
+    const path = need.kind === 'folder' ? await window.api.pickFolder() : await window.api.pickFile()
+    if (path) setRecipes(await window.api.setRecipeInput(id, need.id, path))
+  }
 
   const [candidates, setCandidates] = useState<(ProgramCandidate & { on: boolean })[] | null>(null)
   const [importNote, setImportNote] = useState('')
@@ -296,6 +320,46 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
               Ajoute un jeu en choisissant son programme. Pour un jeu sur émulateur, choisis aussi le fichier du jeu. Tu peux aussi
               importer d’un coup tous les jeux d’un dossier.
             </p>
+            {recipes.length > 0 && (
+              <div className="emu-card recipes">
+                <h3>Jeux livrés avec leur outil</h3>
+                <p className="settings-note">
+                  Donne ton propre fichier de jeu : le lanceur s’occupe de l’outil. Le jeu apparaît dans le menu dès qu’il est prêt
+                  (actualise la bibliothèque).
+                </p>
+                {recipes.map((r) => (
+                  <div className="recipe-row" key={r.id}>
+                    <div className="recipe-head">
+                      <span className="recipe-title">{r.title}</span>
+                      <span className={'recipe-state ' + r.state}>{RECIPE_STATE[r.state]}</span>
+                    </div>
+                    {r.state !== 'no-tool' &&
+                      r.needs.map((n) => (
+                        <div className="field-row" key={n.id}>
+                          <input readOnly value={r.inputs[n.id] ?? ''} placeholder={n.label} aria-label={n.label} />
+                          <button onClick={() => void giveRecipeInput(r.id, n)}>Choisir…</button>
+                        </div>
+                      ))}
+                    {r.running && (
+                      <div className="field-row">
+                        <span className="recipe-progress">{r.progress || 'Préparation en cours…'}</span>
+                        <button onClick={() => void window.api.cancelRecipeSetup(r.id)}>Annuler</button>
+                      </div>
+                    )}
+                    {r.state === 'needs-setup' && r.hasSetup && !r.running && (
+                      <div className="field-row">
+                        <button className="primary" onClick={() => void window.api.runRecipeSetup(r.id).then(() => window.api.listRecipes().then(setRecipes))}>
+                          Préparer le jeu…
+                        </button>
+                        <button onClick={() => void window.api.listRecipes().then(setRecipes)}>Vérifier</button>
+                      </div>
+                    )}
+                    {!r.running && r.progress && <small className="recipe-error">{r.progress}</small>}
+                    {r.note && r.state !== 'ready' && r.state !== 'no-tool' && <small>{r.note}</small>}
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="field-row wrap">
               <button className="primary" onClick={() => void addPcGame()}>
                 Ajouter un jeu PC…

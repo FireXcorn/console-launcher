@@ -43,6 +43,8 @@ export interface EmulatorWatch {
    * automatiquement (ex. « Utiliser les paramètres recommandés ? »).
    */
   dialogPattern?: string
+  /** Fenêtre forcée en plein écran sans bordure. */
+  borderless?: boolean
 }
 
 /**
@@ -257,6 +259,7 @@ while ($true) {
             [void]$W::SendMessage($h, 0x80, [IntPtr]1, $icon)
             [void]$W::SendMessage($h, 0x80, [IntPtr]0, $icon)
           }
+          if ($env:CL_BORDERLESS -eq '1') { [void](Set-Borderless $h) }
         }
         $lastDress = $now
       }
@@ -309,7 +312,8 @@ export function startWindowDresser(
         CL_LOG: watch?.readyLog ?? '',
         CL_LOGPAT: watch?.readyPattern ?? '',
         CL_SETTLE: String(watch?.settleMs ?? 0),
-        CL_DIALOG: watch?.dialogPattern ?? ''
+        CL_DIALOG: watch?.dialogPattern ?? '',
+        CL_BORDERLESS: watch?.borderless ? '1' : ''
       },
       windowsHide: true,
       stdio: ['ignore', 'pipe', 'ignore']

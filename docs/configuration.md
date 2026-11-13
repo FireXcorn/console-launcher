@@ -34,6 +34,7 @@ La liste que remplit *Paramètres → Ajouter des jeux* : jeux sur émulateur, m
 | `readyPattern` | texte (facultatif) | Expression qui, en apparaissant dans ce journal, prouve que le jeu tourne. |
 | `settleMs` | nombre (facultatif) | Pause avant de retirer l'écran noir (5000 par défaut). |
 | `dialogPattern` | texte (facultatif) | Les questions de l'émulateur dont le texte correspond reçoivent « oui ». |
+| `borderless` | `true` / `false` (facultatif) | Force la fenêtre du jeu en plein écran sans bordure (utile pour un jeu recompilé qui s'ouvre en petite fenêtre). |
 
 Voir [Émulateurs](emulateurs.md).
 

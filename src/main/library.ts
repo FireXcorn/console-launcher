@@ -96,7 +96,8 @@ function emulatedGames(cfg: ScanConfig): ScannedGame[] {
         readyLog: e.readyLog?.trim() || '',
         readyPattern: e.readyPattern?.trim() || '',
         settleMs: e.settleMs ?? DEFAULT_SETTLE_MS,
-        dialogPattern: e.dialogPattern?.trim() || DEFAULT_DIALOG_PATTERN
+        dialogPattern: e.dialogPattern?.trim() || DEFAULT_DIALOG_PATTERN,
+        borderless: e.borderless === true
       }
     })
   }

@@ -1,0 +1,15 @@
+{
+  "id": "zelda-ocarina-of-time",
+  "title": "Zelda Ocarina of Time Remake",
+  "tool": "hookshot-builder",
+  "base": "need:out",
+  "exe": "bin/hookshot.exe",
+  "args": [],
+  "borderless": true,
+  "needs": [{ "id": "out", "label": "Dossier où HookshotBuilder a construit le jeu", "kind": "folder" }],
+  "setup": {
+    "exe": "HookshotBuilder.exe",
+    "note": "Dans la fenêtre qui s'ouvre, choisis ton fichier du jeu (.nup) et un dossier d'installation ; indique ensuite ce même dossier ci-dessous."
+  },
+  "doneFile": "bin/hookshot.exe"
+}

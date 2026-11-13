@@ -101,3 +101,27 @@ Si le programme refuse de démarrer, vérifie les arguments : un programme qui n
 ## Partager ton réglage
 
 Une fois que ça marche, tu peux partager **l'entrée JSON** (sans tes chemins personnels) pour aider d'autres utilisateurs du même outil, par exemple dans un ticket ou une discussion du dépôt. Ne partage jamais de fichiers de jeu, de clés ni de firmware.
+
+## Jeux livrés avec leur outil (recettes)
+
+Une version complète du lanceur peut contenir, à côté de l'application, un dossier `resources\tools\` (les outils : émulateur, recompilation…) et `resources\recipes\` (une recette `.json` par jeu). Dans *Paramètres → Ajouter des jeux*, la carte « Jeux livrés avec leur outil » liste ces jeux : tu choisis **ton** fichier de jeu, tu lances la préparation de l'outil si elle existe, et le jeu apparaît au menu après *Actualiser la bibliothèque*.
+
+Les fichiers de jeu, clés et dumps ne sont jamais fournis. Chaque outil garde sa propre licence : garde son fichier de licence dans son dossier.
+
+Une recette ressemble à ceci (aucun chemin absolu) :
+
+```json
+{
+  "id": "mon-jeu",
+  "title": "Mon Jeu",
+  "tool": "mon-outil",
+  "exe": "outil.exe",
+  "args": ["-g", "{game}"],
+  "needs": [{ "id": "game", "label": "Ton fichier du jeu", "kind": "file" }],
+  "gameFileFrom": "game",
+  "setup": { "exe": "preparer.exe", "note": "Texte d'aide affiché à l'utilisateur." },
+  "doneFile": "fait.txt"
+}
+```
+
+`base` : où vit le jeu prêt (`tool` par défaut, `out` = dossier créé par le lanceur, `need:<id>` = dossier indiqué par l'utilisateur). `needs` : ce que l'utilisateur fournit. `setup` : programme de préparation de l'outil : ouvert dans sa fenêtre, ou, avec `"mode": "cli"`, exécuté par le lanceur qui affiche sa progression (`{out}` = dossier du jeu, `{id}` = entrée de l'utilisateur). `doneFile` : fichier dont la présence prouve que la préparation est finie. Pour fabriquer la version complète, remplis `tools-src\` (ignoré par git) avec `scripts/prepare-tools.ps1` (il extrait les archives d'origine, sans aucun fichier de jeu), puis lance `npm run dist`.

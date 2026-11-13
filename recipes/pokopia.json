@@ -1,0 +1,15 @@
+{
+  "id": "pokopia",
+  "title": "Pokémon Pokopia",
+  "tool": "pokopia",
+  "exe": "pkp.exe",
+  "args": ["--log", "pkp.log"],
+  "readyTitle": "^Pok",
+  "settleMs": 15000,
+  "borderless": true,
+  "setup": {
+    "exe": "PokopiaLauncher.exe",
+    "note": "Dans la fenêtre qui s'ouvre, choisis ton dossier de dump (base/ et updates/<version>/, chacun avec exefs/ et romfs/), puis lance la préparation (une heure environ, 14 Go d'espace)."
+  },
+  "doneFile": "pkp.exe"
+}

@@ -25,7 +25,17 @@
     "win": {
       "target": "dir",
       "icon": "build/icon.ico"
-    }
+    },
+    "extraResources": [
+      {
+        "from": "recipes",
+        "to": "recipes"
+      },
+      {
+        "from": "tools-src",
+        "to": "tools"
+      }
+    ]
   },
   "dependencies": {
     "react": "^19.3.1",
