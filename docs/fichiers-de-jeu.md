@@ -10,7 +10,7 @@ Console Launcher est **un menu** : il lance ce que **tu** as, avec ton propre fi
 - clé de chiffrement, firmware, BIOS ou autre fichier propre à une console ;
 - image, son, logo ou personnage protégé.
 
-Le dépôt de code ne contient ni émulateur ni outil de recompilation. En revanche, **l'archive téléchargeable de la version complète** embarque, dans le dossier `resources	ools`, les outils de quelques jeux (Mario Kart World, Donkey Kong Bananza, Pokémon Pokopia, Zelda Ocarina of Time), chacun avec sa propre licence, sans aucun fichier de jeu. Pour tout autre outil, tu l'installes toi-même.
+Le dépôt de code ne contient ni émulateur ni outil de recompilation. En revanche, **l'archive téléchargeable de la version complète** embarque, dans le dossier `resources/tools`, les outils de quelques jeux (Mario Kart World, Donkey Kong Bananza, Pokémon Pokopia, Zelda Ocarina of Time), chacun avec sa propre licence, sans aucun fichier de jeu. Pour tout autre outil, tu l'installes toi-même.
 
 ## « Intégrés » : ce que ça veut dire ici
 
