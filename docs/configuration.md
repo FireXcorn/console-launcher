@@ -6,7 +6,7 @@ Presque tout se règle dans l'application (*Paramètres de la console*). Ce fich
 
 - **Emplacement** : dans le dossier de données du lanceur, sous `%APPDATA%`.
 - **Avant de le modifier à la main, ferme le lanceur** : il réécrit le fichier à chaque changement.
-- Une clé absente reprend sa valeur par défaut ; un fichier illisible est ignoré (les valeurs par défaut s'appliquent).
+- Une clé absente reprend sa valeur par défaut ; un fichier illisible n'est jamais écrasé en silence : il est gardé à côté (`config.json.casse-…`) et la dernière copie de secours (`config.json.bak`) est reprise si elle est valide. Le caractère invisible (BOM) que certains éditeurs ajoutent est accepté.
 
 ## Bibliothèque
 
@@ -19,15 +19,15 @@ Presque tout se règle dans l'application (*Paramètres de la console*). Ce fich
 | `showMissingGames` | oui/non | Affiche aussi des tuiles « Cartouche vide » pour des jeux non installés. |
 | `overrides` | objet | Titres et images choisis par jeu : `{ "<id du jeu>": { "title": "…", "icon": "C:\\…" } }`. |
 
-## Jeux sur émulateur (`emulated`)
+## Jeux ajoutés à la main (`emulated`)
 
-Liste d'entrées :
+La liste que remplit *Paramètres → Ajouter des jeux* : jeux sur émulateur, mais aussi jeux PC ou recompilés (sans `gameFile`). Liste d'entrées :
 
 | Clé | Type | Rôle |
 |---|---|---|
 | `title` | texte | Nom affiché. |
 | `emulatorExe` | texte | Programme de l'émulateur. |
-| `gameFile` | texte | Fichier du jeu ; remplace `{game}` dans les arguments. |
+| `gameFile` | texte | Fichier du jeu ; remplace `{game}` dans les arguments. Vide pour un jeu PC ou recompilé, lancé seul. |
 | `args` | liste de textes | Arguments de l'émulateur. |
 | `readyTitle` | texte | Expression régulière sur le titre de la fenêtre : le jeu tourne. Vide : titre à plusieurs `\|`. |
 | `readyLog` | texte (facultatif) | Journal de l'émulateur à surveiller. |

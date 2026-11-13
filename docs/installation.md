@@ -42,10 +42,14 @@ npm run dev
 
 ## Premier démarrage
 
-Au premier lancement, la bibliothèque est vide : aucun dossier de jeux n'est choisi. Va dans **Paramètres de la console** :
+Au premier lancement, la bibliothèque est vide : un écran **Bienvenue** te propose d'**importer un dossier de jeux** (un programme par sous-dossier), d'**ajouter un jeu à la main** ou de le faire plus tard.
 
-- [Jeux natifs](jeux-natifs.md) → catégorie **Bibliothèque**
-- [Jeux sur émulateur](emulateurs.md) → catégorie **Jeux sur émulateur**
+Plus tard, tout se fait dans **Paramètres de la console → Ajouter des jeux** :
+
+- [Jeux PC et jeux recompilés](jeux-natifs.md) : un programme, ou un dossier entier ;
+- [Jeux sur émulateur](emulateurs.md) : l'émulateur et le fichier du jeu.
+
+En jeu, `Ctrl+Alt+Q` (ou `Retour` + `Menu` maintenus 2 secondes sur manette) ramène au menu.
 
 ## Démarrer avec la session
 

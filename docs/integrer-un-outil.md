@@ -33,12 +33,12 @@ C'est l'étape la plus importante. Si ça ne marche pas à la main, ça ne march
 
 ## Étape 2 : ajouter le jeu au lanceur
 
-*Paramètres de la console → Jeux sur émulateur → Ajouter un jeu sur émulateur*, puis remplis :
+*Paramètres de la console → Ajouter des jeux → Ajouter un jeu sur émulateur…* (choisis l'émulateur, puis le fichier du jeu), puis vérifie la fiche :
 
 | Champ | Ce que tu y mets |
 |---|---|
 | Titre du jeu | Le nom de la tuile. |
-| Programme de l'émulateur | Le `.exe` de l'outil. |
+| Programme de l'émulateur | Le `.exe` de l'outil (pour un outil qui se lance seul, utilise **Ajouter un jeu PC…**). |
 | Fichier du jeu | Ton fichier de jeu. |
 | Arguments | Ceux de l'étape 1, avec `{game}` à la place du chemin du jeu : `-f -g {game}`. |
 

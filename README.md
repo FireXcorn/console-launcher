@@ -4,6 +4,8 @@ Un lanceur de jeux **plein écran** pour PC, inspiré du menu d'accueil d'une co
 
 Il lance **tes** jeux : des programmes PC « natifs », ou des jeux qui passent par un **émulateur**.
 
+**Télécharger :** [la dernière version](https://github.com/FireXcorn/console-launcher/releases/latest) pour Windows 10 et 11 : décompresse l'archive et lance `Console Launcher.exe`, rien à installer.
+
 <p align="center">
   <img src="docs/images/accueil-sans-theme.jpg" alt="Accueil du lanceur, mode « Sans thème » : une rangée de jeux et la barre d'icônes" width="720"><br>
   <em>Mode « Sans thème » : le menu d'origine.</em>
@@ -59,23 +61,26 @@ Le lanceur est alors dans `dist/win-unpacked/` : lance `Console Launcher.exe`. D
 
 ## Ajouter ses jeux
 
-1. Ouvre **Paramètres de la console** (l'icône en forme de soleil, dans la barre du bas).
-2. Pour un jeu PC : **Bibliothèque** → choisis ton dossier de jeux et le nom du programme. → [Guide des jeux natifs](docs/jeux-natifs.md)
-3. Pour un jeu sur émulateur : **Jeux sur émulateur** → ajoute le programme et le fichier du jeu. → [Guide des émulateurs](docs/emulateurs.md)
+Au premier lancement, un assistant te propose d'importer un dossier de jeux. Sinon :
+
+1. Ouvre **Paramètres de la console** (l'icône en forme de soleil, dans la barre du bas) → **Ajouter des jeux**.
+2. **Ajouter un jeu PC…** : choisis le programme (`.exe`) du jeu. → [Guide des jeux natifs](docs/jeux-natifs.md)
+3. **Ajouter un jeu sur émulateur…** : choisis l'émulateur, puis le fichier du jeu. → [Guide des émulateurs](docs/emulateurs.md)
+4. **Importer un dossier de jeux…** : le lanceur trouve un programme par sous-dossier ; tu coches ceux à ajouter.
 
 <p align="center">
-  <img src="docs/images/emulateurs.jpg" alt="Paramètres : jeux sur émulateur" width="560">
+  <img src="docs/images/emulateurs.jpg" alt="Paramètres : Ajouter des jeux" width="560">
 </p>
 
 ## Documentation
 
 | Page | Contenu |
 |---|---|
-| [Installation](docs/installation.md) | Construire et lancer l'application, démarrage automatique |
+| [Installation](docs/installation.md) | Télécharger ou construire l'application, premier lancement, démarrage automatique |
 | [Intégrer un outil toi-même](docs/integrer-un-outil.md) | La méthode pour brancher n'importe quel émulateur ou outil de recompilation |
 | [Ce qui est inclus](docs/fichiers-de-jeu.md) | Jeux, émulateurs, recompilation : ce que tu dois fournir toi-même |
 | [Jeux natifs](docs/jeux-natifs.md) | Dossier des jeux, nom du programme, recompilations, titres et images |
-| [Émulateurs](docs/emulateurs.md) | Ajouter un jeu sur émulateur, arguments, détection du démarrage |
+| [Émulateurs](docs/emulateurs.md) | Ajouter un jeu sur émulateur ou recompilé, arguments, détection du démarrage |
 | [Personnalisation](docs/personnalisation.md) | Profils, personnages, thèmes, sons, jaquettes, album |
 | [Configuration](docs/configuration.md) | Référence complète de `config.json` |
 | [Dépannage](docs/depannage.md) | Les problèmes courants et leurs solutions |

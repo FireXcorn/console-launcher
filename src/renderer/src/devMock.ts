@@ -28,7 +28,9 @@ export function installDevMock(): void {
       { id: 'p2', name: 'Invité', color: '#d6478f', background: 'p:pois', avatar: '', image: '' }
     ],
     activeProfile: 'p1',
-    emulated: [],
+    emulated: [
+      { title: 'Super Aventure', emulatorExe: 'C:\\Outils\\mon-emulateur.exe', gameFile: 'D:\\Jeux\\super-aventure.xyz', args: ['-f', '-g', '{game}'], readyTitle: '' }
+    ],
     showMissingGames: true,
     coversDir: 'C:\\Images\\Jaquettes',
     audioDir: 'C:\\Musique\\Console Launcher',

@@ -2,7 +2,7 @@
 
 [← Documentation](../README.md#documentation)
 
-Pour chaque jeu, tu indiques **quel émulateur** ouvrir et **quel fichier** lui donner. Le lanceur :
+Pour chaque jeu, tu indiques **quel émulateur** ouvrir et **quel fichier** lui donner (un jeu à la fois : il n'y a pas encore d'import d'un dossier de fichiers de jeu). Le lanceur :
 
 1. couvre l'écran d'un fond noir pendant le chargement ;
 2. démarre l'émulateur avec ton jeu ;
@@ -12,7 +12,7 @@ Pour chaque jeu, tu indiques **quel émulateur** ouvrir et **quel fichier** lui 
 > Le lanceur ne fournit ni émulateur ni jeu. Utilise des émulateurs téléchargés depuis leur site officiel et des jeux que tu possèdes et que tu as copiés toi-même. Voir [ce qui est inclus et ce qui ne l'est pas](fichiers-de-jeu.md).
 
 <p align="center">
-  <img src="images/emulateurs.jpg" alt="Catégorie « Jeux sur émulateur » des paramètres" width="560">
+  <img src="images/emulateurs.jpg" alt="Catégorie « Ajouter des jeux » des paramètres" width="560">
 </p>
 
 Pour apprendre la méthode complète avec n'importe quel outil : [Intégrer toi-même un outil](integrer-un-outil.md).
@@ -20,19 +20,18 @@ Pour apprendre la méthode complète avec n'importe quel outil : [Intégrer toi-
 ## Étapes
 
 1. Installe ton émulateur et vérifie **à la main** qu'il lance bien ton jeu.
-2. **Paramètres de la console → Jeux sur émulateur → Ajouter un jeu sur émulateur.**
-3. Remplis les champs :
+2. **Paramètres de la console → Ajouter des jeux → Ajouter un jeu sur émulateur…** : choisis le programme de l'émulateur, puis le fichier du jeu.
+3. Vérifie ou complète les champs de la fiche qui apparaît :
 
    | Champ | À mettre |
    |---|---|
    | **Titre du jeu** | Le nom affiché sur la tuile. |
    | **Programme de l'émulateur** | **Parcourir…** puis l'`.exe` de l'émulateur. |
-   | **Fichier du jeu** | **Parcourir…** puis le fichier du jeu. |
-   | **Fichier du jeu** | Laisse-le **vide** pour un jeu recompilé (un programme qui se lance seul) : dans ce cas, n'écris pas `{game}` dans les arguments. |
+   | **Fichier du jeu** | **Parcourir…** puis le fichier du jeu. Pour un jeu recompilé (un programme qui se lance seul), utilise plutôt **Ajouter un jeu PC…** : il n'y a pas de fichier de jeu. |
    | **Arguments** | Les options de l'émulateur. Écris `{game}` à l'endroit où le fichier du jeu doit apparaître. Les espaces dans le chemin ne posent pas de problème. |
 
 4. Quitte les paramètres : la tuile apparaît à l'accueil. Elle n'existe que si l'émulateur **et** le fichier du jeu sont présents aux chemins indiqués.
-5. Ajoute une image : *Bibliothèque → Jeux → Image…* (voir [Jeux natifs](jeux-natifs.md#titres-et-images)).
+5. Ajoute une image : *Paramètres → Bibliothèque → Jeux → Image…* (voir [Jeux natifs](jeux-natifs.md#titres-et-images)).
 
 ## Fenêtre du jeu : titre et icône
 
@@ -88,7 +87,7 @@ Ces réglages avancés s'écrivent dans `config.json` (voir [Configuration](conf
 
 ## Retirer un jeu
 
-*Jeux sur émulateur →* **Retirer ce jeu**, sous sa fiche.
+*Paramètres → Ajouter des jeux →* **Retirer ce jeu**, sous sa fiche.
 
 ## Voir aussi
 
