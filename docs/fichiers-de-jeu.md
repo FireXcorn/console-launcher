@@ -4,19 +4,17 @@
 
 ## En bref
 
-Console Launcher est **uniquement un menu**. Il lance ce que **tu** as installé. Il ne contient, ne télécharge et ne distribue **aucun** :
+Console Launcher est **un menu** : il lance ce que **tu** as, avec ton propre fichier de jeu. Il ne contient, ne télécharge et ne distribue **aucun** :
 
 - jeu (ni fichier de jeu : `.nsp`, `.nup`, `.xci`, `.iso`, `.exe` de jeu…) ;
-- émulateur ;
-- outil de recompilation ou de portage ;
 - clé de chiffrement, firmware, BIOS ou autre fichier propre à une console ;
 - image, son, logo ou personnage protégé.
 
-Ce dépôt ne peut pas les contenir : les distribuer est contraire au droit d'auteur, et ce n'est pas le but du projet.
+Le dépôt de code ne contient ni émulateur ni outil de recompilation. En revanche, **l'archive téléchargeable de la version complète** embarque, dans le dossier `resources	ools`, les outils de quelques jeux (Mario Kart World, Donkey Kong Bananza, Pokémon Pokopia, Zelda Ocarina of Time), chacun avec sa propre licence, sans aucun fichier de jeu. Pour tout autre outil, tu l'installes toi-même.
 
 ## « Intégrés » : ce que ça veut dire ici
 
-Le lanceur **s'intègre** à ces outils : il sait les démarrer avec le bon fichier, masquer leur fenêtre pendant le chargement, répondre à leurs questions habituelles, puis donner à la fenêtre du jeu son titre et sa jaquette. **L'outil lui-même, tu l'installes toi-même**, depuis son site officiel.
+Le lanceur **s'intègre** à ces outils : il sait les démarrer avec le bon fichier, masquer leur fenêtre pendant le chargement, répondre à leurs questions habituelles, puis donner à la fenêtre du jeu son titre et sa jaquette. **L'outil lui-même** est déjà dans l'archive pour les quatre jeux livrés avec leur outil ; pour les autres, tu l'installes toi-même depuis son site officiel.
 
 | Type de jeu | Ce que fournit le lanceur | Ce que tu fournis |
 |---|---|---|

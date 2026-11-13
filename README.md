@@ -27,8 +27,9 @@ Le lanceur est **un menu** : il lance **tes** jeux. Il fonctionne avec :
 | Jeux PC natifs | Un dossier avec un `.exe` | Le dossier du jeu |
 | Jeux sur émulateur | Tout émulateur qui se lance en ligne de commande | L'émulateur (site officiel) et le fichier de **ton** jeu |
 | Jeux issus d'une recompilation / d'un portage | Un programme PC produit par un outil dédié | Le programme obtenu à partir de **ta** copie du jeu |
+| **Jeux livrés avec leur outil** | Mario Kart World, Donkey Kong Bananza, Pokémon Pokopia, Zelda Ocarina of Time : l'outil est déjà dans l'archive | Seulement **ton** fichier de jeu : le lanceur prépare le reste |
 
-**Ce dépôt ne contient, ne distribue et ne renvoie vers aucun jeu, aucun émulateur, aucun outil de recompilation, aucune clé ni aucun firmware** : ce serait contraire au droit d'auteur. Utilise uniquement des fichiers que tu possèdes légalement. Détails : [Ce qui est inclus et ce qui ne l'est pas](docs/fichiers-de-jeu.md).
+**Aucun jeu n'est fourni.** Le dépôt ne contient aucun jeu, aucune clé ni aucun firmware. Les outils de certains jeux (voir ci-dessous) sont fournis dans l'archive de la version téléchargeable, avec leur propre licence ; le code du dépôt, lui, n'en contient aucun. Utilise uniquement des fichiers que tu possèdes légalement. Détails : [Ce qui est inclus et ce qui ne l'est pas](docs/fichiers-de-jeu.md).
 
 ## Fonctionnalités
 
@@ -43,6 +44,8 @@ Le lanceur est **un menu** : il lance **tes** jeux. Il fonctionne avec :
 - **Thèmes** : fond d'écran, couleurs, tuiles, barre du bas, curseur, sons. Import et enregistrement de tes thèmes.
 - **Album** : les captures d'écran faites pendant un jeu.
 - **Actualités** : un flux RSS ou Atom de ton choix.
+- **Jeux livrés avec leur outil** : tu ajoutes ton fichier de jeu, le lanceur prépare l'outil et le jeu devient jouable. Visite guidée au premier lancement.
+- **Sauvegardes par profil** : chaque profil a ses propres sauvegardes de jeu, avec copie de secours des profils.
 - **Manette et clavier** : navigation complète aux deux.
 - **Démarrage automatique** avec la session (option).
 
@@ -58,6 +61,16 @@ npm run dist
 ```
 
 Le lanceur est alors dans `dist/win-unpacked/` : lance `Console Launcher.exe`. Détails dans [Installation](docs/installation.md).
+
+## Premiers pas en 4 minutes
+
+1. Télécharge l'archive, décompresse-la et lance `Console Launcher.exe`.
+2. Choisis **Commencer la visite** : des bulles te montrent l'écran.
+3. Les jeux livrés avec leur outil apparaissent avec la mention **Cartouche vide**. Sélectionne-en un et appuie sur **A** (ou Entrée).
+4. Choisis **ton** fichier de jeu (par exemple un `.nup`), puis **Préparer le jeu**. Une barre indique l'avancement ; la préparation de certains jeux peut durer longtemps.
+5. Quand c'est fini, la tuile devient un vrai jeu : sélectionne-la, appuie sur **A**, et il se lance en plein écran. `Ctrl+Alt+Q` ramène au menu.
+
+Le guide complet est dans [Premiers pas](docs/premiers-pas.md).
 
 ## Ajouter ses jeux
 
@@ -76,6 +89,7 @@ Au premier lancement, un assistant te propose d'importer un dossier de jeux. Sin
 
 | Page | Contenu |
 |---|---|
+| [Premiers pas](docs/premiers-pas.md) | Le tutoriel : de l'archive téléchargée au premier jeu lancé |
 | [Installation](docs/installation.md) | Télécharger ou construire l'application, premier lancement, démarrage automatique |
 | [Intégrer un outil toi-même](docs/integrer-un-outil.md) | La méthode pour brancher n'importe quel émulateur ou outil de recompilation |
 | [Ce qui est inclus](docs/fichiers-de-jeu.md) | Jeux, émulateurs, recompilation : ce que tu dois fournir toi-même |
@@ -86,17 +100,6 @@ Au premier lancement, un assistant te propose d'importer un dossier de jeux. Sin
 | [Dépannage](docs/depannage.md) | Les problèmes courants et leurs solutions |
 | [Publier sur GitHub](docs/publier-sur-github.md) | Mettre le projet en ligne et publier une version téléchargeable |
 | [Contribuer](CONTRIBUTING.md) | Développer, tester, proposer une modification |
-
-## Commandes de navigation
-
-| Action | Clavier | Manette |
-|---|---|---|
-| Se déplacer | Flèches | Croix / stick |
-| Valider | `Entrée` | A |
-| Retour | `Échap` | B |
-| Options d'un jeu | `Suppr` | Y |
-| Menu / valider un écran | `Tab` | + |
-| Onglet précédent / suivant | `Page haut` / `Page bas` | L / R |
 
 ## Licence
 

@@ -2,7 +2,7 @@
 
 [← Documentation](../README.md#documentation)
 
-Le lanceur ne fournit aucun émulateur ni outil de recompilation : c'est **toi** qui les installes, puis tu apprends au lanceur à les démarrer. Cette page explique la méthode, pas à pas, avec des outils fictifs. Elle marche pour n'importe quel programme qui se lance depuis une fenêtre de commandes.
+Quatre jeux (Mario Kart World, Donkey Kong Bananza, Pokémon Pokopia, Zelda Ocarina of Time) sont déjà livrés avec leur outil : voir la fin de cette page. Pour **tout autre** émulateur ou outil de recompilation, c'est **toi** qui l'installes, puis tu apprends au lanceur à le démarrer. Cette page explique la méthode, pas à pas, avec des outils fictifs. Elle marche pour n'importe quel programme qui se lance depuis une fenêtre de commandes.
 
 > Utilise des outils téléchargés depuis leur site officiel, avec des fichiers que tu possèdes légalement. Voir [ce qui est inclus et ce qui ne l'est pas](fichiers-de-jeu.md).
 

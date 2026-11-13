@@ -11,7 +11,7 @@
 
 ## Télécharger une version prête à l'emploi
 
-Si une version est publiée dans l'onglet **Releases** du dépôt GitHub : télécharge l'archive, décompresse-la où tu veux et lance `Console Launcher.exe`. Rien à installer.
+Si une version est publiée dans l'onglet **Releases** du dépôt GitHub : télécharge l'archive, décompresse-la où tu veux et lance `Console Launcher.exe`. Rien à installer. Cette archive est volumineuse (environ 1,5 Go) car elle contient les outils des jeux livrés avec leur outil. Premier jeu pas à pas : [Premiers pas](premiers-pas.md).
 
 ## Construire depuis les sources
 
