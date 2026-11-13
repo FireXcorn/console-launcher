@@ -125,3 +125,5 @@ Une recette ressemble à ceci (aucun chemin absolu) :
 ```
 
 `base` : où vit le jeu prêt (`tool` par défaut, `out` = dossier créé par le lanceur, `need:<id>` = dossier indiqué par l'utilisateur). `needs` : ce que l'utilisateur fournit. `setup` : programme de préparation de l'outil : ouvert dans sa fenêtre, ou, avec `"mode": "cli"`, exécuté par le lanceur qui affiche sa progression (`{out}` = dossier du jeu, `{id}` = entrée de l'utilisateur). `doneFile` : fichier dont la présence prouve que la préparation est finie. Pour fabriquer la version complète, remplis `tools-src\` (ignoré par git) avec `scripts/prepare-tools.ps1` (il extrait les archives d'origine, sans aucun fichier de jeu), puis lance `npm run dist`.
+
+`saves` (facultatif) : dossiers de sauvegarde du jeu, relatifs à son dossier ou avec `{appdata}` ; le lanceur les sépare par profil.

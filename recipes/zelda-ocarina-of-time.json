@@ -6,10 +6,19 @@
   "exe": "bin/hookshot.exe",
   "args": [],
   "borderless": true,
-  "needs": [{ "id": "out", "label": "Dossier où HookshotBuilder a construit le jeu", "kind": "folder" }],
+  "needs": [
+    {
+      "id": "out",
+      "label": "Dossier où HookshotBuilder a construit le jeu",
+      "kind": "folder"
+    }
+  ],
   "setup": {
     "exe": "HookshotBuilder.exe",
     "note": "Dans la fenêtre qui s'ouvre, choisis ton fichier du jeu (.nup) et un dossier d'installation ; indique ensuite ce même dossier ci-dessous."
   },
-  "doneFile": "bin/hookshot.exe"
+  "doneFile": "bin/hookshot.exe",
+  "saves": [
+    "user/save"
+  ]
 }

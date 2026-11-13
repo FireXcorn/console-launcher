@@ -3,7 +3,20 @@
   "title": "Mario Kart World",
   "tool": "eglantine",
   "exe": "eglantine.exe",
-  "args": ["-f", "-g", "{game}"],
-  "needs": [{ "id": "game", "label": "Ton fichier du jeu (.nup)", "kind": "file" }],
-  "gameFileFrom": "game"
+  "args": [
+    "-f",
+    "-g",
+    "{game}"
+  ],
+  "needs": [
+    {
+      "id": "game",
+      "label": "Ton fichier du jeu (.nup)",
+      "kind": "file"
+    }
+  ],
+  "gameFileFrom": "game",
+  "saves": [
+    "{appdata}/eglantine/nand/user/save/0000000000000000"
+  ]
 }

@@ -36,6 +36,8 @@ export interface Recipe {
   setup?: { mode?: 'gui' | 'cli'; exe: string; args?: string[]; note?: string }
   /** Fichier (relatif au dossier du jeu) dont la présence prouve que la préparation est faite. */
   doneFile?: string
+  /** Dossiers de sauvegarde du jeu (relatifs à son dossier, ou avec {appdata}) : séparés par profil. */
+  saves?: string[]
 }
 
 export type RecipeInputs = Record<string, Record<string, string>>

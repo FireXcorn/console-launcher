@@ -8,12 +8,32 @@
   "readyTitle": "^DKB Recomp",
   "settleMs": 4000,
   "borderless": true,
-  "needs": [{ "id": "nup", "label": "Ton fichier du jeu (.nup)", "kind": "file" }],
+  "needs": [
+    {
+      "id": "nup",
+      "label": "Ton fichier du jeu (.nup)",
+      "kind": "file"
+    }
+  ],
   "setup": {
     "mode": "cli",
     "exe": "python/python.exe",
-    "args": ["-I", "-m", "installer", "--nup", "{nup}", "--dest", "{out}", "--no-update-check"],
+    "args": [
+      "-I",
+      "-m",
+      "installer",
+      "--nup",
+      "{nup}",
+      "--dest",
+      "{out}",
+      "--no-update-check"
+    ],
     "note": "La préparation prend une vingtaine de minutes et beaucoup d'espace disque (environ 20 Go)."
   },
-  "doneFile": "dkb.exe"
+  "doneFile": "dkb.exe",
+  "saves": [
+    "profile/save",
+    "profile/save-backup",
+    "profile/save-tx"
+  ]
 }

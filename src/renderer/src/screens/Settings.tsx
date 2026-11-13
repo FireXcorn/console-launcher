@@ -602,6 +602,13 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
       case 'backups':
         return (
           <>
+            <h3>Parties de chaque joueur</h3>
+            <p className="settings-note">
+              Chaque profil a ses propres sauvegardes de jeu, comme sur la console : choisis ton profil dans « Qui joue ? », lance un jeu
+              et tu retrouves ta partie. Un nouveau profil repart de zéro. Les parties déjà présentes vont au premier profil qui lance le
+              jeu. Pour l’instant : Mario Kart World, Donkey Kong Bananza, Pokémon Pokopia et Zelda Ocarina of Time.
+            </p>
+            <h3>Sauvegarde des profils</h3>
             <p className="settings-note">
               Tes profils, ton temps de jeu et tes dernières parties sont sauvegardés automatiquement, au lancement et à la fermeture
               (les 30 dernières sont gardées). Restaurer une sauvegarde garde d’abord une copie de l’état actuel.

@@ -40,6 +40,7 @@ import { ConfigStore } from './config'
 import { Launcher } from './launcher'
 import { emulatedId, scanLibrary, type ScannedGame } from './library'
 import { autoBackup, listBackups, parseBackup, restorePatch, takeSnapshot, writeBackup, pruneBackups } from './backup'
+import { GameSaves, resolveSaveDirs, saveRulesFor } from './saves'
 import { describeLine, loadRecipes, recipeEntries, recipeInfo, runSetup, type RecipePaths } from './recipes'
 import { initLog, log } from './log'
 import { parseFeed, safeHttpsUrl } from './news'
@@ -72,8 +73,19 @@ let store: ConfigStore
 let games: ScannedGame[] = []
 
 /** Jeu en cours : sert au temps de jeu. */
-let session: { id: string; start: number } | null = null
+let session: { id: string; start: number; saves?: { profile: string; key: string; dirs: string[] } } | null = null
 let captureKeyRegistered: string | null = null
+
+/** Sauvegardes de jeu rangées par profil (voir saves.ts). */
+const savesStore = (): GameSaves => new GameSaves(join(app.getPath('userData'), 'saves'))
+
+/** Dossiers de sauvegarde d'un jeu d'après les recettes (par son titre), ou null si on n'en connaît pas. */
+function saveSetupFor(game: ScannedGame): { key: string; dirs: string[] } | null {
+  const rules = saveRulesFor([game.title, game.sourceTitle ?? ''], loadRecipes(bundledDir('recipes')))
+  if (rules.length === 0) return null
+  const env = { appdata: app.getPath('appData'), localappdata: process.env.LOCALAPPDATA ?? '', userprofile: app.getPath('home') }
+  return { key: game.id, dirs: resolveSaveDirs(rules, game.dir, env) }
+}
 
 /** Ajoute le temps joué au compteur de l'utilisateur actif. */
 function addPlaytime(id: string, seconds: number): void {
@@ -158,11 +170,15 @@ function hideLauncher(): void {
   }
 }
 
+/** Sauvegardes préparées pour le jeu qui démarre ; elles passent dans la session dès qu'il tourne. */
+let pendingSaves: { profile: string; key: string; dirs: string[] } | null = null
+
 const launcher: Launcher = new Launcher(
   (state: GameState) => {
     log('jeu', state)
     if (state.status === 'running') {
-      session = { id: state.id, start: Date.now() }
+      session = { id: state.id, start: Date.now(), saves: pendingSaves ?? undefined }
+      pendingSaves = null
       registerCapture()
       registerStop()
     } else {
@@ -171,6 +187,14 @@ const launcher: Launcher = new Launcher(
       if (session) {
         const seconds = Math.round((Date.now() - session.start) / 1000)
         if (seconds >= 5) addPlaytime(session.id, seconds)
+        if (session.saves) {
+          try {
+            const done = savesStore().collect(session.saves.profile, session.saves.key, session.saves.dirs)
+            log('sauvegardes du jeu rangées', { profil: session.saves.profile, jeu: session.id, ok: done })
+          } catch (e) {
+            log('sauvegardes du jeu : rangement impossible', String(e))
+          }
+        }
         session = null
       }
     }
@@ -703,6 +727,18 @@ function registerIpc(): void {
     const iconPng = cover ? await squareIconPng(cover) : null
     if (launcher.isRunning) return
     hideFallbackMs = game.emulated ? HIDE_FALLBACK_EMULATED_MS : HIDE_FALLBACK_MS
+    // Chaque profil retrouve sa propre partie : on met en place la sienne avant de lancer le jeu.
+    pendingSaves = null
+    const setup = saveSetupFor(game)
+    if (setup) {
+      try {
+        const how = savesStore().prepare(cfg.activeProfile, setup.key, setup.dirs)
+        pendingSaves = { profile: cfg.activeProfile, key: setup.key, dirs: setup.dirs }
+        log('sauvegardes du jeu prêtes', { profil: cfg.activeProfile, jeu: game.title, etat: how })
+      } catch (e) {
+        log('sauvegardes du jeu : préparation impossible, lancement sans changement', String(e))
+      }
+    }
     launcher.launch(game, iconPng)
   })
   ipcMain.handle('dialog:pickFolder', async () => {

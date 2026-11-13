@@ -99,3 +99,7 @@ Voir [Émulateurs](emulateurs.md).
 *Paramètres → Sauvegardes* : profils (noms, avatars, photos), temps de jeu, dernières parties et titres choisis. Le lanceur en crée une automatiquement au démarrage et à la fermeture (au plus une par heure, seulement si quelque chose a changé) et garde les 30 dernières dans `backups\` du dossier de données. Tu peux aussi sauvegarder à la main, exporter dans un fichier, importer un fichier ou restaurer une sauvegarde ; une copie de l'état actuel est faite avant chaque restauration.
 
 Les réglages avancés (arguments des jeux, nom et icône de la fenêtre, touche de capture, sons personnalisés, flux d'actualités) sont masqués tant que *Paramètres → Avancé → Afficher les réglages avancés* (`showAdvanced`) est désactivé.
+
+## Sauvegardes de jeu par profil
+
+Chaque profil a ses propres sauvegardes de jeu, comme sur la console. Quand tu lances un jeu, le lanceur range la partie du joueur précédent et met en place celle du profil actif (un nouveau profil repart de zéro) ; à la fermeture du jeu, la partie du profil actif est copiée dans `saves\` du dossier de données. Les parties déjà présentes sont attribuées au premier profil qui lance le jeu. Avant tout remplacement, une copie de ce qui allait être écrasé est gardée (`avant-remplacement`, les 5 dernières). Les dossiers de sauvegarde de chaque jeu se déclarent dans sa recette (`saves`, relatifs au dossier du jeu, ou avec `{appdata}`) : voir [Intégrer un outil](integrer-un-outil.md).
