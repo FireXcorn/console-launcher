@@ -85,8 +85,9 @@ export default function App(): JSX.Element | null {
   const [scanned, setScanned] = useState(false)
   const [settingsStart, setSettingsStart] = useState<string | undefined>(undefined)
   /** Jeu pour lequel on ajoute son propre outil (depuis une « Cartouche vide » du catalogue). */
-  const [toolGame, setToolGame] = useState<string | null>(null)
+  const [toolGame, setToolGame] = useState<{ title: string; emulatorId?: string } | null>(null)
   const [addTitle, setAddTitle] = useState<string | undefined>(undefined)
+  const [addEmulator, setAddEmulator] = useState<string | undefined>(undefined)
   const [running, setRunning] = useState(false)
   const [launchingId, setLaunchingId] = useState<string | null>(null)
   const launchTimer = useRef<number | undefined>(undefined)
@@ -218,7 +219,7 @@ export default function App(): JSX.Element | null {
         }
         // Jeu du catalogue sans outil livré : le guide explique comment brancher le sien.
         engine.play('ouvrir')
-        setToolGame(game.title)
+        setToolGame({ title: game.title, emulatorId: game.emulatorId })
         return
       }
       engine.play('lancer')
@@ -524,6 +525,7 @@ export default function App(): JSX.Element | null {
         <SettingsScreen
           startCategory={settingsStart}
           addForTitle={addTitle}
+          addForEmulator={addEmulator}
           config={config}
           games={games}
           art={profileArt}
@@ -559,10 +561,12 @@ export default function App(): JSX.Element | null {
 
       {toolGame && (
         <ToolGuide
-          title={toolGame}
+          title={toolGame.title}
+          emulatorId={toolGame.emulatorId}
           onClose={() => setToolGame(null)}
           onAdd={() => {
-            setAddTitle(toolGame)
+            setAddTitle(toolGame.title)
+            setAddEmulator(toolGame.emulatorId)
             setSettingsStart('emulator')
             setToolGame(null)
             setScreen('settings')

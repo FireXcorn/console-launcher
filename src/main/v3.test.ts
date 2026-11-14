@@ -93,3 +93,19 @@ describe('fichiers audio de remplacement', () => {
     expect(findAudioFile('', 'menu')).toBeNull()
   })
 })
+
+describe('jeux Pokémon du catalogue', () => {
+  it('liste les 18 entrées, chacune avec un émulateur connu, sans doublon', async () => {
+    const { pokemonEntries } = await import('./catalog')
+    const { EMULATORS } = await import('../shared/emulators')
+    const entries = pokemonEntries([])
+    expect(entries).toHaveLength(18)
+    expect(new Set(entries.map((e) => e.id)).size).toBe(entries.length)
+    expect(entries.every((e) => EMULATORS[e.emulatorId])).toBe(true)
+    expect(entries.every((e) => e.id.startsWith('catalog:'))).toBe(true)
+  })
+  it('écarte un jeu déjà ajouté sous le même titre', async () => {
+    const { pokemonEntries } = await import('./catalog')
+    expect(pokemonEntries(['Pokémon Émeraude']).some((e) => e.title === 'Pokémon Émeraude')).toBe(false)
+  })
+})

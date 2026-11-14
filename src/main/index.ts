@@ -34,7 +34,7 @@ import type {
 } from '../shared/types'
 import { captureFileName, insideDir, isImageFile, listImageFiles } from './album'
 import { findAudioFile, isAudioName } from './audio'
-import { findBackdrop, findCover, missingEntries } from './catalog'
+import { findBackdrop, findCover, missingEntries, pokemonEntries } from './catalog'
 import { findPrograms } from './importer'
 import { ConfigStore } from './config'
 import { Launcher } from './launcher'
@@ -323,7 +323,8 @@ function missingGames(installed: Game[]): Game[] {
 
 function catalogMissing(taken: string[]): Game[] {
   const cfg = store.get()
-  return missingEntries(taken).map(({ id, title }) => {
+  const entries: Array<{ id: string; title: string; emulatorId?: string }> = [...missingEntries(taken), ...pokemonEntries(taken)]
+  return entries.map(({ id, title, emulatorId }) => {
     const override = cfg.overrides[id]
     const shown = override?.title?.trim() || title
     const cover = override?.icon && existsSync(override.icon) ? override.icon : findCover(cfg.coversDir, title)
@@ -335,7 +336,8 @@ function catalogMissing(taken: string[]): Game[] {
       args: [],
       icon: cover ? imageDataUrl(cover) : null,
       lastPlayed: 0,
-      available: false
+      available: false,
+      emulatorId
     }
   })
 }

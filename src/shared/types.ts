@@ -19,6 +19,8 @@ export interface Game {
   sourceTitle?: string
   /** Jeu livré avec son outil, pas encore prêt : « cartouche vide » dont l'utilisateur peut ajouter le fichier. */
   recipeId?: string
+  /** Jeu Pokémon du catalogue : émulateur conseillé (voir shared/emulators.ts). */
+  emulatorId?: string
 }
 
 /** Un jeu trouvé dans un dossier par l'import : son titre et son programme. */

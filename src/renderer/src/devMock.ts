@@ -59,7 +59,7 @@ export function installDevMock(): void {
     available: true
   }))
   // Quelques exclusivités « cartouche non insérée », comme le fait le vrai scan.
-  const missing = noGames ? [] : ['Mario Kart World', 'Donkey Kong Bananza', 'Kirby Air Riders', 'Splatoon Raiders', 'The Duskbloods']
+  const missing = noGames ? [] : ['Mario Kart World', 'Donkey Kong Bananza', 'Kirby Air Riders', 'Splatoon Raiders', 'The Duskbloods', 'Pokémon X et Y']
   missing.forEach((title) =>
     games.push({
       id: `catalog:${title.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
@@ -70,7 +70,8 @@ export function installDevMock(): void {
       icon: null,
       lastPlayed: 0,
       available: false,
-      recipeId: ({ 'Mario Kart World': 'a', 'Donkey Kong Bananza': 'd' } as Record<string, string>)[title]
+      recipeId: ({ 'Mario Kart World': 'a', 'Donkey Kong Bananza': 'd' } as Record<string, string>)[title],
+      emulatorId: title === 'Pokémon X et Y' ? 'azahar' : undefined
     })
   )
 

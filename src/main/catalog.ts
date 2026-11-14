@@ -27,6 +27,44 @@ export interface CatalogEntry {
   title: string
 }
 
+/**
+ * Jeux Pokémon (Game Boy à 3DS), avec l'émulateur conseillé pour chacun. Aucune Switch : ces jeux
+ * s'ajoutent soi-même (Paramètres → Ajouter des jeux) avec un émulateur que l'utilisateur télécharge.
+ */
+const POKEMON: ReadonlyArray<readonly [title: string, emulator: string]> = [
+  ['Pokémon Rouge et Bleu (et Vert)', 'mgba'],
+  ['Pokémon Jaune', 'mgba'],
+  ['Pokémon Or et Argent', 'mgba'],
+  ['Pokémon Cristal', 'mgba'],
+  ['Pokémon Rubis et Saphir', 'mgba'],
+  ['Pokémon Rouge Feu et Vert Feuille', 'mgba'],
+  ['Pokémon Émeraude', 'mgba'],
+  ['Pokémon XD : Le Souffle des Ténèbres', 'dolphin'],
+  ['Pokémon Ranger', 'melonds'],
+  ['Pokémon Diamant et Perle', 'melonds'],
+  ['Pokémon Platine', 'melonds'],
+  ['Pokémon Or HeartGold et Argent SoulSilver', 'melonds'],
+  ['Pokémon Noire et Blanche', 'melonds'],
+  ['Pokémon Noire 2 et Blanche 2', 'melonds'],
+  ['Pokémon X et Y', 'azahar'],
+  ['Pokémon Rubis Oméga et Saphir Alpha', 'azahar'],
+  ['Pokémon Soleil et Lune', 'azahar'],
+  ['Pokémon Ultra-Soleil et Ultra-Lune', 'azahar']
+]
+
+export interface PokemonEntry extends CatalogEntry {
+  emulatorId: string
+}
+
+/** Jeux Pokémon absents de la bibliothèque (un jeu ajouté sous le même titre remplace la tuile). */
+export function pokemonEntries(installedTitles: string[]): PokemonEntry[] {
+  const installed = installedTitles.map(normalizeTitle)
+  return POKEMON.filter(([title]) => {
+    const n = normalizeTitle(title)
+    return !installed.some((i) => i === n)
+  }).map(([title, emulatorId]) => ({ id: catalogId(title), title, emulatorId }))
+}
+
 /** Minuscules, sans accents ni ponctuation : sert à comparer des titres. */
 export function normalizeTitle(title: string): string {
   return title

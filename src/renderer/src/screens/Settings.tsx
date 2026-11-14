@@ -4,6 +4,7 @@ import { engine } from '../audio/engine'
 import { useMoveSound } from '../audio/useSound'
 import Avatar from '../components/Avatar'
 import RecipeCard, { useRecipes } from '../components/RecipeCard'
+import { EMULATORS } from '../../../shared/emulators'
 import Screen from '../components/Screen'
 import { useInput } from '../hooks/useInput'
 import ThemesPanel from './ThemesPanel'
@@ -48,13 +49,15 @@ interface Props {
   startCategory?: string
   /** Titre du jeu pour lequel on ajoute son propre outil : il devient le titre du jeu ajouté. */
   addForTitle?: string
+  /** Émulateur conseillé pour ce jeu (voir shared/emulators.ts) : ses arguments sont proposés. */
+  addForEmulator?: string
 }
 
 /**
  * « Paramètres de la console » : catégories à gauche, réglages à droite. Comme sur la console, les
  * changements sont appliqués en quittant l'écran.
  */
-export default function SettingsScreen({ config, games, art, onSave, onRescan, onOpenUser, onBack, startCategory, addForTitle }: Props): JSX.Element {
+export default function SettingsScreen({ config, games, art, onSave, onRescan, onOpenUser, onBack, startCategory, addForTitle, addForEmulator }: Props): JSX.Element {
   const [cat, setCat] = useState(() => Math.max(0, CATEGORIES.findIndex((c) => c.id === startCategory)))
   const paneRef = useRef<HTMLDivElement>(null)
 
@@ -135,7 +138,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
     const game = await window.api.pickFile()
     setEmulated((list) => [
       ...list,
-      { title: addForTitle ?? (game ? titleFromPath(game) : ''), emulatorExe: emulator, gameFile: game ?? '', args: '-f -g {game}', readyTitle: '' }
+      { title: addForTitle ?? (game ? titleFromPath(game) : ''), emulatorExe: emulator, gameFile: game ?? '', args: EMULATORS[addForEmulator ?? '']?.args ?? '-f -g {game}', readyTitle: EMULATORS[addForEmulator ?? '']?.readyTitle ?? '' }
     ])
   }
 
