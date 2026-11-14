@@ -28,6 +28,15 @@ Les jeux Switch et Switch 2 n'y figurent pas.
 
 Sur Ubuntu, chaque projet propose en général un **AppImage** (un seul fichier, à rendre exécutable) ou un **Flatpak**. Cherche sur sa page officielle, onglet **Releases**.
 
+## Sous Linux (Ubuntu)
+
+Le lanceur existe aussi pour Linux (`npm run dist:linux`, fichier AppImage). Sous Linux :
+
+- les tuiles et le guide Pokémon fonctionnent comme sous Windows ; choisis le fichier **AppImage** de l'émulateur (pas le Flatpak) ;
+- l'écran noir de lancement se retire au bout de quelques secondes, sans suivi de la fenêtre du jeu ;
+- Arrêter le jeu depuis le lanceur arrête l'émulateur ; la manette Retour + Menu maintenus n'est pas encore gérée ;
+- les jeux livrés avec leur outil (Mario Kart World, Zelda…) restent réservés à Windows.
+
 ## Rendre un AppImage exécutable (Ubuntu)
 
 Clic droit sur le fichier → Propriétés → Permissions → « Autoriser l'exécution du fichier comme un programme ». Ou, dans un terminal :

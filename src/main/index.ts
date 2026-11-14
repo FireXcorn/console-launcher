@@ -300,7 +300,8 @@ function missingGames(installed: Game[]): Game[] {
   const cfg = store.get()
   // Jeux livrés avec leur outil mais pas encore prêts : une « cartouche vide » où l'on peut ajouter son fichier.
   const have = new Set(installed.map((g) => emulatedId(g.title)))
-  const pending = recipeList().filter((r) => r.state !== 'ready' && !have.has(emulatedId(r.title)))
+  // Les outils livrés sont des programmes Windows : pas de tuile « à préparer » sous Linux.
+  const pending = (process.platform === 'win32' ? recipeList() : []).filter((r) => r.state !== 'ready' && !have.has(emulatedId(r.title)))
   const pendingTiles: Game[] = pending.map((r) => {
     const id = 'recipe:' + r.id
     const override = cfg.overrides[id]
@@ -349,6 +350,7 @@ const bundledDir = (name: string): string =>
 /** Jeux à recette prêts à lancer ; un jeu ajouté à la main sous le même titre garde la priorité. */
 function withRecipes(cfg: Config): Config {
   const own = new Set(cfg.emulated.map((e) => emulatedId(e.title)))
+  if (process.platform !== 'win32') return cfg
   const extra = recipeEntries(loadRecipes(bundledDir('recipes')), recipePaths(), cfg.recipeInputs ?? {}).filter((e) => !own.has(emulatedId(e.title)))
   return extra.length ? { ...cfg, emulated: [...cfg.emulated, ...extra] } : cfg
 }

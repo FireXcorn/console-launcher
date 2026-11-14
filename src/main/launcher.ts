@@ -5,6 +5,9 @@ import type { GameState } from '../shared/types'
 import type { ScannedGame } from './library'
 
 const POLL_MS = 2500
+/** Linux : pas de suivi de fenêtre (PowerShell/Windows seulement) ; l'écran noir se retire après ce délai. */
+const LINUX_READY_MS = 4000
+const isWindows = process.platform === 'win32'
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms))
 
 // -EncodedCommand évite tout problème de guillemets ; les valeurs passent par l'environnement.
@@ -19,6 +22,8 @@ function Get-GameProcs { @(Get-Process | Where-Object { $_.Path -and $_.Path.Sta
  * Sert à suivre le jeu quand l'exécutable lancé n'est qu'un relais qui se ferme aussitôt.
  */
 export function countProcessesUnder(dir: string): Promise<number> {
+  // Sous Linux, la fin du processus lancé marque la fin du jeu : rien d'autre à suivre.
+  if (!isWindows) return Promise.resolve(0)
   return new Promise((resolve) => {
     execFile(
       'powershell.exe',
@@ -374,6 +379,7 @@ while ($true) {
 
 /** Arrête tout ce qui tourne dans le dossier du jeu. */
 function killProcessesUnder(dir: string): Promise<void> {
+  if (!isWindows) return Promise.resolve()
   return new Promise((resolve) => {
     execFile(
       'powershell.exe',
@@ -422,6 +428,7 @@ export class Launcher {
     const finish = (state: GameState): void => {
       if (settled) return
       settled = true
+      if (readyTimer) clearTimeout(readyTimer)
       dresser?.kill()
       quitWatcher?.kill()
       this.stopCurrent = null
@@ -429,8 +436,15 @@ export class Launcher {
       this.emit(state)
     }
 
-    const child = spawn(exe, game.args, { cwd: game.dir, stdio: 'ignore', shell: false })
-    dresser = startWindowDresser(
+    // Linux : groupe de processus à part, pour pouvoir tout arrêter d'un coup (AppImage et ses enfants).
+    const child = spawn(exe, game.args, { cwd: game.dir, stdio: 'ignore', shell: false, detached: !isWindows })
+    let readyTimer: NodeJS.Timeout | null = null
+    if (!isWindows) {
+      readyTimer = setTimeout(() => {
+        if (!settled) this.onWindowReady()
+      }, LINUX_READY_MS)
+    }
+    if (isWindows) dresser = startWindowDresser(
       game.dir,
       game.title,
       iconPng,
@@ -440,21 +454,29 @@ export class Launcher {
       game.emulated ? game.watch : undefined,
       this.onLog
     )
-    dresser.once('error', () => {
+    dresser?.once('error', () => {
       // La surveillance de la fenêtre est facultative : le jeu tourne quand même.
     })
     // Combinaison manette (Retour + Menu, 2 s) : même effet que l'arrêt demandé par le lanceur.
-    quitWatcher = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', encode(QUIT_WATCHER_SCRIPT)], {
-      windowsHide: true,
-      stdio: ['ignore', 'pipe', 'ignore']
-    })
-    quitWatcher.once('error', () => undefined)
+    if (isWindows) {
+      quitWatcher = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', encode(QUIT_WATCHER_SCRIPT)], {
+        windowsHide: true,
+        stdio: ['ignore', 'pipe', 'ignore']
+      })
+      quitWatcher.once('error', () => undefined)
+    }
     this.stopCurrent = () => {
       this.onLog('arrêt du jeu demandé')
-      child.kill()
+      if (!isWindows && child.pid) {
+        try {
+          process.kill(-child.pid)
+        } catch {
+          child.kill()
+        }
+      } else child.kill()
       void killProcessesUnder(game.dir)
     }
-    quitWatcher.stdout?.on('data', (chunk: Buffer) => {
+    quitWatcher?.stdout?.on('data', (chunk: Buffer) => {
       if (String(chunk).includes('QUIT')) this.stopCurrent?.()
     })
     child.once('error', (err) => {

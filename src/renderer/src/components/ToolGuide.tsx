@@ -34,7 +34,7 @@ export default function ToolGuide({ title, emulatorId, onAdd, onClose }: Props):
             </p>
             <ol className="tool-steps">
               <li>
-                Télécharge <strong>{emulator.name}</strong> depuis sa page officielle (Windows ou Linux) et décompresse-le.
+                Télécharge <strong>{emulator.name}</strong> depuis sa page officielle : le programme Windows, ou, sous Linux, le fichier <strong>AppImage</strong> (rendu exécutable).
               </li>
               <li>Prends <strong>ton</strong> fichier de jeu (copié depuis ta propre cartouche ou ta propre console).</li>
               <li>

@@ -11,7 +11,8 @@
     "start": "electron-vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "dist": "electron-vite build && electron-builder --win dir"
+    "dist": "electron-vite build && electron-builder --win dir",
+    "dist:linux": "electron-vite build && electron-builder --linux AppImage"
   },
   "build": {
     "appId": "local.console.launcher",
@@ -24,16 +25,23 @@
     },
     "win": {
       "target": "dir",
-      "icon": "build/icon.ico"
+      "icon": "build/icon.ico",
+      "extraResources": [
+        {
+          "from": "tools-src",
+          "to": "tools"
+        }
+      ]
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "build/icon.png",
+      "category": "Game"
     },
     "extraResources": [
       {
         "from": "recipes",
         "to": "recipes"
-      },
-      {
-        "from": "tools-src",
-        "to": "tools"
       }
     ]
   },
