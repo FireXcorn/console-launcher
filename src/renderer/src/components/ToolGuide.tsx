@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { EMULATORS } from '../../../shared/emulators'
 import { useInput } from '../hooks/useInput'
 
@@ -17,6 +18,11 @@ interface Props {
  */
 export default function ToolGuide({ title, emulatorId, onAdd, onClose }: Props): JSX.Element {
   const emulator = emulatorId ? EMULATORS[emulatorId] : undefined
+  // Émulateur livré avec le lanceur : il ne reste qu'à choisir son fichier de jeu.
+  const [bundled, setBundled] = useState(false)
+  useEffect(() => {
+    if (emulatorId) void window.api.bundledEmulators().then((m) => setBundled(Boolean(m[emulatorId])))
+  }, [emulatorId])
   useInput((action) => {
     if (action === 'back') onClose()
     else if (action === 'confirm') onAdd()
@@ -26,7 +32,20 @@ export default function ToolGuide({ title, emulatorId, onAdd, onClose }: Props):
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="dialog recipe-guide-window" role="dialog" aria-label={`Ajouter un outil pour ${title}`}>
         <h2>{title}</h2>
-        {emulator ? (
+        {emulator && bundled ? (
+          <>
+            <p className="recipe-guide">
+              <strong>{emulator.name}</strong> ({emulator.consoles}) est déjà livré avec le lanceur. Il te manque seulement <strong>ton</strong>{' '}
+              fichier de jeu, copié depuis ta propre cartouche ou ta propre console.
+            </p>
+            <ol className="tool-steps">
+              <li>
+                Clique sur <strong>Choisir mon jeu</strong> et sélectionne ton fichier.
+              </li>
+              <li>Le jeu remplace cette « Cartouche vide » et se lance depuis le menu.</li>
+            </ol>
+          </>
+        ) : emulator ? (
           <>
             <p className="recipe-guide">
               Ce jeu se joue avec <strong>{emulator.name}</strong> ({emulator.consoles}), un émulateur gratuit pour Windows et Linux.
@@ -65,9 +84,9 @@ export default function ToolGuide({ title, emulatorId, onAdd, onClose }: Props):
         </p>
         <div className="dialog-actions">
           <button className="primary" onClick={onAdd}>
-            Ajouter mon outil
+            {emulator && bundled ? 'Choisir mon jeu' : 'Ajouter mon outil'}
           </button>
-          {emulator && <button onClick={() => void window.api.openExternal(emulator.url)}>Page de {emulator.name}</button>}
+          {emulator && !bundled && <button onClick={() => void window.api.openExternal(emulator.url)}>Page de {emulator.name}</button>}
           <button onClick={onClose}>Fermer</button>
         </div>
       </div>

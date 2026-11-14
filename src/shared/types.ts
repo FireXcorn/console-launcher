@@ -278,6 +278,8 @@ export interface Api {
   fetchNews(force?: boolean): Promise<NewsResult>
   /** Ouvre une adresse https ou un réglage Windows autorisé. */
   openExternal(url: string): Promise<boolean>
+  /** Émulateurs livrés avec le lanceur : identifiant → chemin du programme (absent s'il n'est pas livré). */
+  bundledEmulators(): Promise<Record<string, string>>
   networkInfo(): Promise<NetworkInfo>
   /** Jeux trouvés dans un dossier (un programme par sous-dossier). */
   findPrograms(dir: string): Promise<ProgramCandidate[]>

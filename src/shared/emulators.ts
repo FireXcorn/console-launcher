@@ -13,6 +13,10 @@ export interface EmulatorInfo {
   args: string
   /** Titre de fenêtre qui annonce le jeu (le lanceur retire alors son écran noir) : n'importe lequel. */
   readyTitle: string
+  /** Programme livré avec le lanceur, relatif au dossier `emulators` (Windows). Absent : à télécharger. */
+  bundledWin?: string
+  /** Idem sous Linux (AppImage). */
+  bundledLinux?: string
 }
 
 export const EMULATORS: Readonly<Record<string, EmulatorInfo>> = {
@@ -22,7 +26,9 @@ export const EMULATORS: Readonly<Record<string, EmulatorInfo>> = {
     consoles: 'Game Boy, Game Boy Color et Game Boy Advance',
     url: 'https://mgba.io/downloads.html',
     args: '-f {game}',
-    readyTitle: '.'
+    readyTitle: '.',
+    bundledWin: 'mgba/mGBA.exe',
+    bundledLinux: 'mgba.AppImage'
   },
   melonds: {
     id: 'melonds',
@@ -30,7 +36,9 @@ export const EMULATORS: Readonly<Record<string, EmulatorInfo>> = {
     consoles: 'Nintendo DS',
     url: 'https://melonds.kuribo64.net/downloads.php',
     args: '{game}',
-    readyTitle: '.'
+    readyTitle: '.',
+    bundledWin: 'melonds/melonDS.exe',
+    bundledLinux: 'melonds/melonDS-x86_64.AppImage'
   },
   azahar: {
     id: 'azahar',
@@ -38,7 +46,9 @@ export const EMULATORS: Readonly<Record<string, EmulatorInfo>> = {
     consoles: 'Nintendo 3DS et 2DS',
     url: 'https://azahar-emu.org/',
     args: '-f {game}',
-    readyTitle: '.'
+    readyTitle: '.',
+    bundledWin: 'azahar/azahar.exe',
+    bundledLinux: 'azahar.AppImage'
   },
   dolphin: {
     id: 'dolphin',

@@ -17,3 +17,6 @@ switch 2 luncher/
 /tools-src/
 
 /.obsidian/
+
+# Émulateurs livrés dans le ZIP, jamais dans le dépôt
+/emulators-src/

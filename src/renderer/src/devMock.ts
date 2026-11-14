@@ -139,6 +139,7 @@ export function installDevMock(): void {
       console.info('[mock] ouvrir', url)
       return true
     },
+    bundledEmulators: async () => ({ azahar: 'C:\emulators\azahar\azahar.exe' }),
     networkInfo: async () => ({ ssid: 'MaBox 5G', signal: 72 }),
     // Aperçu : ?backdrops=<url> sert 0.jpg, 1.jpg, 2.jpg aux trois premiers jeux ; sans lui, aucun jeu n'a de grande image.
     gameBackdrop: async (id) => {

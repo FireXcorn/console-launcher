@@ -116,6 +116,10 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
   }
 
   const { recipes, setRecipes } = useRecipes()
+  const [bundledIds, setBundledIds] = useState<string[]>([])
+  useEffect(() => {
+    void window.api.bundledEmulators().then((m) => setBundledIds(Object.keys(m)))
+  }, [])
 
   const [candidates, setCandidates] = useState<(ProgramCandidate & { on: boolean })[] | null>(null)
   const [importNote, setImportNote] = useState('')
@@ -133,7 +137,9 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
   }
 
   const addEmulatedGame = async (): Promise<void> => {
-    const emulator = await window.api.pickFile()
+    // Émulateur livré avec le lanceur : on ne demande que le fichier de jeu.
+    const bundled = addForEmulator ? (await window.api.bundledEmulators())[addForEmulator] : undefined
+    const emulator = bundled ?? (await window.api.pickFile())
     if (!emulator) return
     const game = await window.api.pickFile()
     setEmulated((list) => [
@@ -338,8 +344,17 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
             </p>
             {addForTitle && (
               <p className="settings-note">
-                Tu ajoutes ton outil pour <strong>{addForTitle}</strong> : choisis « Ajouter un jeu sur émulateur… » (le programme de l’outil, puis
-                ton fichier de jeu), ou « Ajouter un jeu PC… » si l’outil a produit un programme prêt à lancer.
+                {addForEmulator && bundledIds.includes(addForEmulator) ? (
+                  <>
+                    Tu ajoutes <strong>{addForTitle}</strong> : clique sur « Ajouter un jeu sur émulateur… » et choisis seulement ton fichier de
+                    jeu, l’émulateur est déjà livré.
+                  </>
+                ) : (
+                  <>
+                    Tu ajoutes ton outil pour <strong>{addForTitle}</strong> : choisis « Ajouter un jeu sur émulateur… » (le programme de l’outil,
+                    puis ton fichier de jeu), ou « Ajouter un jeu PC… » si l’outil a produit un programme prêt à lancer.
+                  </>
+                )}
               </p>
             )}
             {recipes.length > 0 && (

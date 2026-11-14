@@ -30,12 +30,22 @@
         {
           "from": "tools-src",
           "to": "tools"
+        },
+        {
+          "from": "emulators-src/win",
+          "to": "emulators"
         }
       ]
     },
     "linux": {
       "target": "AppImage",
       "icon": "build/icon.png",
+      "extraResources": [
+        {
+          "from": "emulators-src/linux",
+          "to": "emulators"
+        }
+      ],
       "category": "Game"
     },
     "extraResources": [

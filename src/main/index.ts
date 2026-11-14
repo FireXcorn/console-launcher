@@ -34,6 +34,7 @@ import type {
 } from '../shared/types'
 import { captureFileName, insideDir, isImageFile, listImageFiles } from './album'
 import { findAudioFile, isAudioName } from './audio'
+import { EMULATORS } from '../shared/emulators'
 import { findBackdrop, findCover, missingEntries, pokemonEntries } from './catalog'
 import { findPrograms } from './importer'
 import { ConfigStore } from './config'
@@ -779,6 +780,15 @@ function registerIpc(): void {
       filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'ico'] }]
     })
     return r.canceled ? null : r.filePaths[0]
+  })
+  ipcMain.handle('emulators:bundled', () => {
+    const found: Record<string, string> = {}
+    for (const e of Object.values(EMULATORS)) {
+      const rel = process.platform === 'win32' ? e.bundledWin : e.bundledLinux
+      const path = rel ? join(bundledDir('emulators'), rel) : ''
+      if (path && existsSync(path)) found[e.id] = path
+    }
+    return found
   })
   ipcMain.handle('dialog:pickFile', async () => {
     const r = await dialog.showOpenDialog(win!, { properties: ['openFile'] })

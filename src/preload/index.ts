@@ -25,6 +25,7 @@ const api: Api = {
   openAlbumFolder: () => ipcRenderer.invoke('album:openFolder'),
   fetchNews: (force) => ipcRenderer.invoke('news:fetch', force),
   openExternal: (url) => ipcRenderer.invoke('system:openExternal', url),
+  bundledEmulators: () => ipcRenderer.invoke('emulators:bundled'),
   networkInfo: () => ipcRenderer.invoke('system:network'),
   findPrograms: (dir) => ipcRenderer.invoke('library:findPrograms', dir),
   stopGame: () => ipcRenderer.invoke('game:stop'),

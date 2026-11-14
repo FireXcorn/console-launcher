@@ -2,13 +2,13 @@
 
 [← Documentation](../README.md#documentation)
 
-Chaque génération de Pokémon se joue avec un émulateur libre, qui existe aussi pour **Linux (Ubuntu)**. Le lanceur ne les fournit pas : tu les télécharges sur la page **officielle** de leur auteur, puis tu les branches comme dans [Ajouter ton propre outil](ajouter-un-outil.md).
+Chaque génération de Pokémon se joue avec un émulateur libre. **mGBA, melonDS et Azahar sont livrés avec le lanceur** (versions Windows et Linux/AppImage) : il ne te manque que **ton** fichier de jeu. Seul **Dolphin** (pour XD) n'est pas livré : télécharge-le sur sa page officielle, puis branche-le comme dans [Ajouter ton propre outil](ajouter-un-outil.md).
 
 > Aucun jeu, clé ni firmware n'est fourni. Utilise uniquement des jeux que tu possèdes, copiés depuis ta propre console ou ta propre cartouche.
 
 ## Les tuiles Pokémon du menu
 
-Le menu contient une tuile « Cartouche vide » pour chaque jeu ci-dessous. Sélectionne-la et appuie sur **A** : le guide te dit quel émulateur prendre, ouvre sa page officielle, puis t'amène dans Paramètres → Ajouter des jeux avec le titre et les bons arguments déjà remplis. Il ne reste qu'à choisir le programme de l'émulateur et **ta** ROM.
+Le menu contient une tuile « Cartouche vide » pour chaque jeu ci-dessous. Sélectionne-la et appuie sur **A** : le guide t'amène dans Paramètres → Ajouter des jeux avec le titre et les bons arguments déjà remplis. Clique sur « Ajouter un jeu sur émulateur… » et choisis seulement **ta** ROM : l'émulateur est déjà choisi.
 
 - **mGBA** : Rouge et Bleu (et Vert), Jaune, Or et Argent, Cristal, Rubis et Saphir, Rouge Feu et Vert Feuille, Émeraude.
 - **melonDS** : Ranger, Diamant et Perle, Platine, HeartGold et SoulSilver, Noire et Blanche, Noire 2 et Blanche 2.
@@ -16,6 +16,10 @@ Le menu contient une tuile « Cartouche vide » pour chaque jeu ci-dessous. Sél
 - **Dolphin** (GameCube) : XD, Le Souffle des Ténèbres.
 
 Les jeux Switch et Switch 2 n'y figurent pas.
+
+## Fichiers de jeu
+
+Utilise uniquement des fichiers copiés depuis **tes propres** cartouches et consoles. Ne télécharge pas de ROM sur des sites : ce sont des copies illégales, et ces fichiers sont une source courante de logiciels malveillants.
 
 ## Quel émulateur pour quel jeu
 
