@@ -787,7 +787,8 @@ function registerIpc(): void {
     if (typeof id !== 'string' || typeof title !== 'string') return null
     const cfg = store.get()
     const own = cfg.overrides[id]?.backdrop
-    const file = own && existsSync(own) ? own : findBackdrop(cfg.backdropsDir, title)
+    // Fond de l'utilisateur d'abord, sinon celui livré avec le lanceur (dossier backdrops).
+    const file = own && existsSync(own) ? own : (findBackdrop(cfg.backdropsDir, title) ?? findBackdrop(bundledDir('backdrops'), title))
     return file ? imageDataUrl(file, MAX_BACKDROP_BYTES) : null
   })
   ipcMain.handle('game:launch', async (_e, id: string) => {
