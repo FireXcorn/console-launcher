@@ -24,7 +24,7 @@ Les jeux ne sont pas fournis : dépose les tiens dans le dossier **`Jeux`**, à 
   <em>Mode « Image du jeu » : la grande image du jeu sélectionné derrière les jaquettes.</em>
 </p>
 
-> **À savoir.** Console Launcher est un projet indépendant. Il n'est ni affilié ni approuvé par Nintendo ou par un autre constructeur de consoles, et il ne contient aucun jeu, émulateur ou fichier de console. Les noms de marques cités dans la documentation appartiennent à leurs propriétaires. Les captures d'écran ci-dessus montrent des jaquettes et des images de jeux officielles, uniquement à titre d'illustration : elles appartiennent à leurs ayants droit et seront retirées sur simple demande.
+> **À savoir.** Console Launcher est un projet indépendant. Il n'est ni affilié ni approuvé par Nintendo ou par un autre constructeur de consoles, et il ne contient aucun jeu ni fichier de console. Les émulateurs mGBA, melonDS et Azahar sont livrés avec leur propre licence. Les noms de marques cités dans la documentation appartiennent à leurs propriétaires. Les captures d'écran ci-dessus montrent des jaquettes et des images de jeux officielles, uniquement à titre d'illustration : elles appartiennent à leurs ayants droit et seront retirées sur simple demande.
 
 ## Ce qui est inclus, et ce qui ne l'est pas
 

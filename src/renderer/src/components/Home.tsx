@@ -266,6 +266,7 @@ function GameTile({ game, focused, launching, onSelect, onActivate }: TileProps)
           <EmptyCartridge />
         </div>
       )}
+      {game.unavailableOn && <div className="tile-below">Indisponible sur {game.unavailableOn}</div>}
       <div className="tile-art" ref={artRef} style={icon ? undefined : fallback}>
         {icon ? (
           <img

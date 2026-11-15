@@ -72,7 +72,9 @@ export function installDevMock(): void {
       lastPlayed: 0,
       available: false,
       recipeId: ({ 'Mario Kart World': 'a', 'Donkey Kong Bananza': 'd' } as Record<string, string>)[title],
-      emulatorId: title === 'Pokémon X et Y' ? 'azahar' : undefined
+      emulatorId: title === 'Pokémon X et Y' ? 'azahar' : undefined,
+      // Aperçu du comportement sous Linux : les jeux Switch 2 sont marqués indisponibles (?linux dans l'adresse).
+      unavailableOn: new URLSearchParams(location.search).has('linux') && title !== 'Pokémon X et Y' ? 'Linux' : undefined
     })
   )
 

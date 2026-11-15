@@ -209,6 +209,23 @@ kbd {
   height: calc(var(--u) * 1.7);
 }
 
+/* Jeu qui ne tourne pas sur ce système : bandeau rouge en bas de la tuile. */
+.tile-below {
+  position: absolute;
+  left: calc(var(--u) * 0.8);
+  right: calc(var(--u) * 0.8);
+  bottom: calc(var(--u) * 0.8);
+  z-index: 2;
+  padding: calc(var(--u) * 0.4) calc(var(--u) * 0.6);
+  border-radius: calc(var(--u) * 0.8);
+  background: rgba(255, 255, 255, 0.94);
+  color: #d92d2d;
+  font-size: calc(var(--u) * 1.3);
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+}
+
 .tile-above {
   position: absolute;
   left: 0;

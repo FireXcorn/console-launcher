@@ -21,6 +21,8 @@ export interface Game {
   recipeId?: string
   /** Jeu Pokémon du catalogue : émulateur conseillé (voir shared/emulators.ts). */
   emulatorId?: string
+  /** Système sur lequel ce jeu n'est pas jouable (ex. « Linux » pour les jeux Switch 2, réservés à Windows). */
+  unavailableOn?: string
 }
 
 /** Un jeu trouvé dans un dossier par l'import : son titre et son programme. */

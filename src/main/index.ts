@@ -302,8 +302,12 @@ function missingGames(installed: Game[]): Game[] {
   const cfg = store.get()
   // Jeux livrés avec leur outil mais pas encore prêts : une « cartouche vide » où l'on peut ajouter son fichier.
   const have = new Set(installed.map((g) => emulatedId(g.title)))
-  // Les outils livrés sont des programmes Windows : pas de tuile « à préparer » sous Linux.
-  const pending = (process.platform === 'win32' ? recipeList() : []).filter((r) => r.state !== 'ready' && !have.has(emulatedId(r.title)))
+  // Les outils livrés sont des programmes Windows : sous Linux, ces jeux restent visibles mais marqués « indisponible ».
+  const unavailableOn = process.platform === 'win32' ? undefined : 'Linux'
+  const pending: Array<{ id: string; title: string }> =
+    process.platform === 'win32'
+      ? recipeList().filter((r) => r.state !== 'ready' && !have.has(emulatedId(r.title)))
+      : loadRecipes(bundledDir('recipes')).filter((r) => !have.has(emulatedId(r.title)))
   const pendingTiles: Game[] = pending.map((r) => {
     const id = 'recipe:' + r.id
     const override = cfg.overrides[id]
@@ -317,17 +321,22 @@ function missingGames(installed: Game[]): Game[] {
       icon: cover ? imageDataUrl(cover) : null,
       lastPlayed: 0,
       available: false,
-      recipeId: r.id
+      recipeId: r.id,
+      unavailableOn
     }
   })
   const taken = [...installed.map((g) => g.title), ...pending.map((r) => r.title)]
-  return [...pendingTiles, ...(cfg.showMissingGames ? catalogMissing(taken) : [])]
+  return [...pendingTiles, ...(cfg.showMissingGames ? catalogMissing(taken, unavailableOn) : [])]
 }
 
-function catalogMissing(taken: string[]): Game[] {
+function catalogMissing(taken: string[], unavailableOn?: string): Game[] {
   const cfg = store.get()
-  const entries: Array<{ id: string; title: string; emulatorId?: string }> = [...missingEntries(taken), ...pokemonEntries(taken)]
-  return entries.map(({ id, title, emulatorId }) => {
+  // Jeux Switch 2 du catalogue : réservés à Windows. Les jeux Pokémon passent par un émulateur livré : jouables partout.
+  const entries: Array<{ id: string; title: string; emulatorId?: string; unavailableOn?: string }> = [
+    ...missingEntries(taken).map((e) => ({ ...e, unavailableOn })),
+    ...pokemonEntries(taken)
+  ]
+  return entries.map(({ id, title, emulatorId, unavailableOn: blocked }) => {
     const override = cfg.overrides[id]
     const shown = override?.title?.trim() || title
     const cover = override?.icon && existsSync(override.icon) ? override.icon : coverOf(title)
@@ -340,7 +349,8 @@ function catalogMissing(taken: string[]): Game[] {
       icon: cover ? imageDataUrl(cover) : null,
       lastPlayed: 0,
       available: false,
-      emulatorId
+      emulatorId,
+      unavailableOn: blocked
     }
   })
 }

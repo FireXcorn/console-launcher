@@ -7,7 +7,7 @@
 - **Jaquettes livrées** avec le lanceur ; celles que tu mets dans ton dossier de jaquettes restent prioritaires.
 - **Ajouter son propre outil** : sur une « Cartouche vide » sans outil livré (Kirby, Yoshi…), A ouvre un guide qui mène à Paramètres → Ajouter des jeux, avec le titre du jeu déjà rempli. Nouveau guide illustré `docs/ajouter-un-outil.md`.
 - **Souris** : la molette fait avancer d'une tuile par cran, et la sélection au survol ne s'emballe plus quand la rangée défile sous le curseur.
-- **Linux (Ubuntu)** : lancement d'un émulateur sans PowerShell, arrêt du jeu, paquet AppImage (`npm run dist:linux`). Essayé dans une machine virtuelle seulement.
+- **Linux (Ubuntu)** : lancement d'un émulateur sans PowerShell, arrêt du jeu, paquet AppImage (`npm run dist:linux`). Essayé dans une machine virtuelle seulement. Les jeux Switch 2 (programmes Windows) restent visibles mais portent un bandeau rouge « Indisponible sur Linux » ; A ouvre une petite fenêtre qui explique d'attendre une nouvelle version.
 
 ## 2.1.0
 

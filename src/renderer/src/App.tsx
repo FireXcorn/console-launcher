@@ -210,6 +210,14 @@ export default function App(): JSX.Element | null {
       const game = games[index]
       if (!game || launchingId) return
       setFocus((f) => ({ ...f, row: 'games', game: index }))
+      if (game.unavailableOn) {
+        engine.play('refuser')
+        setNotice({
+          title: `${game.title} : indisponible sur ${game.unavailableOn}`,
+          message: `Ce jeu n'est pas jouable sur ${game.unavailableOn} pour l'instant : il ne fonctionne que sous Windows. Attends qu'une nouvelle version du lanceur sorte.`
+        })
+        return
+      }
       if (!game.available) {
         // Jeu livré avec son outil : la fenêtre guide explique quoi apporter.
         if (game.recipeId) {
