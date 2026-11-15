@@ -43,7 +43,7 @@ Le lanceur existe aussi pour Linux (`npm run dist:linux`, fichier AppImage). Sou
 - les tuiles et le guide Pokémon fonctionnent comme sous Windows ; choisis le fichier **AppImage** de l'émulateur (pas le Flatpak) ;
 - l'écran noir de lancement se retire au bout de quelques secondes, sans suivi de la fenêtre du jeu ;
 - Arrêter le jeu depuis le lanceur arrête l'émulateur ; la manette Retour + Menu maintenus n'est pas encore gérée ;
-- les jeux livrés avec leur outil (Mario Kart World, Zelda…) restent réservés à Windows.
+- les jeux livrés avec leur outil (Mario Kart World, Zelda…) sont des programmes Windows : sous Linux, leur tuile porte la mention rouge « Indisponible sur Linux » et A explique d'attendre une nouvelle version.
 
 ## Rendre un AppImage exécutable (Ubuntu)
 

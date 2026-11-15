@@ -318,7 +318,7 @@ export default function Home(props: HomeProps): JSX.Element {
   const art = useBackdropArt(focusedGame, backdrop, games)
 
   return (
-    <div className={`home opening${backdrop ? ' backdrop-mode' : ''}${art && !launchingId ? ' has-art' : ''}`}>
+    <div className={`home opening${backdrop ? ' backdrop-mode' : ''}${art && !launchingId ? ' has-art' : ''}${games.some((g) => g.unavailableOn) ? ' has-note' : ''}`}>
       {backdrop && <GameBackdrop art={art} active={!launchingId} />}
       <TopBar
         focus={focus}

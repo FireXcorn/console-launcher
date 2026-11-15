@@ -7,11 +7,21 @@
 | Système | État |
 |---|---|
 | Windows 10 / 11 | Pris en charge |
-| Linux, macOS | Non testés. Le masquage de l'émulateur et les réponses automatiques aux fenêtres utilisent des outils Windows. |
+| Linux (Ubuntu) | Première version : jeux sur émulateur (Game Boy à 3DS). Les jeux Switch 2, qui sont des programmes Windows, ne sont pas jouables. Essayé dans une machine virtuelle seulement. Voir [Sous Linux](#sous-linux-ubuntu). |
+| macOS | Non testé. |
 
 ## Télécharger une version prête à l'emploi
 
 Si une version est publiée dans l'onglet **Releases** du dépôt GitHub : télécharge **`Console-Launcher-Windows.zip`** (et pas « Source code (zip) », qui ne contient que le code, sans programme), décompresse-le où tu veux et lance `Console Launcher.exe`. Rien à installer. Dépose tes fichiers de jeu dans le dossier `Jeux`, à côté du programme. Cette archive est volumineuse (environ 1,5 Go) car elle contient les outils des jeux livrés avec leur outil. Premier jeu pas à pas : [Premiers pas](premiers-pas.md).
+
+## Sous Linux (Ubuntu)
+
+1. Télécharge **`Console-Launcher-Linux.tar.gz`** dans l'onglet **Releases** (et pas « Source code »).
+2. Décompresse-le (clic droit → **Extraire ici**) : tu obtiens un dossier `Console Launcher` avec le fichier **`Console Launcher-….AppImage`** et un dossier **`Jeux`**.
+3. Dépose tes fichiers de jeu (`.gb`, `.gbc`, `.gba`, `.nds`, `.3ds`) dans `Jeux`, dans le dossier de leur console ou directement dedans.
+4. Double-clique sur l'AppImage. S'il ne se lance pas : clic droit → Propriétés → Permissions → **Autoriser l'exécution du fichier comme un programme**.
+
+Les émulateurs (mGBA, melonDS, Azahar) sont déjà dans le fichier. Les jeux Switch 2 s'affichent avec **« Indisponible sur Linux »** : ils ne marchent que sous Windows pour l'instant.
 
 ## Construire depuis les sources
 

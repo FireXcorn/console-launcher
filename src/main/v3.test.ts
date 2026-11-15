@@ -129,7 +129,7 @@ describe('dossier des jeux', () => {
       ['Pokemon Ultra Moon (Europe) (En,Ja,Fr,De,Es,It,Zh,Ko).3ds', 'Pokémon Ultra-Lune'],
       ['Pokemon Sun (Europe) (En,Ja,Fr,De,Es,It,Zh,Ko).3ds', 'Pokémon Soleil'],
       ['Pokemon Emerald (USA).gba', 'Pokémon Émeraude'],
-      ['Inazuma Eleven 3 - Bomb Blast (Europe) (En,Es,It).3ds', 'Inazuma Eleven 3 - Bomb Blast']
+      ['Inazuma Eleven 3 - Bomb Blast (Europe) (En,Es,It).3ds', 'Inazuma Eleven 3 Feu Explosif']
     ]
     for (const [fichier, titre] of cas) expect(titleForRom(fichier)).toBe(titre)
   })

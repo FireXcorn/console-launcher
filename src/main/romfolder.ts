@@ -70,6 +70,8 @@ export function titleForRom(fileName: string): string {
     const hit = POKEMON_PATTERNS.find(([re]) => re.test(words))
     if (hit) return hit[1]
   }
+  // Jeux non Pokémon que le lanceur connaît déjà (titre et jaquette livrés).
+  if (/inazuma ?eleven ?3/.test(words)) return 'Inazuma Eleven 3 Feu Explosif'
   return cleanTitle(base)
 }
 

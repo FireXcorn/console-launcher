@@ -26,6 +26,17 @@ Les jeux ne sont pas fournis : dépose les tiens dans le dossier **`Jeux`**, à 
 
 > **À savoir.** Console Launcher est un projet indépendant. Il n'est ni affilié ni approuvé par Nintendo ou par un autre constructeur de consoles, et il ne contient aucun jeu ni fichier de console. Les émulateurs mGBA, melonDS et Azahar sont livrés avec leur propre licence. Les noms de marques cités dans la documentation appartiennent à leurs propriétaires. Les captures d'écran ci-dessus montrent des jaquettes et des images de jeux officielles, uniquement à titre d'illustration : elles appartiennent à leurs ayants droit et seront retirées sur simple demande.
 
+## Version Linux (Ubuntu)
+
+Le lanceur existe aussi pour **Ubuntu** (fichier AppImage, dans `Console-Launcher-Linux.tar.gz`). Les jeux sur émulateur (Game Boy, Game Boy Color, GBA, DS, 3DS) fonctionnent, avec mGBA, melonDS et Azahar déjà livrés. Les jeux Switch 2 (Mario Kart World, Donkey Kong Bananza, Zelda, Pokopia…) sont des programmes Windows : ils restent visibles mais portent la mention rouge **« Indisponible sur Linux »**, et A ouvre une fenêtre qui dit d'attendre une nouvelle version.
+
+<p align="center">
+  <img src="docs/images/accueil-linux.jpg" alt="Accueil sous Linux : des jeux Pokémon et Inazuma Eleven jouables, puis Zelda marqué « Indisponible sur Linux »" width="720"><br>
+  <em>Sous Linux : jeux 3DS jouables à gauche, jeux Switch 2 marqués « Indisponible sur Linux ».</em>
+</p>
+
+Dépose tes jeux dans le dossier `Jeux`, à côté de l'AppImage. Détails : [Installation](docs/installation.md#sous-linux-ubuntu). Le lanceur Linux n'a été essayé que dans une machine virtuelle.
+
 ## Ce qui est inclus, et ce qui ne l'est pas
 
 Le lanceur est **un menu** : il lance **tes** jeux. Il fonctionne avec :
