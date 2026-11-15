@@ -78,6 +78,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
   const [newsFeedUrl, setNewsFeedUrl] = useState(config.newsFeedUrl)
   const [showMissing, setShowMissing] = useState(config.showMissingGames)
   const [coversDir, setCoversDir] = useState(config.coversDir)
+  const [romsDir, setRomsDir] = useState(config.romsDir)
   const [backdropsDir, setBackdropsDir] = useState(config.backdropsDir)
   const [audioDir, setAudioDir] = useState(config.audioDir)
   const [musicVolume, setMusicVolume] = useState(config.musicVolume)
@@ -200,6 +201,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
       newsFeedUrl: newsFeedUrl.trim(),
       showMissingGames: showMissing,
       coversDir: coversDir.trim(),
+      romsDir: romsDir.trim(),
       backdropsDir: backdropsDir.trim(),
       audioDir: audioDir.trim(),
       musicVolume,
@@ -369,6 +371,19 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
                 ))}
               </div>
             )}
+            <div className="emu-card">
+              <h3>Dossier des jeux</h3>
+              <p className="settings-note">
+                Dépose tes fichiers de jeu (.gb, .gbc, .gba, .nds, .3ds) dans ce dossier : ils apparaissent tout seuls dans le menu, avec
+                l’émulateur livré. Les jeux Pokémon sont reconnus par leur nom de fichier.
+              </p>
+              {folderRow('Dossier', romsDir, setRomsDir)}
+              <div className="field-row wrap">
+                <button className="primary" onClick={() => void window.api.openRomsFolder()}>
+                  Ouvrir le dossier des jeux
+                </button>
+              </div>
+            </div>
             <div className="field-row wrap">
               <button className="primary" onClick={() => void addPcGame()}>
                 Ajouter un jeu PC…

@@ -12,6 +12,7 @@ const api: Api = {
     return () => ipcRenderer.removeListener('game:state', listener)
   },
   pickFolder: () => ipcRenderer.invoke('dialog:pickFolder'),
+  openRomsFolder: () => ipcRenderer.invoke('roms:open'),
   pickImage: () => ipcRenderer.invoke('dialog:pickImage'),
   pickFile: () => ipcRenderer.invoke('dialog:pickFile'),
   toggleFullscreen: () => ipcRenderer.invoke('window:toggleFullscreen'),

@@ -95,17 +95,58 @@ describe('fichiers audio de remplacement', () => {
 })
 
 describe('jeux Pokémon du catalogue', () => {
-  it('liste les 18 entrées, chacune avec un émulateur connu, sans doublon', async () => {
+  it('liste les 30 entrées, chacune avec un émulateur connu, sans doublon', async () => {
     const { pokemonEntries } = await import('./catalog')
     const { EMULATORS } = await import('../shared/emulators')
     const entries = pokemonEntries([])
-    expect(entries).toHaveLength(18)
+    expect(entries).toHaveLength(30)
     expect(new Set(entries.map((e) => e.id)).size).toBe(entries.length)
-    expect(entries.every((e) => EMULATORS[e.emulatorId])).toBe(true)
+    expect(entries.every((e) => e.emulatorId && EMULATORS[e.emulatorId])).toBe(true)
+    expect(entries[0].title).toBe('Pokémon Ultra-Soleil')
     expect(entries.every((e) => e.id.startsWith('catalog:'))).toBe(true)
   })
   it('écarte un jeu déjà ajouté sous le même titre', async () => {
     const { pokemonEntries } = await import('./catalog')
     expect(pokemonEntries(['Pokémon Émeraude']).some((e) => e.title === 'Pokémon Émeraude')).toBe(false)
+  })
+})
+
+describe('dossier des jeux', () => {
+  it('reconnaît les jeux Pokémon d\'après leur nom de fichier (français et anglais)', async () => {
+    const { titleForRom } = await import('./romfolder')
+    const cas: Array<[string, string]> = [
+      ['Pokemon - Version Rouge (France) (SGB Enhanced).gb', 'Pokémon Rouge'],
+      ['Pokemon - Version Rouge Feu (France).gba', 'Pokémon Rouge Feu'],
+      ['Pokemon - Version Or HeartGold (France).nds', 'Pokémon Or HeartGold'],
+      ['Pokemon - Version Argent SoulSilver (France).nds', 'Pokémon Argent SoulSilver'],
+      ['Pokemon - Version Or (France) (SGB Enhanced) (GB Compatible).gbc', 'Pokémon Or'],
+      ['Pokemon - Version Noire 2 (France) (NDSi Enhanced).nds', 'Pokémon Noire 2'],
+      ['Pokemon - Version Blanche (France) (NDSi Enhanced).nds', 'Pokémon Blanche'],
+      ['Pokemon - Version Diamant (France) (Rev 5).nds', 'Pokémon Diamant'],
+      ['Pokemon X (USA) (En,Ja,Fr,De,Es,It,Ko).3ds', 'Pokémon X'],
+      ['Pokemon Y (Europe) (En,Ja,Fr,De,Es,It,Ko).3ds', 'Pokémon Y'],
+      ['Pokemon Omega Ruby (Europe) (En,Ja,Fr,De,Es,It,Ko) (Rev 2).3ds', 'Pokémon Rubis Oméga'],
+      ['Pokemon Ultra Moon (Europe) (En,Ja,Fr,De,Es,It,Zh,Ko).3ds', 'Pokémon Ultra-Lune'],
+      ['Pokemon Sun (Europe) (En,Ja,Fr,De,Es,It,Zh,Ko).3ds', 'Pokémon Soleil'],
+      ['Pokemon Emerald (USA).gba', 'Pokémon Émeraude'],
+      ['Inazuma Eleven 3 - Bomb Blast (Europe) (En,Es,It).3ds', 'Inazuma Eleven 3 - Bomb Blast']
+    ]
+    for (const [fichier, titre] of cas) expect(titleForRom(fichier)).toBe(titre)
+  })
+  it('crée les dossiers par console et ne trouve que les fichiers de jeu', async () => {
+    const { ensureRomFolder, listRoms, romEntries } = await import('./romfolder')
+    const { mkdtempSync, writeFileSync, existsSync, mkdirSync } = await import('fs')
+    const { tmpdir } = await import('os')
+    const root = mkdtempSync(join(tmpdir(), 'jeux-'))
+    ensureRomFolder(root)
+    expect(existsSync(join(root, 'Nintendo 3DS'))).toBe(true)
+    writeFileSync(join(root, 'Game Boy', 'Pokemon - Version Jaune (France).gb'), '')
+    writeFileSync(join(root, 'Game Boy', 'notes.txt'), '')
+    mkdirSync(join(root, 'vrac'), { recursive: true })
+    writeFileSync(join(root, 'vrac', 'Pokemon - Version Jaune (France).gbc'), '')
+    expect(listRoms(root)).toHaveLength(2)
+    const jeux = romEntries(root, (id) => (id === 'mgba' ? 'mgba.exe' : undefined))
+    expect(jeux).toHaveLength(1)
+    expect(jeux[0]).toMatchObject({ title: 'Pokémon Jaune', emulatorExe: 'mgba.exe', args: ['-f', '{game}'] })
   })
 })

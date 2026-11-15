@@ -28,32 +28,50 @@ export interface CatalogEntry {
 }
 
 /**
- * Jeux Pokémon (Game Boy à 3DS), avec l'émulateur conseillé pour chacun. Aucune Switch : ces jeux
- * s'ajoutent soi-même (Paramètres → Ajouter des jeux) avec un émulateur que l'utilisateur télécharge.
+ * Jeux Pokémon (Game Boy à 3DS), avec l'émulateur conseillé pour chacun, du plus récent au plus ancien
+ * (Ultra-Soleil en premier). Pas de jeux Switch : aucun émulateur Switch n'est livré.
  */
 const POKEMON: ReadonlyArray<readonly [title: string, emulator: string]> = [
-  ['Pokémon Rouge et Bleu (et Vert)', 'mgba'],
-  ['Pokémon Jaune', 'mgba'],
-  ['Pokémon Or et Argent', 'mgba'],
-  ['Pokémon Cristal', 'mgba'],
-  ['Pokémon Rubis et Saphir', 'mgba'],
-  ['Pokémon Rouge Feu et Vert Feuille', 'mgba'],
-  ['Pokémon Émeraude', 'mgba'],
-  ['Pokémon XD : Le Souffle des Ténèbres', 'dolphin'],
-  ['Pokémon Ranger', 'melonds'],
-  ['Pokémon Diamant et Perle', 'melonds'],
+  ['Pokémon Ultra-Soleil', 'azahar'],
+  ['Pokémon Ultra-Lune', 'azahar'],
+  ['Pokémon Soleil', 'azahar'],
+  ['Pokémon Lune', 'azahar'],
+  ['Pokémon Rubis Oméga', 'azahar'],
+  ['Pokémon Saphir Alpha', 'azahar'],
+  ['Pokémon X', 'azahar'],
+  ['Pokémon Y', 'azahar'],
+  ['Pokémon Noire 2', 'melonds'],
+  ['Pokémon Blanche 2', 'melonds'],
+  ['Pokémon Noire', 'melonds'],
+  ['Pokémon Blanche', 'melonds'],
+  ['Pokémon Or HeartGold', 'melonds'],
+  ['Pokémon Argent SoulSilver', 'melonds'],
   ['Pokémon Platine', 'melonds'],
-  ['Pokémon Or HeartGold et Argent SoulSilver', 'melonds'],
-  ['Pokémon Noire et Blanche', 'melonds'],
-  ['Pokémon Noire 2 et Blanche 2', 'melonds'],
-  ['Pokémon X et Y', 'azahar'],
-  ['Pokémon Rubis Oméga et Saphir Alpha', 'azahar'],
-  ['Pokémon Soleil et Lune', 'azahar'],
-  ['Pokémon Ultra-Soleil et Ultra-Lune', 'azahar']
+  ['Pokémon Diamant', 'melonds'],
+  ['Pokémon Perle', 'melonds'],
+  ['Pokémon Ranger', 'melonds'],
+  ['Pokémon XD : Le Souffle des Ténèbres', 'dolphin'],
+  ['Pokémon Émeraude', 'mgba'],
+  ['Pokémon Rouge Feu', 'mgba'],
+  ['Pokémon Vert Feuille', 'mgba'],
+  ['Pokémon Rubis', 'mgba'],
+  ['Pokémon Saphir', 'mgba'],
+  ['Pokémon Cristal', 'mgba'],
+  ['Pokémon Or', 'mgba'],
+  ['Pokémon Argent', 'mgba'],
+  ['Pokémon Jaune', 'mgba'],
+  ['Pokémon Rouge', 'mgba'],
+  ['Pokémon Bleue', 'mgba']
 ]
 
 export interface PokemonEntry extends CatalogEntry {
-  emulatorId: string
+  emulatorId?: string
+}
+
+/** Rang d'un jeu Pokémon dans le catalogue (ordre d'affichage voulu), ou -1 si ce n'est pas un jeu Pokémon du catalogue. */
+export function pokemonRank(title: string): number {
+  const n = normalizeTitle(title)
+  return POKEMON.findIndex(([t]) => normalizeTitle(t) === n)
 }
 
 /** Jeux Pokémon absents de la bibliothèque (un jeu ajouté sous le même titre remplace la tuile). */
@@ -62,7 +80,7 @@ export function pokemonEntries(installedTitles: string[]): PokemonEntry[] {
   return POKEMON.filter(([title]) => {
     const n = normalizeTitle(title)
     return !installed.some((i) => i === n)
-  }).map(([title, emulatorId]) => ({ id: catalogId(title), title, emulatorId }))
+  }).map(([title, emulatorId]) => ({ id: catalogId(title), title, emulatorId: emulatorId || undefined }))
 }
 
 /** Minuscules, sans accents ni ponctuation : sert à comparer des titres. */

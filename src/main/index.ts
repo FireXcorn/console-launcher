@@ -14,7 +14,7 @@ import {
 import { execFile } from 'child_process'
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'fs'
 import { mkdir, writeFile } from 'fs/promises'
-import { basename, extname, join } from 'path'
+import { basename, dirname, extname, join } from 'path'
 import { playtimeKey } from '../shared/playtime'
 import { applyAutoStart } from './autostart'
 import type { ChildProcess } from 'child_process'
@@ -35,10 +35,11 @@ import type {
 import { captureFileName, insideDir, isImageFile, listImageFiles } from './album'
 import { findAudioFile, isAudioName } from './audio'
 import { EMULATORS } from '../shared/emulators'
-import { findBackdrop, findCover, missingEntries, pokemonEntries } from './catalog'
+import { findBackdrop, findCover, missingEntries, pokemonEntries, pokemonRank } from './catalog'
 import { findPrograms } from './importer'
 import { ConfigStore } from './config'
 import { Launcher } from './launcher'
+import { ensureRomFolder, romEntries } from './romfolder'
 import { emulatedId, scanLibrary, type ScannedGame } from './library'
 import { autoBackup, listBackups, parseBackup, restorePatch, takeSnapshot, writeBackup, pruneBackups } from './backup'
 import { GameSaves, resolveSaveDirs, saveRulesFor } from './saves'
@@ -292,7 +293,7 @@ function toGame(g: ScannedGame): Game {
   // Les chemins de lancement ne regardent pas l'interface.
   const { iconPath, exePath: _exe, watch: _watch, ...rest } = g
   // Sans image propre au jeu, on cherche une jaquette déposée sous son titre dans le dossier des jaquettes.
-  const image = iconPath ?? findCover(store.get().coversDir, g.title)
+  const image = iconPath ?? coverOf(g.title)
   return { ...rest, icon: image ? imageDataUrl(image) : null, available: true }
 }
 
@@ -306,7 +307,7 @@ function missingGames(installed: Game[]): Game[] {
   const pendingTiles: Game[] = pending.map((r) => {
     const id = 'recipe:' + r.id
     const override = cfg.overrides[id]
-    const cover = override?.icon && existsSync(override.icon) ? override.icon : findCover(cfg.coversDir, r.title)
+    const cover = override?.icon && existsSync(override.icon) ? override.icon : coverOf(r.title)
     return {
       id,
       title: override?.title?.trim() || r.title,
@@ -329,7 +330,7 @@ function catalogMissing(taken: string[]): Game[] {
   return entries.map(({ id, title, emulatorId }) => {
     const override = cfg.overrides[id]
     const shown = override?.title?.trim() || title
-    const cover = override?.icon && existsSync(override.icon) ? override.icon : findCover(cfg.coversDir, title)
+    const cover = override?.icon && existsSync(override.icon) ? override.icon : coverOf(title)
     return {
       id,
       title: shown,
@@ -344,6 +345,11 @@ function catalogMissing(taken: string[]): Game[] {
   })
 }
 
+/** Jaquette d'un jeu : celle de l'utilisateur (dossier des jaquettes), sinon celle livrée avec le lanceur (dossier covers). */
+function coverOf(title: string): string | null {
+  return findCover(store.get().coversDir, title) ?? findCover(bundledDir('covers'), title)
+}
+
 /** Dossiers livrés avec le lanceur : les outils (émulateurs, recompilations) et les recettes qui les décrivent. */
 const bundledDir = (name: string): string =>
   process.env.CL_BUNDLED ? join(process.env.CL_BUNDLED, name) : app.isPackaged ? join(process.resourcesPath, name) : join(app.getAppPath(), name)
@@ -353,6 +359,33 @@ function withRecipes(cfg: Config): Config {
   const own = new Set(cfg.emulated.map((e) => emulatedId(e.title)))
   if (process.platform !== 'win32') return cfg
   const extra = recipeEntries(loadRecipes(bundledDir('recipes')), recipePaths(), cfg.recipeInputs ?? {}).filter((e) => !own.has(emulatedId(e.title)))
+  return extra.length ? { ...cfg, emulated: [...cfg.emulated, ...extra] } : cfg
+}
+
+/** Émulateur livré avec le lanceur (chemin du programme), ou rien s'il manque. */
+function bundledEmulatorPath(id: string): string | undefined {
+  const e = EMULATORS[id]
+  const rel = e ? (process.platform === 'win32' ? e.bundledWin : e.bundledLinux) : undefined
+  const path = rel ? join(bundledDir('emulators'), rel) : ''
+  return path && existsSync(path) ? path : undefined
+}
+
+/**
+ * Dossier « Jeux » livré à côté du lanceur (à côté du .exe, ou du fichier AppImage) : il existe avant le premier
+ * lancement. Quand il est là, il sert de dossier des jeux ; sinon on utilise celui de la configuration.
+ */
+function portableRomsDir(): string {
+  const base = process.env.APPIMAGE ? dirname(process.env.APPIMAGE) : app.isPackaged ? dirname(process.execPath) : ''
+  const dir = base ? join(base, 'Jeux') : ''
+  return dir && existsSync(dir) ? dir : ''
+}
+
+const romsFolder = (cfg: Config): string => portableRomsDir() || cfg.romsDir
+
+/** Jeux déposés dans le dossier des jeux ; un jeu ajouté à la main sous le même titre garde la priorité. */
+function withRoms(cfg: Config): Config {
+  const own = new Set(cfg.emulated.map((e) => emulatedId(e.title)))
+  const extra = romEntries(romsFolder(cfg), bundledEmulatorPath).filter((e) => !own.has(emulatedId(e.title)))
   return extra.length ? { ...cfg, emulated: [...cfg.emulated, ...extra] } : cfg
 }
 
@@ -374,9 +407,14 @@ const recipeList = (): RecipeInfo[] => {
 }
 
 async function scan(): Promise<Game[]> {
-  games = await scanLibrary(withRecipes(store.get()))
+  games = await scanLibrary(withRecipes(withRoms(store.get())))
   const installed = games.map(toGame)
-  const result = [...installed, ...missingGames(installed)]
+  // Jeux Switch 2 (installés, puis « cartouches vides »), puis les jeux Pokémon du plus récent au plus ancien.
+  const all = [...installed, ...missingGames(installed)]
+  const result = [
+    ...all.filter((g) => pokemonRank(g.title) === -1),
+    ...all.filter((g) => pokemonRank(g.title) !== -1).sort((a, b) => pokemonRank(a.title) - pokemonRank(b.title))
+  ]
   log(
     'scan',
     result.map((g) => ({ titre: g.title, disponible: g.available, image: g.icon !== null }))
@@ -752,7 +790,7 @@ function registerIpc(): void {
     const cfg = store.get()
     store.set({ lastPlayed: { ...cfg.lastPlayed, [id]: Date.now() } })
     // Fenêtre du jeu (émulé ou non) : titre du jeu et jaquette en icône, la même que dans le lanceur.
-    const cover = game.iconPath ?? findCover(cfg.coversDir, game.title)
+    const cover = game.iconPath ?? coverOf(game.title)
     const iconPng = cover ? await squareIconPng(cover) : null
     if (launcher.isRunning) return
     hideFallbackMs = game.emulated ? HIDE_FALLBACK_EMULATED_MS : HIDE_FALLBACK_MS
@@ -780,6 +818,12 @@ function registerIpc(): void {
       filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'ico'] }]
     })
     return r.canceled ? null : r.filePaths[0]
+  })
+  ipcMain.handle('roms:open', async () => {
+    const dir = romsFolder(store.get())
+    ensureRomFolder(dir)
+    await shell.openPath(dir)
+    return dir
   })
   ipcMain.handle('emulators:bundled', () => {
     const found: Record<string, string> = {}
@@ -888,6 +932,7 @@ if (!app.requestSingleInstanceLock()) {
     initLog(join(data, 'launcher.log'))
     store = new ConfigStore(join(data, 'config.json'))
     if (store.recovery) log(store.recovery)
+    ensureRomFolder(romsFolder(store.get()))
     log('démarrage', {
       version: app.getVersion(),
       exe: process.execPath,

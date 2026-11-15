@@ -102,6 +102,7 @@ export function defaultConfig(): Config {
     tourDone: false,
     showMissingGames: true,
     coversDir: join(homedir(), 'Pictures', 'Jaquettes'),
+    romsDir: join(homedir(), 'Jeux'),
     audioDir: join(homedir(), 'Music', 'Console Launcher'),
     sfxVolume: 70,
     musicVolume: 40,

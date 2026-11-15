@@ -44,6 +44,10 @@ export default function ToolGuide({ title, emulatorId, onAdd, onClose }: Props):
               </li>
               <li>Le jeu remplace cette « Cartouche vide » et se lance depuis le menu.</li>
             </ol>
+            <p className="recipe-guide">
+              Plus simple : dépose ton fichier dans le <strong>dossier des jeux</strong> (il est reconnu tout seul au prochain démarrage).{' '}
+              <button onClick={() => void window.api.openRomsFolder()}>Ouvrir le dossier des jeux</button>
+            </p>
           </>
         ) : emulator ? (
           <>

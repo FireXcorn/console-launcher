@@ -8,7 +8,7 @@ Chaque génération de Pokémon se joue avec un émulateur libre. **mGBA, melonD
 
 ## Les tuiles Pokémon du menu
 
-Le menu contient une tuile « Cartouche vide » pour chaque jeu ci-dessous. Sélectionne-la et appuie sur **A** : le guide t'amène dans Paramètres → Ajouter des jeux avec le titre et les bons arguments déjà remplis. Clique sur « Ajouter un jeu sur émulateur… » et choisis seulement **ta** ROM : l'émulateur est déjà choisi.
+Le menu contient une tuile « Cartouche vide » par version (30 au total, de la plus récente à la plus ancienne). Sélectionne-la et appuie sur **A** : le guide t'amène dans Paramètres → Ajouter des jeux avec le titre et les bons arguments déjà remplis. Clique sur « Ajouter un jeu sur émulateur… » et choisis seulement **ta** ROM : l'émulateur est déjà choisi.
 
 - **mGBA** : Rouge et Bleu (et Vert), Jaune, Or et Argent, Cristal, Rubis et Saphir, Rouge Feu et Vert Feuille, Émeraude.
 - **melonDS** : Ranger, Diamant et Perle, Platine, HeartGold et SoulSilver, Noire et Blanche, Noire 2 et Blanche 2.
@@ -16,6 +16,10 @@ Le menu contient une tuile « Cartouche vide » pour chaque jeu ci-dessous. Sél
 - **Dolphin** (GameCube) : XD, Le Souffle des Ténèbres.
 
 Les jeux Switch et Switch 2 n'y figurent pas.
+
+## Le dossier des jeux
+
+Le lanceur crée un dossier **Jeux** (dans ton dossier personnel, avec un sous-dossier par console). Dépose-y tes fichiers de jeu (`.gb`, `.gbc`, `.gba`, `.nds`, `.3ds`) : au prochain démarrage, chacun devient une tuile jouable, avec l'émulateur livré. Les jeux Pokémon sont reconnus par leur nom de fichier (français ou anglais). Le bouton **Ouvrir le dossier des jeux** est dans Paramètres → Ajouter des jeux et dans le guide d'une « Cartouche vide ». Un jeu ajouté à la main avec le même titre garde la priorité.
 
 ## Fichiers de jeu
 

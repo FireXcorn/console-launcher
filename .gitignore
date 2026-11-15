@@ -20,3 +20,5 @@ switch 2 luncher/
 
 # Émulateurs livrés dans le ZIP, jamais dans le dépôt
 /emulators-src/
+/covers-src/
+/Livraison/

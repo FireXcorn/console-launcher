@@ -1,6 +1,6 @@
 {
   "name": "console-launcher",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Lanceur de jeux plein écran façon menu de console",
   "license": "MIT",
   "private": true,
@@ -52,6 +52,10 @@
       {
         "from": "recipes",
         "to": "recipes"
+      },
+      {
+        "from": "covers-src",
+        "to": "covers"
       }
     ]
   },

@@ -61,6 +61,22 @@ const VISIBLE_BEFORE_SCROLL = 3
 let lastPointer = { x: -1, y: -1 }
 
 /**
+ * Quand la rangée glisse sous la souris, les tuiles qui défilent déclenchent à leur tour le survol : sans frein,
+ * la sélection s'emballe. Après un changement de sélection (survol ou molette), on attend la fin du glissement.
+ */
+const HOVER_PAUSE_MS = 280
+const WHEEL_PAUSE_MS = 160
+let hoverLockedUntil = 0
+let wheelLockedUntil = 0
+
+function hoverReady(): boolean {
+  const now = Date.now()
+  if (now < hoverLockedUntil) return false
+  hoverLockedUntil = now + HOVER_PAUSE_MS
+  return true
+}
+
+/**
  * Vrai seulement si la souris a réellement bougé : quand la rangée défile sous un curseur
  * immobile, le navigateur émet des événements de survol qui ne doivent pas voler la sélection.
  */
@@ -230,7 +246,7 @@ function GameTile({ game, focused, launching, onSelect, onActivate }: TileProps)
   return (
     <div
       className={`tile${focused ? ' focused' : ''}${launching ? ' launching' : ''}${game.available ? '' : ' missing'}`}
-      onMouseMove={(e) => pointerMoved(e) && !focused && onSelect()}
+      onMouseMove={(e) => pointerMoved(e) && !focused && hoverReady() && onSelect()}
       onClick={onActivate}
     >
       {launching &&
@@ -312,7 +328,19 @@ export default function Home(props: HomeProps): JSX.Element {
         onTop={onTop}
         onPickProfile={onPickProfile}
       />
-      <section className="row-viewport">
+      <section
+        className="row-viewport"
+        onWheel={(e) => {
+          // Molette : une tuile par cran, à vitesse limitée.
+          const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX
+          const now = Date.now()
+          if (!delta || games.length === 0 || now < wheelLockedUntil) return
+          wheelLockedUntil = now + WHEEL_PAUSE_MS
+          hoverLockedUntil = now + HOVER_PAUSE_MS
+          const next = Math.min(games.length - 1, Math.max(0, (onGames ? focus.game : 0) + (delta > 0 ? 1 : -1)))
+          onFocus({ ...focus, row: 'games', game: next })
+        }}
+      >
         <div className="row" style={{ '--offset': offset } as CSSProperties}>
           {games.map((g, i) => (
             <GameTile

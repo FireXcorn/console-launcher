@@ -170,6 +170,8 @@ export interface Config {
   showMissingGames: boolean
   /** Dossier où l'utilisateur dépose des jaquettes nommées d'après le titre du jeu. */
   coversDir: string
+  /** Dossier des jeux : tout fichier de jeu qu'on y dépose devient une tuile jouable. */
+  romsDir: string
   /** Dossier de musique et de sons de remplacement (menu, valider, retour…). */
   audioDir: string
   /** 0 à 100. */
@@ -260,6 +262,8 @@ export interface Api {
   launch(id: string): Promise<void>
   onGameState(cb: (state: GameState) => void): () => void
   pickFolder(): Promise<string | null>
+  /** Ouvre le dossier des jeux dans l'explorateur de fichiers (le crée au besoin) et donne son chemin. */
+  openRomsFolder(): Promise<string>
   pickImage(): Promise<string | null>
   /** Choisit un fichier quelconque (programme, fichier de jeu…). */
   pickFile(): Promise<string | null>

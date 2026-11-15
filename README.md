@@ -4,7 +4,15 @@ Un lanceur de jeux **plein écran** pour PC, inspiré du menu d'accueil d'une co
 
 Il lance **tes** jeux : des programmes PC « natifs », ou des jeux qui passent par un **émulateur**.
 
-**Télécharger :** [la dernière version](https://github.com/FireXcorn/console-launcher/releases/latest) pour Windows 10 et 11 : décompresse l'archive et lance `Console Launcher.exe`, rien à installer.
+## Télécharger
+
+1. Ouvre la page [**Releases**](https://github.com/FireXcorn/console-launcher/releases/latest).
+2. Dans la section **Assets**, télécharge **`Console-Launcher-Windows.zip`** (Windows 10 et 11) ou **`Console-Launcher-Linux.tar.gz`** (Ubuntu).
+3. Décompresse l'archive, puis lance **`Console Launcher.exe`** (Windows) ou **`Console Launcher-….AppImage`** (Linux). Rien à installer.
+
+> **Ne télécharge pas « Source code (zip) ».** Ce fichier, que GitHub ajoute tout seul à chaque version, ne contient que le code du projet : il n'y a **aucun `.exe`** dedans. Le programme à lancer se trouve dans `Console-Launcher-Windows.zip`.
+
+Les jeux ne sont pas fournis : dépose les tiens dans le dossier **`Jeux`**, à côté du programme.
 
 <p align="center">
   <img src="docs/images/accueil-sans-theme.jpg" alt="Accueil du lanceur, mode « Sans thème » : une rangée de jeux et la barre d'icônes" width="720"><br>
