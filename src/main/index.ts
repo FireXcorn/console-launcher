@@ -958,13 +958,15 @@ function registerIpc(): void {
 }
 
 function createWindow(): void {
+  // Toujours plein écran au démarrage, quel que soit le dernier réglage enregistré.
+  store.set({ fullscreen: true })
   const cfg = store.get()
   win = new BrowserWindow({
     width: 1280,
     height: 720,
     minWidth: 960,
     minHeight: 540,
-    fullscreen: cfg.fullscreen,
+    fullscreen: true,
     title: cfg.appTitle?.trim() || DEFAULT_TITLE,
     autoHideMenuBar: true,
     backgroundColor: cfg.theme === 'dark' ? '#2b2b2b' : '#ebebeb',
