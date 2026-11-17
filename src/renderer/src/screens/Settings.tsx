@@ -243,12 +243,21 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
     const step = (d: number): void => {
       const next = fields[fields.indexOf(active!) + d]
       if (!next && d < 0) return focusBack()
-      next?.focus()
-      next?.scrollIntoView({ block: 'nearest' })
-      // Aux deux bouts, on va jusqu'au bout du panneau pour voir aussi le texte qui entoure le premier/dernier réglage.
-      if (next && pane) {
-        if (next === fields[fields.length - 1]) pane.scrollTo({ top: pane.scrollHeight })
-        else if (next === fields[0]) pane.scrollTo({ top: 0 })
+      if (!next) return
+      next.focus({ preventScroll: true })
+      // Défilement explicite : on ne compte pas sur le défilement automatique du navigateur (inefficace avec la manette).
+      let scroller: HTMLElement | null = next.parentElement
+      while (scroller && scroller.scrollHeight <= scroller.clientHeight) scroller = scroller.parentElement
+      if (scroller) {
+        const row = next.closest<HTMLElement>('.field, .check, .user-row, .emu-row, .backup-row') ?? next
+        const r = row.getBoundingClientRect()
+        const p = scroller.getBoundingClientRect()
+        const margin = 40
+        if (r.bottom > p.bottom - margin) scroller.scrollTop += r.bottom - p.bottom + margin
+        else if (r.top < p.top + margin) scroller.scrollTop -= p.top - r.top + margin
+        // Aux deux bouts, on va jusqu'au bout pour voir aussi le texte qui entoure le premier/dernier réglage.
+        if (next === fields[fields.length - 1]) scroller.scrollTop = scroller.scrollHeight
+        else if (next === fields[0]) scroller.scrollTop = 0
       }
     }
     if (action === 'back') {
