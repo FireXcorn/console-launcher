@@ -26,6 +26,7 @@ import AddGame, { type AddKind } from './components/AddGame'
 import RecipeGuide from './components/RecipeGuide'
 import ToolGuide from './components/ToolGuide'
 import Tour from './components/Tour'
+import { useMedia } from './hooks/useMedia'
 import AppsScreen from './screens/Apps'
 import PokemonScreen from './screens/Pokemon'
 import SettingsScreen from './screens/Settings'
@@ -97,6 +98,7 @@ export default function App(): JSX.Element | null {
   const [addKind, setAddKind] = useState<AddKind | 'choose' | null>(null)
   const [dropped, setDropped] = useState<AddRomsSummary | null>(null)
   const [running, setRunning] = useState(false)
+  const { media, control: controlMedia } = useMedia(screen === 'home' && !running)
   const [launchingId, setLaunchingId] = useState<string | null>(null)
   const launchTimer = useRef<number | undefined>(undefined)
   const resumeTimer = useRef<number | undefined>(undefined)
@@ -347,6 +349,11 @@ export default function App(): JSX.Element | null {
         return
       }
       if (launchingId) return
+      // Mini lecteur : L / R = précédent / suivant, Y = pause / lecture (PageUp, PageDown, Suppr au clavier).
+      if (media && (action === 'prevTab' || action === 'nextTab' || action === 'option')) {
+        controlMedia(action === 'prevTab' ? 'previous' : action === 'nextTab' ? 'next' : 'playpause')
+        return
+      }
 
       const step = action === 'left' ? -1 : action === 'right' ? 1 : 0
       const clamp = (n: number, max: number): number => Math.min(Math.max(n, 0), max)
@@ -380,7 +387,7 @@ export default function App(): JSX.Element | null {
         else topAction(focus.top)
       }
     },
-    [notice, launchingId, homeGames, focus, launch, dockAction, topAction]
+    [notice, launchingId, homeGames, focus, launch, dockAction, topAction, media, controlMedia]
   )
 
   // L'écouteur est posé une seule fois et lit toujours l'état du dernier rendu.
@@ -453,6 +460,8 @@ export default function App(): JSX.Element | null {
         profiles={config.profiles}
         profileArt={profileArt}
         onPickProfile={(id) => void updateConfig({ activeProfile: id })}
+        media={media}
+        onMedia={controlMedia}
         launchingId={launchingId}
         backdrop={config?.gameBackdrop !== false}
         confirmLabel="A"

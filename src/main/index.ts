@@ -14,6 +14,7 @@ import {
 } from 'electron'
 import { execFile, spawn } from 'child_process'
 import { findSaveFile } from './savefile'
+import { mediaCommand } from './media'
 import { addSaveGlobs, azaharSdmc, pkvaultSettingsFile, saveGlobs } from './pkvault'
 import { APPS, appInfo, appsRoot, installApp, installAutomatically, launchPath, removeApp, startDetached } from './apps'
 import { HomeView } from './homeview'
@@ -826,6 +827,10 @@ function registerIpc(): void {
   })
   // Installation automatique en arrière-plan : « running » tant qu'elle dure, sinon la raison de l'échec (absent = rien en cours).
   const appInstalls = new Map<string, string>()
+  ipcMain.handle('media:state', () => mediaCommand())
+  ipcMain.handle('media:control', (_e, action: unknown) =>
+    mediaCommand(action === 'playpause' || action === 'next' || action === 'previous' ? action : undefined)
+  )
   ipcMain.handle('apps:installAuto', (_e, id: unknown) => {
     const def = APPS.find((a) => a.id === id)
     if (!def || appInstalls.get(def.id) === 'running') return

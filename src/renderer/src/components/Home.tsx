@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import type { Game, Profile, ProfileArt } from '../../../shared/types'
+import type { Game, MediaAction, MediaState, Profile, ProfileArt } from '../../../shared/types'
 import Avatar from './Avatar'
 import {
   AppsIcon,
@@ -181,12 +181,37 @@ interface TopBarProps {
   onFocus: (f: Focus) => void
   onTop: (index: number) => void
   onPickProfile: (id: string) => void
+  media: MediaState | null
+  onMedia: (action: MediaAction) => void
 }
 
-function TopBar({ focus, profile, profiles, art, onFocus, onTop, onPickProfile }: TopBarProps): JSX.Element {
+/** Mini lecteur : le morceau en cours et pause / précédent / suivant. Absent tant que Spotify ou Apple Music ne jouent rien. */
+function MiniPlayer({ media, onMedia }: { media: MediaState; onMedia: (action: MediaAction) => void }): JSX.Element {
+  const btn = (action: MediaAction, label: string, path: JSX.Element): JSX.Element => (
+    <button className="mini-btn" aria-label={label} title={label} onClick={() => onMedia(action)}>
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        {path}
+      </svg>
+    </button>
+  )
+  return (
+    <div className="mini-player">
+      {btn('previous', 'Précédent', <path d="M6 5h2v14H6zM20 5v14L9.5 12z" />)}
+      {btn('playpause', media.playing ? 'Pause' : 'Lecture', media.playing ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />)}
+      {btn('next', 'Suivant', <path d="M16 5h2v14h-2zM4 5v14l10.5-7z" />)}
+      <span className="mini-title">
+        {media.title || 'Musique'}
+        {media.artist && <small> · {media.artist}</small>}
+      </span>
+    </div>
+  )
+}
+
+function TopBar({ focus, profile, profiles, art, onFocus, onTop, onPickProfile, media, onMedia }: TopBarProps): JSX.Element {
   const on = (i: number): boolean => focus.row === 'top' && focus.top === i
   return (
     <header className="topbar">
+      {media && <MiniPlayer media={media} onMedia={onMedia} />}
       {/* Tous les utilisateurs, comme sur la console ; celui qui joue est sélectionnable au clavier. */}
       <div className="profiles">
         {profiles.map((p) =>
@@ -310,10 +335,12 @@ interface HomeProps {
   onDock: (id: DockId) => void
   onTop: (index: number) => void
   onPickProfile: (id: string) => void
+  media: MediaState | null
+  onMedia: (action: MediaAction) => void
 }
 
 export default function Home(props: HomeProps): JSX.Element {
-  const { games, focus, profile, profiles, profileArt, launchingId, backdrop, confirmLabel, onFocus, onLaunch, onDock, onTop, onPickProfile } =
+  const { games, focus, profile, profiles, profileArt, launchingId, backdrop, confirmLabel, onFocus, onLaunch, onDock, onTop, onPickProfile, media, onMedia } =
     props
   const placeholders = Math.max(0, MIN_SLOTS - games.length)
   const offset = Math.max(0, focus.game - VISIBLE_BEFORE_SCROLL)
@@ -332,6 +359,8 @@ export default function Home(props: HomeProps): JSX.Element {
         onFocus={onFocus}
         onTop={onTop}
         onPickProfile={onPickProfile}
+        media={media}
+        onMedia={onMedia}
       />
       <section
         className="row-viewport"

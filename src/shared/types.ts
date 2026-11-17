@@ -141,6 +141,16 @@ export interface AppInfo {
   note?: string
 }
 
+/** Ce que joue le lecteur de musique du système (Spotify, Apple Music…), pour le mini lecteur du lanceur. */
+export interface MediaState {
+  available: boolean
+  playing: boolean
+  title: string
+  artist: string
+}
+
+export type MediaAction = 'playpause' | 'next' | 'previous'
+
 export type RecipeState ='no-tool' | 'needs-input' | 'needs-setup' | 'ready'
 
 /** État d'un jeu « à préparer » vu par l'interface. */
@@ -347,6 +357,10 @@ export interface Api {
   openAppPage(id: string): Promise<void>
   /** Installe l'application depuis le fichier téléchargé ; renvoie un message d'erreur, ou null si tout va bien. */
   installApp(id: string, file: string): Promise<string | null>
+  /** État du mini lecteur (musique). */
+  mediaState(): Promise<MediaState>
+  /** Pause/lecture, piste suivante ou précédente ; renvoie le nouvel état. */
+  mediaControl(action: MediaAction): Promise<MediaState>
   /** Lance l'installation automatique (en arrière-plan) d'une application ; l'état se lit ensuite dans `listApps`. */
   installAppAuto(id: string): Promise<void>
   /** Lance l'application installée ; renvoie un message d'erreur, ou null. */

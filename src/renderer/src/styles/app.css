@@ -962,3 +962,38 @@ body {
     inset 0 0 0 1px var(--glass-edge),
     0 calc(var(--u) * 0.5) calc(var(--u) * 2) rgba(0, 0, 0, 0.25);
 }
+
+/* Mini lecteur de musique : en haut au milieu de l'accueil. */
+.topbar { position: relative; }
+.mini-player {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--u) * 3.4);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.6);
+  max-width: calc(var(--u) * 46);
+  padding: calc(var(--u) * 0.5) calc(var(--u) * 1.6) calc(var(--u) * 0.5) calc(var(--u) * 0.8);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 calc(var(--u) * 0.2) calc(var(--u) * 0.9) var(--shadow);
+  font-size: calc(var(--u) * 1.5);
+}
+.mini-btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: calc(var(--u) * 3.2);
+  height: calc(var(--u) * 3.2);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+.mini-btn:hover { background: rgba(128, 128, 128, 0.25); }
+.mini-btn svg { width: 55%; height: 55%; }
+.mini-title { min-width: 0; margin-left: calc(var(--u) * 0.6); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.mini-title small { color: var(--text-dim); font-size: inherit; }
