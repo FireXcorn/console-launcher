@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'fs'
+import { copyFileSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'fs'
 import { basename, extname, join } from 'path'
 import type { EmulatedGame } from '../shared/types'
 import { EMULATORS } from '../shared/emulators'
@@ -42,7 +42,6 @@ const POKEMON_PATTERNS: ReadonlyArray<readonly [RegExp, string]> = [
   [/(white|blanche)/, 'Pokémon Blanche'],
   [/(sun|soleil)/, 'Pokémon Soleil'],
   [/(moon|lune)/, 'Pokémon Lune'],
-  [/ranger/, 'Pokémon Ranger'],
   [/(sapphire|saphir)/, 'Pokémon Saphir'],
   [/(ruby|rubis)/, 'Pokémon Rubis'],
   [/(crystal|cristal)/, 'Pokémon Cristal'],
@@ -142,4 +141,58 @@ export function ensureRomFolder(dir: string): void {
   } catch {
     // dossier non créable (droits…) : tant pis, le lanceur fonctionne sans
   }
+}
+
+/** Dossier de console où ranger un fichier de jeu, d'après son extension. */
+const EXT_FOLDER: Record<string, string> = {
+  '.gb': 'Game Boy',
+  '.gbc': 'Game Boy Color',
+  '.gba': 'Game Boy Advance',
+  '.nds': 'Nintendo DS',
+  '.3ds': 'Nintendo 3DS',
+  '.cci': 'Nintendo 3DS',
+  '.cxi': 'Nintendo 3DS'
+}
+
+export const ROM_EXTENSIONS = Object.keys(EXT_FOLDER).map((e) => e.slice(1))
+
+export interface AddRomsResult {
+  /** Titres des jeux copiés dans le dossier des jeux. */
+  added: string[]
+  /** Fichiers refusés, avec la raison en une phrase. */
+  skipped: string[]
+}
+
+/**
+ * Copie des fichiers de jeu dans le dossier des jeux, rangés par console : l'utilisateur n'a rien d'autre à faire.
+ * Un fichier déjà présent ou d'un format inconnu est signalé, jamais écrasé.
+ */
+export function addRoms(dir: string, files: string[]): AddRomsResult {
+  const result: AddRomsResult = { added: [], skipped: [] }
+  ensureRomFolder(dir)
+  for (const file of files) {
+    const name = basename(file)
+    const ext = extname(name).toLowerCase()
+    const folder = EXT_FOLDER[ext]
+    if (!folder) {
+      result.skipped.push(
+        ['.zip', '.7z', '.rar'].includes(ext)
+          ? `${name} : fichier compressé, décompresse-le d’abord`
+          : `${name} : format non reconnu (.gb, .gbc, .gba, .nds, .3ds attendus)`
+      )
+      continue
+    }
+    const target = join(dir, folder, name)
+    if (existsSync(target)) {
+      result.skipped.push(`${name} : déjà dans le dossier des jeux`)
+      continue
+    }
+    try {
+      copyFileSync(file, target)
+      result.added.push(titleForRom(name))
+    } catch {
+      result.skipped.push(`${name} : copie impossible`)
+    }
+  }
+  return result
 }

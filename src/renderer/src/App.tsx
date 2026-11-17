@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react'
-import type { Config, Game, ProfileArt } from '../../shared/types'
+import type { AddRomsSummary, Config, Game, ProfileArt } from '../../shared/types'
 import { LINKS } from '../../shared/links'
 import { clearProfilePlaytime } from '../../shared/playtime'
 import { engine } from './audio/engine'
@@ -22,9 +22,12 @@ import MyPageScreen from './screens/MyPage'
 import ProfilePicker from './screens/ProfilePicker'
 import UserSettingsScreen from './screens/UserSettings'
 import Welcome from './screens/Welcome'
+import AddGame, { type AddKind } from './components/AddGame'
 import RecipeGuide from './components/RecipeGuide'
 import ToolGuide from './components/ToolGuide'
 import Tour from './components/Tour'
+import AppsScreen from './screens/Apps'
+import PokemonScreen from './screens/Pokemon'
 import SettingsScreen from './screens/Settings'
 import VirtualCardScreen from './screens/VirtualCard'
 
@@ -50,6 +53,8 @@ type ScreenId =
   | 'home'
   | 'album'
   | 'news'
+  | 'apps'
+  | 'pokemon'
   | 'mypage'
   | 'users'
   | 'usersettings'
@@ -88,6 +93,9 @@ export default function App(): JSX.Element | null {
   const [toolGame, setToolGame] = useState<{ title: string; emulatorId?: string } | null>(null)
   const [addTitle, setAddTitle] = useState<string | undefined>(undefined)
   const [addEmulator, setAddEmulator] = useState<string | undefined>(undefined)
+  /** Assistant « Ajouter un jeu » : ouvert sur un type de jeu, ou sur les trois cartes ('choose'). */
+  const [addKind, setAddKind] = useState<AddKind | 'choose' | null>(null)
+  const [dropped, setDropped] = useState<AddRomsSummary | null>(null)
   const [running, setRunning] = useState(false)
   const [launchingId, setLaunchingId] = useState<string | null>(null)
   const launchTimer = useRef<number | undefined>(undefined)
@@ -205,11 +213,41 @@ export default function App(): JSX.Element | null {
   // Petit tic quand la sélection de l'accueil change (clavier, manette ou souris).
   useMoveSound(`${focus.row}:${focus.game}:${focus.dock}:${focus.top}`)
 
-  const launch = useCallback(
-    (index: number) => {
-      const game = games[index]
-      if (!game || launchingId) return
-      setFocus((f) => ({ ...f, row: 'games', game: index }))
+  // Ajout de jeux : un seul geste (choisir les fichiers, ou les glisser sur la fenêtre). Le lanceur les range et actualise.
+  const showAdded = useCallback(
+    async (r: AddRomsSummary | null) => {
+      if (!r) return
+      await rescan()
+      const lines = [
+        r.added.length ? `Ajouté : ${r.added.join(', ')}. Tu peux jouer tout de suite.` : '',
+        ...r.skipped
+      ].filter(Boolean)
+      setNotice({ title: r.added.length ? 'Jeux ajoutés' : 'Rien n’a été ajouté', message: lines.join(' ') })
+    },
+    [rescan]
+  )
+  // Fichiers glissés sur la fenêtre : l'assistant ouvert affiche le résultat, sinon une simple fenêtre le résume.
+  const addOpen = useRef(false)
+  addOpen.current = addKind !== null
+  useEffect(
+    () =>
+      window.api.onDropFiles(
+        (files) =>
+          void window.api.addRomFiles(files).then(async (r) => {
+            if (!addOpen.current) return showAdded(r)
+            await rescan()
+            setDropped(r)
+          })
+      ),
+    [showAdded, rescan]
+  )
+
+  // L'accueil montre une seule tuile « Pokémon » ; les jeux Pokémon sont dans son écran.
+  const homeGames = useMemo(() => games.filter((g) => !g.pokemonConsole), [games])
+
+  const launchGame = useCallback(
+    (game: Game) => {
+      if (launchingId) return
       if (game.unavailableOn) {
         engine.play('refuser')
         setNotice({
@@ -235,7 +273,22 @@ export default function App(): JSX.Element | null {
       setLaunchingId(game.id)
       launchTimer.current = window.setTimeout(() => window.api.launch(game.id), LAUNCH_ANIMATION_MS)
     },
-    [games, launchingId]
+    [launchingId]
+  )
+
+  const launch = useCallback(
+    (index: number) => {
+      const game = homeGames[index]
+      if (!game || launchingId) return
+      setFocus((f) => ({ ...f, row: 'games', game: index }))
+      if (game.collection) {
+        engine.play('ouvrir')
+        setScreen('pokemon')
+        return
+      }
+      launchGame(game)
+    },
+    [homeGames, launchingId, launchGame]
   )
 
   const dockAction = useCallback((id: DockId) => {
@@ -257,6 +310,7 @@ export default function App(): JSX.Element | null {
         setPanel('power')
         break
       case 'news':
+      case 'apps':
       case 'album':
       case 'controllers':
       case 'card':
@@ -298,35 +352,35 @@ export default function App(): JSX.Element | null {
       const clamp = (n: number, max: number): number => Math.min(Math.max(n, 0), max)
       if (action === 'menu') {
         // Bouton « + » : options du jeu sélectionné.
-        if (focus.row === 'games' && games[focus.game]) {
+        if (focus.row === 'games' && homeGames[focus.game] && !homeGames[focus.game].collection) {
           engine.play('ouvrir')
-          setOptionsId(games[focus.game].id)
+          setOptionsId(homeGames[focus.game].id)
         }
       } else if (step !== 0) {
         setFocus((f) =>
           f.row === 'games'
-            ? { ...f, game: clamp(f.game + step, Math.max(0, games.length - 1)) }
+            ? { ...f, game: clamp(f.game + step, Math.max(0, homeGames.length - 1)) }
             : f.row === 'dock'
               ? { ...f, dock: clamp(f.dock + step, DOCK.length - 1) }
               : { ...f, top: clamp(f.top + step, 1) }
         )
       } else if (action === 'down') {
         setFocus((f) =>
-          f.row === 'top' ? { ...f, row: games.length > 0 ? 'games' : 'dock' } : { ...f, row: 'dock' }
+          f.row === 'top' ? { ...f, row: homeGames.length > 0 ? 'games' : 'dock' } : { ...f, row: 'dock' }
         )
       } else if (action === 'up') {
         setFocus((f) =>
-          f.row === 'dock' && games.length > 0 ? { ...f, row: 'games' } : f.row === 'top' ? f : { ...f, row: 'top' }
+          f.row === 'dock' && homeGames.length > 0 ? { ...f, row: 'games' } : f.row === 'top' ? f : { ...f, row: 'top' }
         )
       } else if (action === 'back') {
-        setFocus((f) => (f.row === 'top' && games.length === 0 ? { ...f, row: 'dock' } : { ...f, row: games.length > 0 ? 'games' : f.row }))
+        setFocus((f) => (f.row === 'top' && homeGames.length === 0 ? { ...f, row: 'dock' } : { ...f, row: homeGames.length > 0 ? 'games' : f.row }))
       } else if (action === 'confirm') {
         if (focus.row === 'games') launch(focus.game)
         else if (focus.row === 'dock') dockAction(DOCK[focus.dock].id)
         else topAction(focus.top)
       }
     },
-    [notice, launchingId, games, focus, launch, dockAction, topAction]
+    [notice, launchingId, homeGames, focus, launch, dockAction, topAction]
   )
 
   // L'écouteur est posé une seule fois et lit toujours l'état du dernier rendu.
@@ -393,7 +447,7 @@ export default function App(): JSX.Element | null {
     <InputContext.Provider value={inputStack}>
       <div className="wallpaper" aria-hidden="true" />
       <Home
-        games={games}
+        games={homeGames}
         focus={focus}
         profile={activeProfile}
         profiles={config.profiles}
@@ -416,29 +470,21 @@ export default function App(): JSX.Element | null {
 
       {screen === 'home' && scanned && !config.onboarded && (
         <Welcome
-          onImport={async () => {
-            const dir = await window.api.pickFolder()
-            if (!dir) return 0
-            const known = new Set(config.emulated.map((g) => g.emulatorExe.toLowerCase()))
-            const found = (await window.api.findPrograms(dir)).filter((c) => !known.has(c.exe.toLowerCase()))
-            if (found.length === 0) return 0
-            await updateConfig({
-              onboarded: true,
-              emulated: [...config.emulated, ...found.map((c) => ({ title: c.title, emulatorExe: c.exe, gameFile: '', args: [], readyTitle: '' }))]
-            })
-            await rescan()
-            return found.length
-          }}
+          onAdd={setAddKind}
           onTour={() => void updateConfig({ onboarded: true })}
           onLater={() => void updateConfig({ onboarded: true, tourDone: true })}
         />
       )}
 
-      {screen === 'home' && scanned && config.onboarded && !config.tourDone && !guideGame && !notice && (
+      {screen === 'home' && scanned && config.onboarded && !config.tourDone && !guideGame && !notice && !addKind && (
         <Tour onDone={() => void updateConfig({ tourDone: true })} />
       )}
       {screen === 'album' && <AlbumScreen config={config} onBack={back} />}
       {screen === 'news' && <NewsScreen onBack={back} />}
+      {screen === 'apps' && <AppsScreen onBack={back} />}
+      {screen === 'pokemon' && (
+        <PokemonScreen games={games.filter((g) => g.pokemonConsole)} onPlay={(g) => (g.available ? launchGame(g) : setAddKind('retro'))} onAdd={() => setAddKind('retro')} backdrop={config.gameBackdrop !== false} onBack={back} />
+      )}
       {screen === 'mypage' && editing && (
         <MyPageScreen
           profile={editing}
@@ -469,7 +515,7 @@ export default function App(): JSX.Element | null {
         <UserSettingsScreen
           config={config}
           profileId={editing.id}
-          games={games.filter((g) => g.available)}
+          games={games.filter((g) => g.available && !g.collection)}
           art={profileArt[editing.id]}
           onEditIcon={() => setScreen('editicon')}
           onEditName={() => setScreen('editname')}
@@ -512,7 +558,7 @@ export default function App(): JSX.Element | null {
         <ActivityScreen
           config={config}
           profileId={editing.id}
-          games={games.filter((g) => g.available)}
+          games={games.filter((g) => g.available && !g.collection)}
           onChange={updateConfig}
           onBack={() => setScreen('usersettings')}
         />
@@ -521,7 +567,7 @@ export default function App(): JSX.Element | null {
       {screen === 'card' && (
         <VirtualCardScreen
           config={config}
-          games={games}
+          games={games.filter((g) => !g.collection)}
           onToggleMissing={async () => {
             await updateConfig({ showMissingGames: !config.showMissingGames })
             await rescan()
@@ -535,7 +581,7 @@ export default function App(): JSX.Element | null {
           addForTitle={addTitle}
           addForEmulator={addEmulator}
           config={config}
-          games={games}
+          games={games.filter((g) => !g.collection)}
           art={profileArt}
           onSave={async (patch) => {
             await updateConfig(patch)
@@ -543,12 +589,42 @@ export default function App(): JSX.Element | null {
             if (patch.audioDir !== undefined) engine.loadCustom()
           }}
           onRescan={() => void rescan()}
+          onAddGame={setAddKind}
           onOpenUser={(id) => {
             setEditingId(id)
             setOrigin('console')
             setScreen('usersettings')
           }}
-          onBack={back}
+          onBack={() => {
+            // Le prochain passage par Paramètres repart de zéro (plus de jeu « en cours d'ajout »).
+            setSettingsStart(undefined)
+            setAddTitle(undefined)
+            setAddEmulator(undefined)
+            back()
+          }}
+        />
+      )}
+
+      {addKind && (
+        <AddGame
+          start={addKind === 'choose' ? undefined : addKind}
+          config={config}
+          dropped={dropped}
+          onSave={async (patch) => {
+            await updateConfig(patch)
+            await rescan()
+          }}
+          onRescan={rescan}
+          onRecipe={(recipeId, title) => {
+            setAddKind(null)
+            setGuideGame({ recipeId, title })
+          }}
+          onClose={(added) => {
+            setAddKind(null)
+            setDropped(null)
+            // Premier jeu ajouté depuis l'écran de bienvenue : on passe à l'accueil (la visite guidée suit).
+            if (added && !config.onboarded) void updateConfig({ onboarded: true })
+          }}
         />
       )}
 

@@ -55,6 +55,19 @@ export default function RecipeCard({ recipe: r, onChange, showGuide }: Props): J
         <span className={'recipe-state ' + r.state}>{RECIPE_STATE[r.state]}</span>
       </div>
       {showGuide && r.guide && <p className="recipe-guide">{r.guide}</p>}
+      {showGuide && r.state !== 'no-tool' && (
+        <ol className="recipe-steps" aria-label="Les étapes">
+          {[
+            ['Choisis ton fichier de jeu', r.state === 'needs-input'],
+            ['Prépare le jeu (une seule fois)', r.state === 'needs-setup'],
+            ['Joue : la tuile devient jouable', r.state === 'ready']
+          ].map(([label, now]) => (
+            <li key={String(label)} className={now ? 'now' : ''}>
+              {label}
+            </li>
+          ))}
+        </ol>
+      )}
       {r.state !== 'no-tool' &&
         r.needs.map((n) => (
           <div className="field-row" key={n.id}>

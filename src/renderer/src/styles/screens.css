@@ -1249,6 +1249,43 @@ kbd {
   height: 100%;
 }
 
+.apps {
+  display: grid;
+  gap: 18px;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 8px 0 24px;
+}
+
+.app-card {
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: var(--surface, rgba(255, 255, 255, 0.06));
+}
+
+.app-card h2 {
+  margin: 0;
+  font-size: 1.25em;
+}
+
+.app-card p {
+  margin: 0;
+}
+
+.app-steps {
+  margin: 0;
+  padding-left: 1.4em;
+  display: grid;
+  gap: 4px;
+  color: var(--text-dim);
+}
+
+.app-note {
+  color: var(--text-dim);
+}
+
 .news-list {
   margin: 0;
   padding: calc(var(--u) * 0.6);
@@ -1854,6 +1891,14 @@ kbd {
   margin: calc(var(--u) * 3) 0;
 }
 
+.welcome-steps {
+  margin: 12px 0;
+  padding-left: 1.4em;
+  display: grid;
+  gap: 6px;
+  font-size: 1.05em;
+}
+
 .welcome-hint {
   display: block;
   color: var(--text-dim);
@@ -1963,6 +2008,19 @@ kbd {
 
 .recipe-guide {
   font-size: 1.05em;
+}
+
+.recipe-steps {
+  margin: 0;
+  padding-left: 1.4em;
+  display: grid;
+  gap: 4px;
+  color: var(--text-dim);
+}
+
+.recipe-steps li.now {
+  color: var(--text);
+  font-weight: 700;
 }
 
 .recipe-footnote {
@@ -2075,3 +2133,77 @@ kbd {
   gap: 6px;
   line-height: 1.4;
 }
+
+/* Appli « Pokémon » : jaquettes rangées par console. */
+.pokemon { padding: 8px 6px 80px; }
+.pokemon-console { font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.8; margin: 18px 0 8px; }
+.pokemon-row { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
+.pokemon-game { position: relative; aspect-ratio: 1; border: 0; padding: 0; border-radius: 6px; overflow: hidden; background: #2a2d36; cursor: pointer; transition: transform 0.12s; }
+.pokemon-game img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pokemon-game.empty img { filter: grayscale(1) brightness(0.55); }
+.pokemon-game.focused { outline: 4px solid #fff; transform: scale(1.06); z-index: 1; }
+.pokemon-fallback { display: flex; height: 100%; align-items: center; justify-content: center; padding: 8px; text-align: center; color: #fff; font-size: 14px; }
+.pokemon-badge { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.65); color: #fff; font-size: 11px; text-align: center; padding: 3px 0; }
+.pokemon-title { position: fixed; left: 0; right: 0; bottom: 56px; text-align: center; font-size: 18px; margin: 0; pointer-events: none; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7); }
+.pokemon-title small { display: block; font-size: 12px; opacity: 0.8; }
+
+/* Jaquettes entières (boîtier complet, sans recadrage) et fond du jeu sélectionné. */
+.pokemon-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+.pokemon-game { height: 168px; aspect-ratio: auto; width: auto; min-width: 96px; background: transparent; }
+.pokemon-game img { height: 100%; width: auto; object-fit: contain; border-radius: 4px; }
+.pokemon-fallback { min-width: 120px; background: #2a2d36; }
+.pokemon.has-art .pokemon-console { color: #fff; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8); opacity: 1; }
+.pokemon.has-art .pokemon-title { color: #fff; }
+
+.pokemon-add { display: flex; align-items: center; gap: 16px; margin: 4px 0 6px; flex-wrap: wrap; }
+.pokemon-add span { font-size: 14px; opacity: 0.85; max-width: 560px; }
+.pokemon.has-art .pokemon-add span { color: #fff; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8); }
+
+/* ---------- Assistant « Ajouter un jeu » ---------- */
+.add-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 18px 0; }
+.add-card { display: grid; justify-items: center; gap: 8px; padding: 22px 14px; border: 2px solid transparent; border-radius: 14px; background: var(--surface); color: var(--text); font: inherit; text-align: center; cursor: pointer; box-shadow: 0 2px 10px var(--shadow); transition: transform 0.12s; }
+.add-card strong { font-size: 1.15em; }
+.add-card small { color: var(--text-dim); line-height: 1.35; }
+.add-card-icon { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--accent); color: #fff; }
+.add-card-icon svg { width: 34px; height: 34px; }
+.add-card.focused, .add-card:focus-visible { border-color: var(--accent); transform: translateY(-3px); outline: none; }
+.add-game { width: min(720px, 94vw); }
+.add-game button.focused { outline: 3px solid var(--accent); outline-offset: 2px; }
+.add-steps { margin: 0 0 14px; padding-left: 1.3em; display: grid; gap: 12px; line-height: 1.45; }
+.add-steps small { display: block; color: var(--text-dim); }
+.add-formats { margin: 6px 0; border-collapse: collapse; }
+.add-formats td { padding: 2px 14px 2px 0; }
+.add-formats td:first-child { font-family: ui-monospace, Consolas, monospace; font-weight: 600; white-space: nowrap; }
+.add-drop { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; padding: 22px; margin-bottom: 12px; border: 2px dashed var(--text-dim); border-radius: 12px; }
+.add-search { width: 100%; margin: 12px 0 8px; padding: 9px 12px; border: 1px solid var(--text-dim); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; }
+.add-list { display: grid; gap: 4px; max-height: 34vh; overflow-y: auto; margin-bottom: 12px; padding: 3px; }
+.add-item { padding: 9px 12px; border: 0; border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.add-result { margin: 0 0 14px; padding: 0; list-style: none; display: grid; gap: 6px; }
+.add-result .ok { color: #2e9e4f; font-weight: 600; }
+.add-result .ok small { color: var(--text-dim); font-weight: 400; }
+.add-result .no { color: var(--text-dim); }
+.add-foot { margin-top: 18px; }
+
+/* Bienvenue : les trois cartes. */
+.welcome { max-width: calc(var(--u) * 84); padding-top: 0; }
+.welcome .add-cards { margin: calc(var(--u) * 2) 0; gap: calc(var(--u) * 1.6); }
+.welcome .add-card { padding: calc(var(--u) * 1.8) calc(var(--u) * 1.4); gap: calc(var(--u) * 0.6); font-size: calc(var(--u) * 1.6); }
+.welcome .add-card-icon { width: calc(var(--u) * 6); height: calc(var(--u) * 6); }
+.welcome .add-card-icon svg { width: 55%; height: 55%; }
+.welcome h1 { margin: 0 0 calc(var(--u) * 0.4); font-size: calc(var(--u) * 2.8); text-align: center; }
+.welcome > p { text-align: center; color: var(--text-dim); font-size: calc(var(--u) * 1.8); }
+.welcome .welcome-actions { justify-content: center; margin: calc(var(--u) * 1.6) 0; }
+.welcome .welcome-hint { text-align: center; }
+
+/* Paramètres : groupes de catégories, liste compacte des jeux ajoutés. */
+.settings-group { padding: calc(var(--u) * 1.4) calc(var(--u) * 1.4) calc(var(--u) * 0.4); border-top: 0 !important; color: var(--text-dim); font-size: calc(var(--u) * 1.2); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.settings-pane .add-cards { margin: 6px 0 20px; }
+.emu-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid rgba(128, 128, 128, 0.3); }
+.emu-row > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.emu-row small { color: var(--text-dim); }
+.emu-row .warn { color: #d9822b; }
+.settings-pane :is(button, input, select):focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+/* Dans une fenêtre ou dans les paramètres, les cartes gardent leur forme (les boutons y sont sur une ligne par défaut). */
+.dialog .add-card, .settings-pane.dialog .add-card { padding: 18px 12px; border: 2px solid transparent; border-radius: 14px; background: var(--surface); white-space: normal; min-width: 0; font-size: inherit; }
+.dialog .add-card.focused, .dialog .add-card:focus-visible { border-color: var(--accent); outline: none; }
+.dialog .add-item { border: 0; white-space: normal; text-align: left; }

@@ -2,7 +2,7 @@
 
 [← Documentation](../README.md#documentation)
 
-Chaque génération de Pokémon se joue avec un émulateur libre. **mGBA, melonDS et Azahar sont livrés avec le lanceur** (versions Windows et Linux/AppImage) : il ne te manque que **ton** fichier de jeu. Seul **Dolphin** (pour XD) n'est pas livré : télécharge-le sur sa page officielle, puis branche-le comme dans [Ajouter ton propre outil](ajouter-un-outil.md).
+Chaque génération de Pokémon se joue avec un émulateur libre. **mGBA, melonDS et Azahar sont livrés avec le lanceur** (versions Windows et Linux/AppImage) : il ne te manque que **ton** fichier de jeu. Pokémon XD et Pokémon Ranger ne sont plus proposés.
 
 > Aucun jeu, clé ni firmware n'est fourni. Utilise uniquement des jeux que tu possèdes, copiés depuis ta propre console ou ta propre cartouche.
 

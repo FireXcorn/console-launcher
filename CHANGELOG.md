@@ -1,5 +1,14 @@
 # Journal des versions
 
+## À venir
+
+- **Ajouter un jeu, pas à pas** : nouvel assistant en trois cartes (« Jeux rétro », « Jeu de mon PC », « Jeu Switch 2 ») à l’accueil du premier lancement, dans Paramètres et dans l’écran Pokémon. Les jeux installés sur le PC (Microsoft Store et Xbox, Steam, Epic ; pas les outils ni les applications) se choisissent dans une liste ; chaque ajout est enregistré tout de suite. Un jeu PC sans jaquette prend automatiquement l’icône du programme (celle du bureau) comme tuile.
+- **Paramètres** : catégories rangées par groupes, « Ajouter des jeux » en premier, liste compacte des jeux ajoutés, déplacement d’un réglage à l’autre à la manette.
+- **Tuile « Pokémon »** : les jeux Pokémon ne sont plus des tuiles séparées. Une seule tuile « Pokémon » sur l'accueil ouvre un écran qui les range par console (3DS, DS, GBA, Game Boy), avec leurs jaquettes ; A lance le jeu ou ouvre le guide « Cartouche vide ».
+- **Applis** : nouvel écran pour les petites applications libres livrées avec le lanceur.
+- **Pokémon Home** : gestionnaire de Pokémon (PKVault) livré avec le lanceur sous Windows et Linux, rien à télécharger. Jaquette « Pokémon Home » dans l’écran Applis (fichier « Pokémon Home » dans le dossier des jaquettes), qui s’ouvre dans la fenêtre du lanceur ; l’écran Applis indique le dossier des sauvegardes 3DS d’Azahar à lui donner. PKHeX est retiré.
+- **Yoshi and the Mysterious Book** ajouté (même émulateur que Mario Kart World).
+
 ## 2.2.0
 
 - **Jeux Pokémon** : 30 tuiles « Cartouche vide » (une par version, de la plus récente à la plus ancienne, après les jeux Switch 2) : Game Boy, GBA, DS, 3DS, plus XD sur GameCube. Chacune a son émulateur conseillé (mGBA, melonDS, Azahar, Dolphin), sa page officielle et ses arguments. mGBA, melonDS et Azahar sont livrés avec le lanceur (Windows et Linux), préparés par `scripts/prepare-emulators.ps1`. Voir `docs/emulateurs-pokemon.md`.

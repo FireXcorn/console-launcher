@@ -21,14 +21,28 @@ export interface Game {
   recipeId?: string
   /** Jeu Pokémon du catalogue : émulateur conseillé (voir shared/emulators.ts). */
   emulatorId?: string
+  /** Console d'origine d'un jeu Pokémon du catalogue (range l'écran « Pokémon »). */
+  pokemonConsole?: string
+  /** Tuile virtuelle de l'accueil qui ouvre une collection de jeux (ex. « pokemon »). */
+  collection?: string
   /** Système sur lequel ce jeu n'est pas jouable (ex. « Linux » pour les jeux Switch 2, réservés à Windows). */
   unavailableOn?: string
 }
 
 /** Un jeu trouvé dans un dossier par l'import : son titre et son programme. */
+/** Résultat d'un ajout de jeux : titres ajoutés et fichiers refusés. */
+export interface AddRomsSummary {
+  added: string[]
+  skipped: string[]
+}
+
 export interface ProgramCandidate {
   title: string
   exe: string
+  /** Arguments de lancement (jeu Store, Steam, Epic) ; absent pour un programme lancé seul. */
+  args?: string[]
+  /** D'où prendre l'icône de la tuile (programme ou application du Store), si le jeu en a une. */
+  icon?: string
 }
 
 export interface GameOverride {
@@ -86,6 +100,8 @@ export interface EmulatedGame {
    * Défaut : paramètres recommandés, plein écran.
    */
   dialogPattern?: string
+  /** D'où prendre l'icône de la tuile (programme ou application du Store) quand le jeu n'a pas de jaquette. */
+  iconFrom?: string
   /** Force la fenêtre du jeu en plein écran sans bordure (jeux recompilés dont la fenêtre est petite). */
   borderless?: boolean
 }
@@ -99,7 +115,25 @@ export interface RecipeNeed {
   optional?: boolean
 }
 
-export type RecipeState = 'no-tool' | 'needs-input' | 'needs-setup' | 'ready'
+/** Une application libre installable depuis l'écran « Applis ». */
+export interface AppInfo {
+  id: string
+  title: string
+  description: string
+  /** Le fichier à choisir après l'avoir téléchargé (ex. « le fichier PKHeX.zip »). */
+  fileHint: string
+  /** Disponible sur ce système. */
+  supported: boolean
+  installed: boolean
+  /** Jaquette (URL `data:`) trouvée sous le titre de l'application, ou absente. */
+  icon?: string | null
+  /** Livrée avec le lanceur : rien à télécharger, ni à retirer. */
+  bundled?: boolean
+  /** Précision affichée sous la description (ex. dossier de sauvegardes à indiquer). */
+  note?: string
+}
+
+export type RecipeState ='no-tool' | 'needs-input' | 'needs-setup' | 'ready'
 
 /** État d'un jeu « à préparer » vu par l'interface. */
 export interface RecipeInfo {
@@ -266,9 +300,17 @@ export interface Api {
   pickFolder(): Promise<string | null>
   /** Ouvre le dossier des jeux dans l'explorateur de fichiers (le crée au besoin) et donne son chemin. */
   openRomsFolder(): Promise<string>
+  /** Ouvre le sélecteur de fichiers de jeu, les copie dans le dossier des jeux et résume le résultat. */
+  addRoms(): Promise<AddRomsSummary | null>
+  /** Copie des fichiers de jeu glissés sur la fenêtre. */
+  addRomFiles(files: string[]): Promise<AddRomsSummary>
+  /** Appelé quand des fichiers sont glissés sur la fenêtre (chemins complets). */
+  onDropFiles(cb: (files: string[]) => void): () => void
   pickImage(): Promise<string | null>
-  /** Choisit un fichier quelconque (programme, fichier de jeu…). */
-  pickFile(): Promise<string | null>
+  /** Choisit un fichier quelconque (programme, fichier de jeu…) ; `program` : seulement les programmes (.exe). */
+  pickFile(program?: boolean): Promise<string | null>
+  /** Jeux installés sur l'ordinateur (Microsoft Store, Steam, Epic) ; vide sur les autres systèmes. */
+  installedGames(): Promise<ProgramCandidate[]>
   toggleFullscreen(): Promise<void>
   /** Ajoute une ligne au journal de l'application. */
   log(message: string): Promise<void>
@@ -291,6 +333,16 @@ export interface Api {
   findPrograms(dir: string): Promise<ProgramCandidate[]>
   /** Arrête le jeu en cours et revient au menu. */
   stopGame(): Promise<void>
+  /** Applications libres de l'écran « Applis » et leur état. */
+  listApps(): Promise<AppInfo[]>
+  /** Ouvre la page officielle de téléchargement de l'application. */
+  openAppPage(id: string): Promise<void>
+  /** Installe l'application depuis le fichier téléchargé ; renvoie un message d'erreur, ou null si tout va bien. */
+  installApp(id: string, file: string): Promise<string | null>
+  /** Lance l'application installée ; renvoie un message d'erreur, ou null. */
+  openApp(id: string): Promise<string | null>
+  /** Retire l'application installée. */
+  removeApp(id: string): Promise<void>
   /** Jeux livrés avec leur outil (recettes) et leur état. */
   listRecipes(): Promise<RecipeInfo[]>
   /** Enregistre un fichier ou dossier donné pour une recette ; renvoie la liste mise à jour. */

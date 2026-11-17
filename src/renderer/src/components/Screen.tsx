@@ -13,13 +13,16 @@ interface Props {
   title: string
   hints?: Hint[]
   onBack: () => void
+  /** Image de fond derrière le contenu (ex. fond du jeu sélectionné). */
+  backdrop?: ReactNode
   children: ReactNode
 }
 
 /** Cadre commun des écrans : titre, contenu défilant et rappel des touches. */
-export default function Screen({ title, hints = [], onBack, children }: Props): JSX.Element {
+export default function Screen({ title, hints = [], onBack, backdrop, children }: Props): JSX.Element {
   return (
     <div className="screen">
+      {backdrop}
       <header className="screen-head">
         <button
           className="back-btn"

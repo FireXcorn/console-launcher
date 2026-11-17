@@ -884,3 +884,81 @@ body {
     transition: none !important;
   }
 }
+
+/* Thème « Verre liquide » : panneaux translucides, flou, bords lumineux, sur un fond uni (ou une image choisie). */
+:root[data-glass='on'] {
+  --glass-fill: rgba(255, 255, 255, 0.1);
+  --glass-edge: rgba(255, 255, 255, 0.38);
+  --glass-blur: blur(calc(var(--u) * 2.2)) saturate(1.7);
+}
+
+:root[data-glass='on'] .dock-bar,
+:root[data-glass='on'] .tile.empty,
+:root[data-glass='on'] .dialog,
+:root[data-glass='on'] .panel {
+  background: var(--glass-fill);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-edge);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.12),
+    0 calc(var(--u) * 0.8) calc(var(--u) * 3) rgba(0, 0, 0, 0.35);
+}
+
+:root[data-glass='on'] .tile-art {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 calc(var(--u) * 0.8) calc(var(--u) * 2.4) rgba(0, 0, 0, 0.4);
+}
+
+:root[data-glass='on'] .screen {
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(calc(var(--u) * 3)) saturate(1.6);
+  -webkit-backdrop-filter: blur(calc(var(--u) * 3)) saturate(1.6);
+}
+
+:root[data-glass='on'] .app-card,
+:root[data-glass='on'] .pokemon-game.focused {
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-edge);
+  backdrop-filter: var(--glass-blur);
+}
+
+/* Verre liquide blanc : panneaux de verre clair, texte foncé, bords et ombres discrets. */
+:root[data-glass='on'][data-theme='light'] {
+  --glass-fill: rgba(255, 255, 255, 0.62);
+  --glass-edge: rgba(110, 130, 175, 0.28);
+}
+
+:root[data-glass='on'][data-theme='light'] .dock-bar,
+:root[data-glass='on'][data-theme='light'] .tile.empty,
+:root[data-glass='on'][data-theme='light'] .dialog,
+:root[data-glass='on'][data-theme='light'] .panel {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 calc(var(--u) * 0.6) calc(var(--u) * 2.4) rgba(60, 80, 130, 0.16);
+}
+
+:root[data-glass='on'][data-theme='light'] .tile-art {
+  box-shadow:
+    0 0 0 1px rgba(110, 130, 175, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 calc(var(--u) * 0.6) calc(var(--u) * 2) rgba(60, 80, 130, 0.25);
+}
+
+:root[data-glass='on'][data-theme='light'] .screen {
+  background: color-mix(in srgb, var(--bg) 68%, transparent);
+}
+
+/* Verre liquide : l'heure, le Wi-Fi et la batterie deviennent une pastille de verre quand la souris ou la sélection les touche. */
+:root[data-glass='on'] .status.focused {
+  background: var(--glass-fill);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 0 0 1px var(--glass-edge),
+    0 calc(var(--u) * 0.5) calc(var(--u) * 2) rgba(0, 0, 0, 0.25);
+}

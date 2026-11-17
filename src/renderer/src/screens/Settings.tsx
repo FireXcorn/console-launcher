@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Config, EmulatedGame, Game, GameOverride, BackupInfo, ProfileArt, ProgramCandidate } from '../../../shared/types'
+import type { Config, EmulatedGame, Game, GameOverride, BackupInfo, ProfileArt } from '../../../shared/types'
+import { AddCards, type AddKind } from '../components/AddGame'
 import { engine } from '../audio/engine'
 import { useMoveSound } from '../audio/useSound'
 import Avatar from '../components/Avatar'
@@ -20,18 +21,19 @@ function formatArgs(args: string[]): string {
   return args.map((a) => (/\s/.test(a) ? `"${a}"` : a)).join(' ')
 }
 
+/** Catégories rangées par groupe : d'abord ce qui sert à jouer. */
 const CATEGORIES = [
-  { id: 'users', label: 'Utilisateurs' },
-  { id: 'backups', label: 'Sauvegardes' },
-  { id: 'library', label: 'Bibliothèque' },
-  { id: 'emulator', label: 'Ajouter des jeux' },
-  { id: 'themes', label: 'Thèmes' },
-  { id: 'display', label: 'Écran' },
-  { id: 'sound', label: 'Son' },
-  { id: 'controllers', label: 'Manettes' },
-  { id: 'album', label: 'Album et captures' },
-  { id: 'news', label: 'Actualités' },
-  { id: 'advanced', label: 'Avancé' }
+  { id: 'emulator', label: 'Ajouter des jeux', group: 'Mes jeux' },
+  { id: 'library', label: 'Bibliothèque', group: 'Mes jeux' },
+  { id: 'users', label: 'Utilisateurs', group: 'Ma console' },
+  { id: 'themes', label: 'Thèmes', group: 'Ma console' },
+  { id: 'display', label: 'Écran', group: 'Ma console' },
+  { id: 'sound', label: 'Son', group: 'Ma console' },
+  { id: 'controllers', label: 'Manettes', group: 'Ma console' },
+  { id: 'backups', label: 'Sauvegardes', group: 'Autres' },
+  { id: 'album', label: 'Album et captures', group: 'Autres' },
+  { id: 'news', label: 'Actualités', group: 'Autres' },
+  { id: 'advanced', label: 'Avancé', group: 'Autres' }
 ] as const
 
 interface Props {
@@ -42,6 +44,8 @@ interface Props {
   /** Enregistre les réglages (appelé en quittant l'écran). */
   onSave: (patch: Partial<Config>) => Promise<void>
   onRescan: () => void
+  /** Ouvre l'assistant « Ajouter un jeu » (les réglages en cours sont enregistrés avant). */
+  onAddGame: (kind: AddKind) => void
   /** Ouvre les paramètres d'un utilisateur (les réglages en cours sont enregistrés avant). */
   onOpenUser: (id: string) => void
   onBack: () => void
@@ -57,8 +61,10 @@ interface Props {
  * « Paramètres de la console » : catégories à gauche, réglages à droite. Comme sur la console, les
  * changements sont appliqués en quittant l'écran.
  */
-export default function SettingsScreen({ config, games, art, onSave, onRescan, onOpenUser, onBack, startCategory, addForTitle, addForEmulator }: Props): JSX.Element {
+export default function SettingsScreen({ config, games, art, onSave, onRescan, onAddGame, onOpenUser, onBack, startCategory, addForTitle, addForEmulator }: Props): JSX.Element {
   const [cat, setCat] = useState(() => Math.max(0, CATEGORIES.findIndex((c) => c.id === startCategory)))
+  /** Jeu ajouté à la main dont la fiche est dépliée (-1 : aucune). */
+  const [openEmu, setOpenEmu] = useState(-1)
   const paneRef = useRef<HTMLDivElement>(null)
 
   const [gamesDir, setGamesDir] = useState(config.gamesDir)
@@ -85,6 +91,8 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
   const [sfxVolume, setSfxVolume] = useState(config.sfxVolume)
   const [muted, setMuted] = useState(config.muted)
   const [emulated, setEmulated] = useState<EmuDraft[]>(config.emulated.map((g) => ({ ...g, args: formatArgs(g.args) })))
+  // L'assistant « Ajouter un jeu » enregistre directement : la liste affichée ici suit la configuration.
+  useEffect(() => setEmulated(config.emulated.map((g) => ({ ...g, args: formatArgs(g.args) }))), [config.emulated])
   const [charactersDir, setCharactersDir] = useState(config.charactersDir)
   const [showAdvanced, setShowAdvanced] = useState(config.showAdvanced === true)
   useMoveSound(cat)
@@ -122,8 +130,6 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
     void window.api.bundledEmulators().then((m) => setBundledIds(Object.keys(m)))
   }, [])
 
-  const [candidates, setCandidates] = useState<(ProgramCandidate & { on: boolean })[] | null>(null)
-  const [importNote, setImportNote] = useState('')
 
   /** Titre proposé pour un fichier : son nom sans extension ni signes de séparation. */
   const titleFromPath = (path: string): string => {
@@ -131,38 +137,22 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
     return name.replace(/\[[^\]]*\]|\([^)]*\)/g, ' ').replace(/[_.]+/g, ' ').replace(/\s+/g, ' ').trim() || name
   }
 
-  const addPcGame = async (): Promise<void> => {
-    const exe = await window.api.pickFile()
-    if (!exe) return
-    setEmulated((list) => [...list, { title: addForTitle ?? titleFromPath(exe), emulatorExe: exe, gameFile: '', args: '', readyTitle: '' }])
-  }
-
+  /** Ajout manuel d'un jeu sur émulateur (réglages avancés, ou outil personnel pour un jeu du catalogue). */
   const addEmulatedGame = async (): Promise<void> => {
     // Émulateur livré avec le lanceur : on ne demande que le fichier de jeu.
     const bundled = addForEmulator ? (await window.api.bundledEmulators())[addForEmulator] : undefined
-    const emulator = bundled ?? (await window.api.pickFile())
+    const emulator = bundled ?? (await window.api.pickFile(true))
     if (!emulator) return
     const game = await window.api.pickFile()
+    setOpenEmu(emulated.length)
     setEmulated((list) => [
       ...list,
       { title: addForTitle ?? (game ? titleFromPath(game) : ''), emulatorExe: emulator, gameFile: game ?? '', args: EMULATORS[addForEmulator ?? '']?.args ?? '-f -g {game}', readyTitle: EMULATORS[addForEmulator ?? '']?.readyTitle ?? '' }
     ])
   }
 
-  const importFolder = async (): Promise<void> => {
-    const dir = await window.api.pickFolder()
-    if (!dir) return
-    const known = new Set(emulated.map((g) => g.emulatorExe.toLowerCase()))
-    const found = (await window.api.findPrograms(dir)).filter((c) => !known.has(c.exe.toLowerCase()))
-    setImportNote('Aucun nouveau jeu trouvé dans ce dossier (un programme par sous-dossier est cherché).')
-    setCandidates(found.map((c) => ({ ...c, on: true })))
-  }
-
-  const addCandidates = (): void => {
-    const chosen = (candidates ?? []).filter((c) => c.on)
-    setEmulated((list) => [...list, ...chosen.map((c) => ({ title: c.title, emulatorExe: c.exe, gameFile: '', args: '', readyTitle: '' }))])
-    setCandidates(null)
-  }
+  /** Une fiche est complète quand elle a un titre, un programme, et son fichier de jeu si les arguments en demandent un. */
+  const complete = (g: EmuDraft): boolean => Boolean(g.title.trim() && g.emulatorExe.trim() && (g.gameFile.trim() || !g.args.includes('{game}')))
 
   const patchEmu = (i: number, patch: Partial<EmuDraft>): void =>
     setEmulated((list) => list.map((g, j) => (j === i ? { ...g, ...patch } : g)))
@@ -209,7 +199,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
       muted,
       // Les entrées incomplètes sont écartées ; les réglages avancés (journal, signal…) sont conservés.
       emulated: emulated
-        .filter((g) => g.title.trim() && g.emulatorExe.trim() && (g.gameFile.trim() || !g.args.includes('{game}')))
+        .filter(complete)
         .map((g) => ({
           ...g,
           title: g.title.trim(),
@@ -238,15 +228,32 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
     onOpenUser(id)
   }
 
+  const openAdd = async (kind: AddKind): Promise<void> => {
+    await save()
+    onAddGame(kind)
+  }
+
   useInput((action) => {
     const pane = paneRef.current
-    const inPane = pane !== null && pane.contains(document.activeElement) && document.activeElement !== pane
+    const active = document.activeElement as HTMLElement | null
+    const inPane = pane !== null && pane.contains(active) && active !== pane
+    const fields = pane ? Array.from(pane.querySelectorAll<HTMLElement>('input, button, select')).filter((el) => !(el as HTMLButtonElement).disabled) : []
+    // Dans le panneau : haut et bas passent d'un réglage à l'autre, A l'active, B revient aux catégories.
+    const step = (d: number): void => {
+      const next = fields[fields.indexOf(active!) + d]
+      next?.focus()
+      next?.scrollIntoView({ block: 'nearest' })
+    }
     if (action === 'back') {
-      if (inPane) (document.activeElement as HTMLElement).blur()
+      if (inPane) active!.blur()
       else void leave()
-    } else if (action === 'up') setCat((c) => Math.max(0, c - 1))
-    else if (action === 'down') setCat((c) => Math.min(CATEGORIES.length - 1, c + 1))
-    else if (action === 'confirm') pane?.querySelector<HTMLElement>('input, button, select')?.focus()
+    } else if (action === 'up') inPane ? step(-1) : setCat((c) => Math.max(0, c - 1))
+    else if (action === 'down') inPane ? step(1) : setCat((c) => Math.min(CATEGORIES.length - 1, c + 1))
+    else if (action === 'left' && inPane) active!.blur()
+    else if (action === 'confirm' || (action === 'right' && !inPane)) {
+      if (inPane) active!.click()
+      else fields[0]?.focus()
+    }
   })
 
   const folderRow = (label: string, value: string, set: (v: string) => void, note?: string): JSX.Element => (
@@ -340,84 +347,46 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
       case 'emulator':
         return (
           <>
-            <p className="settings-note">
-              Ajoute un jeu en choisissant son programme. Pour un jeu sur émulateur, choisis aussi le fichier du jeu. Tu peux aussi
-              importer d’un coup tous les jeux d’un dossier.
-            </p>
+            <p className="settings-note">Choisis le type de jeu : le lanceur t’explique quoi apporter et l’ajoute tout de suite.</p>
+            <AddCards focused={-1} onPick={(k) => void openAdd(k)} />
             {addForTitle && (
               <p className="settings-note">
                 {addForEmulator && bundledIds.includes(addForEmulator) ? (
                   <>
-                    Tu ajoutes <strong>{addForTitle}</strong> : clique sur « Ajouter un jeu sur émulateur… » et choisis seulement ton fichier de
-                    jeu, l’émulateur est déjà livré.
+                    Tu ajoutes <strong>{addForTitle}</strong> : clique sur « Ajouter un jeu sur émulateur… » ci-dessous et choisis seulement ton
+                    fichier de jeu, l’émulateur est déjà livré.
                   </>
                 ) : (
                   <>
-                    Tu ajoutes ton outil pour <strong>{addForTitle}</strong> : choisis « Ajouter un jeu sur émulateur… » (le programme de l’outil,
-                    puis ton fichier de jeu), ou « Ajouter un jeu PC… » si l’outil a produit un programme prêt à lancer.
+                    Tu ajoutes ton outil pour <strong>{addForTitle}</strong> : clique sur « Ajouter un jeu sur émulateur… » ci-dessous, choisis le
+                    programme de l’outil, puis ton fichier de jeu.
                   </>
                 )}
               </p>
             )}
-            {recipes.length > 0 && (
-              <div className="emu-card recipes">
-                <h3>Jeux livrés avec leur outil</h3>
-                <p className="settings-note">
-                  Donne ton propre fichier de jeu : le lanceur s’occupe de l’outil. Le jeu apparaît dans le menu dès qu’il est prêt
-                  (actualise la bibliothèque).
-                </p>
-                {recipes.map((r) => (
-                  <RecipeCard key={r.id} recipe={r} onChange={setRecipes} />
-                ))}
-              </div>
-            )}
-            <div className="emu-card">
-              <h3>Dossier des jeux</h3>
-              <p className="settings-note">
-                Dépose tes fichiers de jeu (.gb, .gbc, .gba, .nds, .3ds) dans ce dossier : ils apparaissent tout seuls dans le menu, avec
-                l’émulateur livré. Les jeux Pokémon sont reconnus par leur nom de fichier.
-              </p>
-              {folderRow('Dossier', romsDir, setRomsDir)}
+            {(showAdvanced || addForTitle) && (
               <div className="field-row wrap">
-                <button className="primary" onClick={() => void window.api.openRomsFolder()}>
-                  Ouvrir le dossier des jeux
-                </button>
-              </div>
-            </div>
-            <div className="field-row wrap">
-              <button className="primary" onClick={() => void addPcGame()}>
-                Ajouter un jeu PC…
-              </button>
-              <button onClick={() => void addEmulatedGame()}>Ajouter un jeu sur émulateur…</button>
-              <button onClick={() => void importFolder()}>Importer un dossier de jeux…</button>
-            </div>
-
-            {candidates && (
-              <div className="emu-card">
-                <h3>Jeux trouvés</h3>
-                {candidates.length === 0 && <p className="settings-note">{importNote}</p>}
-                {candidates.map((c, i) => (
-                  <label key={c.exe} className="check">
-                    <input
-                      type="checkbox"
-                      checked={c.on}
-                      onChange={(e) => setCandidates((list) => (list ?? []).map((x, j) => (j === i ? { ...x, on: e.target.checked } : x)))}
-                    />
-                    {c.title} <small>{c.exe}</small>
-                  </label>
-                ))}
-                <div className="field-row">
-                  {candidates.some((c) => c.on) && <button className="primary" onClick={addCandidates}>Ajouter la sélection</button>}
-                  <button onClick={() => setCandidates(null)}>Fermer</button>
-                </div>
+                <button onClick={() => void addEmulatedGame()}>Ajouter un jeu sur émulateur…</button>
               </div>
             )}
 
-            {emulated.length === 0 && !candidates && <p className="settings-note">Aucun jeu ajouté à la main pour l’instant.</p>}
+            <h3>Mes jeux ajoutés ({emulated.length})</h3>
+            {emulated.length === 0 && <p className="settings-note">Aucun jeu ajouté pour l’instant : commence par une des trois cartes.</p>}
             {emulated.map((g, i) => {
               const withFile = g.gameFile.trim() !== '' || g.args.includes('{game}')
+              if (openEmu !== i)
+                return (
+                  <div className="emu-row" key={i}>
+                    <span>
+                      {g.title || 'Sans titre'} <small>{withFile ? 'jeu sur émulateur' : 'jeu PC'}</small>
+                      {!complete(g) && <small className="warn"> · incomplet : il ne sera pas enregistré</small>}
+                    </span>
+                    <button onClick={() => setOpenEmu(i)}>Modifier</button>
+                  </div>
+                )
               return (
                 <div className="emu-card" key={i}>
+                  {!complete(g) && <p className="settings-note warn">Il manque le titre, le programme ou le fichier du jeu : cette fiche ne sera pas enregistrée.</p>}
                   <label className="field">
                     <span>Titre du jeu</span>
                     <input value={g.title} onChange={(e) => patchEmu(i, { title: e.target.value })} />
@@ -440,26 +409,58 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
                   )}
                   {showAdvanced && (
                     <>
-                  <label className="field">
-                    <span>Arguments</span>
-                    <input value={g.args} onChange={(e) => patchEmu(i, { args: e.target.value })} />
-                    <small>
-                      {withFile
-                        ? '{game} = fichier du jeu. L’émulateur reste caché derrière un écran noir jusqu’au jeu.'
-                        : 'Laisse vide si tu n’es pas sûr : un programme qui ne connaît pas une option s’arrête.'}
-                    </small>
-                  </label>
-                  <label className="field">
-                    <span>Titre de la fenêtre du jeu (avancé)</span>
-                    <input value={g.readyTitle} onChange={(e) => patchEmu(i, { readyTitle: e.target.value })} />
-                    <small>Une expression qui reconnaît la fenêtre du jeu : l’écran noir part dès qu’elle apparaît.</small>
-                  </label>
+                      <label className="field">
+                        <span>Arguments</span>
+                        <input value={g.args} onChange={(e) => patchEmu(i, { args: e.target.value })} />
+                        <small>
+                          {withFile
+                            ? '{game} = fichier du jeu. L’émulateur reste caché derrière un écran noir jusqu’au jeu.'
+                            : 'Laisse vide si tu n’es pas sûr : un programme qui ne connaît pas une option s’arrête.'}
+                        </small>
+                      </label>
+                      <label className="field">
+                        <span>Titre de la fenêtre du jeu (avancé)</span>
+                        <input value={g.readyTitle} onChange={(e) => patchEmu(i, { readyTitle: e.target.value })} />
+                        <small>Une expression qui reconnaît la fenêtre du jeu : l’écran noir part dès qu’elle apparaît.</small>
+                      </label>
                     </>
                   )}
-                  <button onClick={() => setEmulated((list) => list.filter((_, j) => j !== i))}>Retirer ce jeu</button>
+                  <div className="field-row">
+                    <button className="primary" onClick={() => setOpenEmu(-1)}>Replier</button>
+                    <button
+                      onClick={() => {
+                        setOpenEmu(-1)
+                        setEmulated((list) => list.filter((_, j) => j !== i))
+                      }}
+                    >
+                      Retirer ce jeu
+                    </button>
+                  </div>
                 </div>
               )
             })}
+
+            <h3>Dossier des jeux rétro</h3>
+            <p className="settings-note">
+              Les fichiers de jeu (.gb, .gbc, .gba, .nds, .3ds) rangés dans ce dossier apparaissent tout seuls dans le menu, avec l’émulateur
+              livré. Les jeux Pokémon sont reconnus par leur nom de fichier.
+            </p>
+            {folderRow('Dossier', romsDir, setRomsDir)}
+            <div className="field-row wrap">
+              <button onClick={() => void window.api.openRomsFolder()}>Ouvrir le dossier des jeux</button>
+            </div>
+
+            {recipes.length > 0 && (
+              <div className="emu-card recipes">
+                <h3>Jeux Switch 2 livrés avec leur outil</h3>
+                <p className="settings-note">
+                  Donne ton propre fichier de jeu : le lanceur s’occupe de l’outil. Le jeu apparaît dans le menu dès qu’il est prêt.
+                </p>
+                {recipes.map((r) => (
+                  <RecipeCard key={r.id} recipe={r} onChange={setRecipes} />
+                ))}
+              </div>
+            )}
           </>
         )
       case 'themes':
@@ -663,17 +664,21 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
     <Screen
       title="Paramètres de la console"
       onBack={() => void leave()}
-      hints={[{ key: 'A', label: 'Modifier' }]}
+      hints={[
+        { key: 'A', label: 'Ouvrir' },
+        { key: '↕', label: 'Choisir' }
+      ]}
     >
       <div className="settings">
         <ul className="settings-nav">
-          {CATEGORIES.map((c, i) => (
+          {CATEGORIES.flatMap((c, i) => [
+            ...(i === 0 || CATEGORIES[i - 1].group !== c.group ? [<li key={c.group} className="settings-group">{c.group}</li>] : []),
             <li key={c.id}>
               <button className={`settings-cat${i === cat ? ' focused' : ''}`} onClick={() => setCat(i)}>
                 {c.label}
               </button>
             </li>
-          ))}
+          ])}
         </ul>
         <div className="settings-pane dialog" data-native-input ref={paneRef}>
           <h2>{CATEGORIES[cat].label}</h2>

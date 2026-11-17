@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import type { Game, Profile, ProfileArt } from '../../../shared/types'
 import Avatar from './Avatar'
 import {
+  AppsIcon,
   BagIcon,
   CardIcon,
   ChatIcon,
@@ -22,6 +23,7 @@ export type DockId =
   | 'chat'
   | 'news'
   | 'shop'
+  | 'apps'
   | 'album'
   | 'share'
   | 'controllers'
@@ -39,6 +41,7 @@ export const DOCK: { id: DockId; label: string; color: string; icon: JSX.Element
   { id: 'chat', label: 'GameChat', color: '#e8862e', icon: <ChatIcon /> },
   { id: 'news', label: 'Actualités', color: '#3fa34d', icon: <NewsIcon /> },
   { id: 'shop', label: 'Nintendo eShop', color: '#e03a3a', icon: <BagIcon /> },
+  { id: 'apps', label: 'Applis', color: '#8a4fd6', icon: <AppsIcon /> },
   { id: 'album', label: 'Album', color: '#2f6fe0', icon: <ImageIcon /> },
   { id: 'share', label: 'GameShare', color: '#2bb3c8', icon: <ShareIcon /> },
   { id: 'controllers', label: 'Manettes', color: 'var(--icon)', icon: <PadIcon /> },
@@ -108,7 +111,7 @@ function hue(text: string): number {
 }
 
 /** Grande image de fond du jeu (dossier des fonds ou image choisie pour lui), chargée à la demande et gardée en mémoire. */
-function useBackdropArt(game: Game | null, enabled: boolean, games: Game[]): string | null {
+export function useBackdropArt(game: Game | null, enabled: boolean, games: Game[]): string | null {
   const cache = useMemo(() => new Map<string, string | null>(), [games])
   const key = game ? game.id : null
   const [art, setArt] = useState<{ key: string; url: string | null } | null>(null)
@@ -142,7 +145,7 @@ function useBackdropArt(game: Game | null, enabled: boolean, games: Game[]): str
  * Fond du jeu sélectionné : sa grande image couvre tout l'écran, derrière toute l'interface. À chaque changement de
  * jeu, l'ancienne image s'efface et la nouvelle apparaît en fondu. Un jeu sans grande image n'a pas de fond.
  */
-function GameBackdrop({ art, active }: { art: string | null; active: boolean }): JSX.Element {
+export function GameBackdrop({ art, active }: { art: string | null; active: boolean }): JSX.Element {
   const [layers, setLayers] = useState<{ k: number; art: string; out: boolean }[]>([])
   const counter = useRef(0)
   const shown = active ? art : null
@@ -246,6 +249,7 @@ function GameTile({ game, focused, launching, onSelect, onActivate }: TileProps)
   return (
     <div
       className={`tile${focused ? ' focused' : ''}${launching ? ' launching' : ''}${game.available ? '' : ' missing'}`}
+      data-collection={game.collection}
       onMouseMove={(e) => pointerMoved(e) && !focused && hoverReady() && onSelect()}
       onClick={onActivate}
     >

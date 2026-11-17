@@ -49,8 +49,6 @@ const POKEMON: ReadonlyArray<readonly [title: string, emulator: string]> = [
   ['Pokémon Platine', 'melonds'],
   ['Pokémon Diamant', 'melonds'],
   ['Pokémon Perle', 'melonds'],
-  ['Pokémon Ranger', 'melonds'],
-  ['Pokémon XD : Le Souffle des Ténèbres', 'dolphin'],
   ['Pokémon Émeraude', 'mgba'],
   ['Pokémon Rouge Feu', 'mgba'],
   ['Pokémon Vert Feuille', 'mgba'],
@@ -72,6 +70,18 @@ export interface PokemonEntry extends CatalogEntry {
 export function pokemonRank(title: string): number {
   const n = normalizeTitle(title)
   return POKEMON.findIndex(([t]) => normalizeTitle(t) === n)
+}
+
+const GBA_TITLES = ['Pokémon Émeraude', 'Pokémon Rouge Feu', 'Pokémon Vert Feuille', 'Pokémon Rubis', 'Pokémon Saphir'].map(normalizeTitle)
+
+/** Console d'origine d'un jeu Pokémon du catalogue (sert à ranger l'écran « Pokémon »), ou null si ce n'en est pas un. */
+export function pokemonConsole(title: string): string | null {
+  const rank = pokemonRank(title)
+  if (rank === -1) return null
+  const emulator = POKEMON[rank][1]
+  if (emulator === 'azahar') return 'Nintendo 3DS'
+  if (emulator === 'melonds') return 'Nintendo DS'
+  return GBA_TITLES.includes(normalizeTitle(title)) ? 'Game Boy Advance' : 'Game Boy et Game Boy Color'
 }
 
 /** Jeux Pokémon absents de la bibliothèque (un jeu ajouté sous le même titre remplace la tuile). */

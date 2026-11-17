@@ -11,7 +11,10 @@ import {
   screen,
   shell
 } from 'electron'
-import { execFile } from 'child_process'
+import { execFile, spawn } from 'child_process'
+import { APPS, appInfo, appsRoot, installApp, launchPath, removeApp } from './apps'
+import { HomeView } from './homeview'
+import { extractIcons } from './appicon'
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'fs'
 import { mkdir, writeFile } from 'fs/promises'
 import { basename, dirname, extname, join } from 'path'
@@ -35,11 +38,11 @@ import type {
 import { captureFileName, insideDir, isImageFile, listImageFiles } from './album'
 import { findAudioFile, isAudioName } from './audio'
 import { EMULATORS } from '../shared/emulators'
-import { findBackdrop, findCover, missingEntries, pokemonEntries, pokemonRank } from './catalog'
-import { findPrograms } from './importer'
+import { findBackdrop, findCover, missingEntries, normalizeTitle, pokemonConsole, pokemonEntries, pokemonRank } from './catalog'
+import { findPrograms, installedGames } from './importer'
 import { ConfigStore } from './config'
 import { Launcher } from './launcher'
-import { ensureRomFolder, romEntries } from './romfolder'
+import { addRoms, ensureRomFolder, ROM_EXTENSIONS, romEntries } from './romfolder'
 import { emulatedId, scanLibrary, type ScannedGame } from './library'
 import { autoBackup, listBackups, parseBackup, restorePatch, takeSnapshot, writeBackup, pruneBackups } from './backup'
 import { GameSaves, resolveSaveDirs, saveRulesFor } from './saves'
@@ -293,8 +296,26 @@ function toGame(g: ScannedGame): Game {
   // Les chemins de lancement ne regardent pas l'interface.
   const { iconPath, exePath: _exe, watch: _watch, ...rest } = g
   // Sans image propre au jeu, on cherche une jaquette déposée sous son titre dans le dossier des jaquettes.
-  const image = iconPath ?? coverOf(g.title)
+  const image = iconPath ?? coverOf(g.title) ?? (existsSync(appIconFile(g)) ? appIconFile(g) : null)
   return { ...rest, icon: image ? imageDataUrl(image) : null, available: true }
+}
+
+/** Icône Windows d'un jeu PC, gardée dans les données du lanceur : elle sert de tuile quand le jeu n'a pas d'image. */
+const appIconFile = (g: ScannedGame): string => join(app.getPath('userData'), 'app-icons', normalizeTitle(g.id) + '.png')
+/** Jeux dont l'icône n'a pas pu être lue : on ne réessaie pas à chaque scan. */
+const iconFailed = new Set<string>()
+
+/** Jeux PC sans image (ni jaquette, ni image choisie) : on prend l'icône du programme, celle du bureau. */
+async function fetchAppIcons(list: ScannedGame[]): Promise<void> {
+  const todo = list.filter(
+    // Un jeu sur émulateur a son fichier de jeu dans ses arguments : l'icône de l'émulateur ne le représenterait pas.
+    // Un jeu lancé par l'explorateur (Steam, Epic) sans origine d'icône : celle de l'explorateur ne le représenterait pas.
+    (g) => g.emulated && (g.iconFrom || (g.exePath && !/explorer\.exe$/i.test(g.exePath) || g.args.some((a) => a.startsWith('shell:AppsFolder\\'))) ) && !g.iconPath && !coverOf(g.title) && !g.args.some((a) => existsSync(a)) && !existsSync(appIconFile(g)) && !iconFailed.has(g.id)
+  )
+  if (todo.length === 0) return
+  mkdirSync(join(app.getPath('userData'), 'app-icons'), { recursive: true })
+  await extractIcons(todo.map((g) => ({ target: g.iconFrom ?? g.args.find((a) => a.startsWith('shell:AppsFolder\\')) ?? g.exePath!, file: appIconFile(g) })))
+  for (const g of todo) if (!existsSync(appIconFile(g))) iconFailed.add(g.id)
 }
 
 /** Exclusivités Switch 2 absentes de la bibliothèque : affichées, jamais lançables. */
@@ -399,6 +420,9 @@ function withRoms(cfg: Config): Config {
   return extra.length ? { ...cfg, emulated: [...cfg.emulated, ...extra] } : cfg
 }
 
+/** Windows : Pokémon Home (écran Applis) s'affiche dans la fenêtre du lanceur ; ailleurs, il s'ouvre à part. */
+const homeView = new HomeView(() => win, log)
+
 const recipePaths = (): RecipePaths => ({ toolsDir: bundledDir('tools'), outRoot: join(app.getPath('userData'), 'games') })
 
 /** Préparations en cours (jeux dont le lanceur exécute lui-même l'outil), avec leur dernière ligne de progression. */
@@ -418,13 +442,32 @@ const recipeList = (): RecipeInfo[] => {
 
 async function scan(): Promise<Game[]> {
   games = await scanLibrary(withRecipes(withRoms(store.get())))
+  await fetchAppIcons(games)
   const installed = games.map(toGame)
   // Jeux Switch 2 (installés, puis « cartouches vides »), puis les jeux Pokémon du plus récent au plus ancien.
   const all = [...installed, ...missingGames(installed)]
-  const result = [
-    ...all.filter((g) => pokemonRank(g.title) === -1),
-    ...all.filter((g) => pokemonRank(g.title) !== -1).sort((a, b) => pokemonRank(a.title) - pokemonRank(b.title))
-  ]
+  const pokemon = all
+    .filter((g) => pokemonRank(g.title) !== -1)
+    .sort((a, b) => pokemonRank(a.title) - pokemonRank(b.title))
+    .map((g) => ({ ...g, pokemonConsole: pokemonConsole(g.title) ?? undefined }))
+  // Une seule tuile « Pokémon » sur l'accueil : elle ouvre l'écran qui range tous ces jeux par console.
+  const cover = findCover(store.get().coversDir, 'Pokémon') ?? findBackdrop(bundledDir('covers'), 'Pokémon')
+  const tile: Game[] = pokemon.length
+    ? [
+        {
+          id: 'collection:pokemon',
+          title: 'Pokémon',
+          dir: '',
+          exe: '',
+          args: [],
+          icon: cover ? imageDataUrl(cover) : null,
+          lastPlayed: 0,
+          available: true,
+          collection: 'pokemon'
+        }
+      ]
+    : []
+  const result = [...all.filter((g) => pokemonRank(g.title) === -1), ...tile, ...pokemon]
   log(
     'scan',
     result.map((g) => ({ titre: g.title, disponible: g.available, image: g.icon !== null }))
@@ -743,6 +786,41 @@ function registerIpc(): void {
     mkdirSync(backupsDir(), { recursive: true })
     await shell.openPath(backupsDir())
   })
+  ipcMain.handle('apps:list', () =>
+    APPS.map((a) => {
+      const cover = coverOf(a.title)
+      return { ...appInfo(a, appsRoot(app.getPath('userData')), bundledDir('emulators')), icon: cover ? imageDataUrl(cover) : null }
+    })
+  )
+  ipcMain.handle('apps:page', async (_e, id: unknown) => {
+    const def = APPS.find((a) => a.id === id)
+    if (def) await shell.openExternal(def.page)
+  })
+  ipcMain.handle('apps:install', async (_e, id: unknown, file: unknown) => {
+    const def = APPS.find((a) => a.id === id)
+    if (!def || typeof file !== 'string') return 'Application inconnue.'
+    const err = await installApp(def, appsRoot(app.getPath('userData')), file)
+    log('installation de l’application', def.id, err ?? 'ok')
+    return err
+  })
+  ipcMain.handle('apps:open', (_e, id: unknown) => {
+    const def = APPS.find((a) => a.id === id)
+    if (!def) return 'Application inconnue.'
+    let exe: string | null
+    try {
+      exe = launchPath(def, appsRoot(app.getPath('userData')), bundledDir('emulators'))
+    } catch (e) {
+      return 'Impossible de préparer l’application : ' + (e instanceof Error ? e.message : String(e))
+    }
+    if (!exe) return 'Application non installée.'
+    if (process.platform === 'win32' && def.id === 'pkvault') return homeView.open(exe)
+    spawn(exe, [], { cwd: dirname(exe), detached: true, stdio: 'ignore' }).unref()
+    return null
+  })
+  ipcMain.handle('apps:remove', (_e, id: unknown) => {
+    const def = APPS.find((a) => a.id === id)
+    if (def) removeApp(def, appsRoot(app.getPath('userData')))
+  })
   ipcMain.handle('recipes:list', () => recipeList())
   ipcMain.handle('recipes:input', (_e, id: unknown, need: unknown, path: unknown) => {
     if (typeof id === 'string' && typeof need === 'string' && typeof path === 'string') {
@@ -836,6 +914,20 @@ function registerIpc(): void {
     await shell.openPath(dir)
     return dir
   })
+  ipcMain.handle('roms:add', async () => {
+    const r = await dialog.showOpenDialog(win!, {
+      title: 'Choisis tes jeux',
+      properties: ['openFile', 'multiSelections'],
+      filters: [{ name: 'Jeux Game Boy, GBA, DS, 3DS', extensions: ROM_EXTENSIONS }]
+    })
+    return r.canceled ? null : addRoms(romsFolder(store.get()), r.filePaths)
+  })
+  ipcMain.handle('roms:addFiles', (_e, files: unknown) =>
+    addRoms(
+      romsFolder(store.get()),
+      Array.isArray(files) ? files.filter((f): f is string => typeof f === 'string').slice(0, 200) : []
+    )
+  )
   ipcMain.handle('emulators:bundled', () => {
     const found: Record<string, string> = {}
     for (const e of Object.values(EMULATORS)) {
@@ -845,8 +937,14 @@ function registerIpc(): void {
     }
     return found
   })
-  ipcMain.handle('dialog:pickFile', async () => {
-    const r = await dialog.showOpenDialog(win!, { properties: ['openFile'] })
+  ipcMain.handle('library:installedGames', () => installedGames())
+  ipcMain.handle('dialog:pickFile', async (_e, program: unknown) => {
+    const exeOnly = program === true && process.platform === 'win32'
+    const r = await dialog.showOpenDialog(win!, {
+      title: program === true ? 'Choisis le programme du jeu' : undefined,
+      properties: ['openFile'],
+      filters: exeOnly ? [{ name: 'Programmes', extensions: ['exe'] }] : undefined
+    })
     return r.canceled ? null : r.filePaths[0]
   })
   ipcMain.handle('window:toggleFullscreen', () => {
@@ -962,6 +1060,7 @@ if (!app.requestSingleInstanceLock()) {
   })
 
   app.on('will-quit', () => {
+    homeView.close()
     globalShortcut.unregisterAll()
     try {
       autoBackup(join(app.getPath('userData'), 'backups'), store.get())

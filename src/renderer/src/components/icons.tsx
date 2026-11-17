@@ -72,7 +72,16 @@ export const NewsIcon = (): JSX.Element => (
   </Svg>
 )
 
-export const ListIcon = (): JSX.Element => (
+export const AppsIcon = (): JSX.Element => (
+  <Svg>
+    <rect x="4" y="4" width="7" height="7" rx="1.5" />
+    <rect x="13" y="4" width="7" height="7" rx="1.5" />
+    <rect x="4" y="13" width="7" height="7" rx="1.5" />
+    <rect x="13" y="13" width="7" height="7" rx="1.5" />
+  </Svg>
+)
+
+export const ListIcon =(): JSX.Element => (
   <Svg>
     <rect x="7.5" y="3.5" width="12.5" height="17" rx="1.5" />
     <path d="M7.5 9.5H4v9.5a1.5 1.5 0 0 0 1.5 1.5H9M11 8.5h5.5M11 12h5.5M11 15.5h5.5" />
@@ -148,4 +157,11 @@ export const GamepadIcon = (): JSX.Element => (
     <circle cx="28.5" cy="12" r="1" fill="#fff" />
     <circle cx="28.5" cy="19" r="2.2" fill="#fff" />
   </svg>
+)
+
+export const PcIcon = (): JSX.Element => (
+  <Svg>
+    <rect x="3" y="4" width="18" height="12" rx="1.5" />
+    <path d="M9 20h6M12 16v4" />
+  </Svg>
 )

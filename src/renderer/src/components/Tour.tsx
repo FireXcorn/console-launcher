@@ -22,8 +22,13 @@ const STEPS: Step[] = [
   },
   {
     target: '.dock-item[aria-label*="Paramètres"], .dock-item:nth-last-child(2)',
-    title: 'Ajouter ton fichier ici aussi',
-    text: 'Dans Paramètres → Ajouter des jeux, tu retrouves la même chose : tu mets ton fichier .nup ou ta ROM pour chaque jeu, ou tu importes tout un dossier. C’est aussi là que se règlent le thème et les sauvegardes.'
+    title: 'Ajouter des jeux',
+    text: 'Dans Paramètres → Ajouter des jeux, trois cartes : « Jeux rétro » (tes ROM Game Boy, GBA, DS, 3DS), « Jeu de mon PC » (Fortnite, Steam, Epic… choisis-le dans la liste de tes jeux installés) et « Jeu Switch 2 » (ton fichier .nup). Le lanceur t’explique quoi apporter et ajoute le jeu tout de suite.'
+  },
+  {
+    target: '.tile[data-collection="pokemon"]',
+    title: 'La tuile Pokémon',
+    text: 'Tous tes jeux Pokémon sont rangés dans cette tuile : appuie sur A dessus pour les voir par console. Dedans, le bouton « Ajouter mes jeux » ouvre le même assistant. Tu peux aussi glisser tes fichiers de jeu sur la fenêtre du lanceur : ils sont rangés tout seuls.'
   },
   {
     title: 'Pour jouer',
@@ -68,23 +73,13 @@ export default function Tour({ onDone }: Props): JSX.Element {
     engine.play('retour')
     onDone()
   }
-  useLayoutEffect(() => {
-    console.log(`[visite] étape ${index + 1} affichée`)
-    return () => console.log(`[visite] étape ${index + 1} retirée`)
-  }, [index])
   const next = (): void => {
-    console.log(`[visite] suivant depuis l’étape ${index + 1}`)
     if (last) onDone()
     else setIndex((i) => i + 1)
-    try {
-      engine.play('valider')
-    } catch (e) {
-      console.error('[visite] son impossible', e)
-    }
+    engine.play('valider')
   }
 
   useInput((action, source) => {
-    console.log(`[visite] entrée ${action} (${source}) à l’étape ${index + 1}`)
     if (action === 'confirm') next()
     // Manette : Retour revient d'une étape (un bouton pris pour un autre ne doit pas fermer la visite) ; Échap la quitte.
     else if (action === 'back') {

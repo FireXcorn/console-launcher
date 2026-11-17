@@ -2,7 +2,7 @@
 import { tmpdir } from 'os'
 import { join } from 'path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { findPrograms } from './importer'
+import { findPrograms, parseGames } from './importer'
 
 let root: string
 beforeEach(() => {
@@ -50,5 +50,40 @@ describe('import d’un dossier de jeux', () => {
     expect(await findPrograms(root)).toEqual([])
     expect(await findPrograms(join(root, 'absent'))).toEqual([])
     expect(await findPrograms('')).toEqual([])
+  })
+})
+
+describe('jeux installés (Store, Steam, Epic)', () => {
+  it('garde les jeux, écarte les composants Steam, et prépare le lancement par l’explorateur', () => {
+    const store = 'shell:AppsFolder\\436609B6!AppFortniteShipping'
+    const json = JSON.stringify([
+      { Name: 'Fortnite', Open: store, Icon: store },
+      { Name: 'Hades', Open: 'steam://rungameid/1145360', Icon: null },
+      { Name: 'Steamworks Common Redistributables', Open: 'steam://rungameid/228980', Icon: null },
+      { Name: 'Proton 9.0', Open: 'steam://rungameid/2805730', Icon: null },
+      { Name: 'Rocket League', Open: 'com.epicgames.launcher://apps/Sugar?action=launch&silent=true', Icon: 'C:/Jeux/RL.exe' },
+      { Name: 'Hades', Open: 'steam://rungameid/1145360', Icon: null }
+    ])
+    expect(parseGames(json, 'explorer.exe')).toEqual([
+      { title: 'Fortnite', exe: 'explorer.exe', args: [store], icon: store },
+      { title: 'Hades', exe: 'explorer.exe', args: ['steam://rungameid/1145360'] },
+      { title: 'Rocket League', exe: 'explorer.exe', args: ['com.epicgames.launcher://apps/Sugar?action=launch&silent=true'], icon: 'C:/Jeux/RL.exe' }
+    ])
+  })
+
+  it('lance un programme GOG directement, et garde l’icône Steam', () => {
+    const json = JSON.stringify([
+      { Name: 'Witcher', Open: 'D:/GOG/witcher.exe', Icon: 'D:/GOG/witcher.exe' },
+      { Name: 'Hades', Open: 'steam://rungameid/1145360', Icon: 'C:/Steam/appcache/librarycache/1145360/library_600x900.jpg' }
+    ])
+    expect(parseGames(json, 'explorer.exe')).toEqual([
+      { title: 'Hades', exe: 'explorer.exe', args: ['steam://rungameid/1145360'], icon: 'C:/Steam/appcache/librarycache/1145360/library_600x900.jpg' },
+      { title: 'Witcher', exe: 'D:/GOG/witcher.exe', icon: 'D:/GOG/witcher.exe' }
+    ])
+  })
+
+  it('accepte un seul jeu et refuse une sortie illisible', () => {
+    expect(parseGames('{"Name":"Jeu","Open":"steam://rungameid/1"}', 'e')).toHaveLength(1)
+    expect(parseGames('pas du json', 'e')).toEqual([])
   })
 })

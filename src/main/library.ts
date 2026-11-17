@@ -21,6 +21,8 @@ export interface ScannedGame {
   emulated?: boolean
   /** Titre d'origine de l'entrée dans la configuration (pour la retrouver malgré un renommage). */
   sourceTitle?: string
+  /** D'où prendre l'icône de la tuile quand le jeu n'a pas de jaquette. */
+  iconFrom?: string
   /** Suivi du chargement d'un jeu émulé (écran noir, questions, signal « le jeu tourne »). */
   watch?: EmulatorWatch
 }
@@ -89,6 +91,7 @@ function emulatedGames(cfg: ScanConfig): ScannedGame[] {
       lastPlayed: cfg.lastPlayed[id] ?? 0,
       emulated: true,
       sourceTitle: e.title.trim(),
+      iconFrom: e.iconFrom,
       watch: {
         // Avec un journal d'émulateur, le titre de la fenêtre ne sert que s'il est demandé expressément :
         // un titre qui change pendant le chargement ferait retirer l'écran noir trop tôt.

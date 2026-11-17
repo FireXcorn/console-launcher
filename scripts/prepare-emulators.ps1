@@ -39,5 +39,14 @@ Copy-Item (Get-File "$mgba/mGBA-0.10.5-appimage-x64.appimage" 'mgba.AppImage') "
 Copy-Item (Get-File "$azahar/azahar.AppImage" 'azahar.AppImage') "$root\linux\azahar.AppImage" -Force
 Unpack (Get-File "$melon/melonDS-1.1-appimage-x86_64.zip" 'melonds-linux.zip') "$root\linux\melonds"
 
+# PKVault (gestionnaire de Pokémon, GPLv3), Windows et Linux. Toujours la dernière version publiée.
+$rel = Invoke-RestMethod 'https://api.github.com/repos/Chnapy/PKVault/releases/latest' -UseBasicParsing
+$asset = $rel.assets | Where-Object { $_.name -like '*-x64.AppImage' } | Select-Object -First 1
+$assetWin = $rel.assets | Where-Object { $_.name -like 'PKVault-*-x64.exe' } | Select-Object -First 1
+if (-not $asset -or -not $assetWin) { throw 'PKVault : fichiers x64 introuvables dans la dernière release' }
+Copy-Item (Get-File $asset.browser_download_url 'pkvault.AppImage') "$root\linux\pkvault.AppImage" -Force
+New-Item -ItemType Directory -Force "$root\win\pkvault" | Out-Null
+Copy-Item (Get-File $assetWin.browser_download_url 'pkvault.exe') "$root\win\pkvault\PKVault.exe" -Force
+
 Remove-Item $tmp -Recurse -Force
 Write-Host 'ok'

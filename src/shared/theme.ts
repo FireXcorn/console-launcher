@@ -33,6 +33,8 @@ export interface Theme {
   dockStyle: 'bar' | 'floating'
   dockColors: 'color' | 'mono'
   cursor: 'iridescent' | 'solid'
+  /** Style « verre liquide » : panneaux translucides et flous, bords lumineux. */
+  glass: boolean
   /** Utiliser le dossier `sounds/` du thème avant celui des réglages. */
   sounds: boolean
 }
@@ -89,6 +91,7 @@ export function normalizeTheme(raw: unknown, id: string): Theme {
     dockStyle: r.dockStyle === 'floating' ? 'floating' : 'bar',
     dockColors: r.dockColors === 'mono' ? 'mono' : 'color',
     cursor: r.cursor === 'solid' ? 'solid' : 'iridescent',
+    glass: r.glass === true,
     sounds: r.sounds === true
   }
 }
@@ -109,6 +112,22 @@ export const BUILTIN_THEMES: Theme[] = [
     colors: { bg: '#12172b', surface: '#1d2440', slot: '#181e36', bar: '#1b2140', icon: '#b8c4ff', text: '#eef1ff', accent: '#7c9cff' },
     tileRadius: 1.6,
     dockStyle: 'floating'
+  }),
+  base('verre-liquide', 'Verre liquide', {
+    base: 'light',
+    colors: { bg: '#eef2f9', surface: '#ffffff', slot: '#f4f7fc', bar: '#ffffff', icon: '#4a5675', text: '#1d2433', accent: '#3b7cff' },
+    tileRadius: 2,
+    dockStyle: 'floating',
+    cursor: 'iridescent',
+    glass: true
+  }),
+  base('verre-liquide-sombre', 'Verre liquide sombre', {
+    base: 'dark',
+    colors: { bg: '#2c2a6b', surface: '#3d3b86', slot: '#35337a', bar: '#3d3b86', icon: '#eaf2ff', text: '#f6f9ff', accent: '#9bb8ff' },
+    tileRadius: 2,
+    dockStyle: 'floating',
+    cursor: 'iridescent',
+    glass: true
   }),
   base('sakura', 'Sakura', {
     base: 'light',

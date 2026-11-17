@@ -79,7 +79,7 @@ describe('recettes', () => {
 
   it('les recettes livrées sont valides', () => {
     const ids = loadRecipes(join(__dirname, '../../recipes')).map((r) => r.id)
-    expect(ids).toEqual(['donkey-kong-bananza', 'mario-kart-world', 'pokopia', 'zelda-ocarina-of-time'])
+    expect(ids).toEqual(['donkey-kong-bananza', 'mario-kart-world', 'pokopia', 'yoshi-and-the-mysterious-book', 'zelda-ocarina-of-time'])
   })
 })
 

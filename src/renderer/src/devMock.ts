@@ -60,7 +60,7 @@ export function installDevMock(): void {
     available: true
   }))
   // Quelques exclusivités « cartouche non insérée », comme le fait le vrai scan.
-  const missing = noGames ? [] : ['Mario Kart World', 'Donkey Kong Bananza', 'Kirby Air Riders', 'Splatoon Raiders', 'The Duskbloods', 'Pokémon X et Y']
+  const missing = noGames ? [] : ['Mario Kart World', 'Donkey Kong Bananza', 'Kirby Air Riders', 'Splatoon Raiders', 'The Duskbloods']
   missing.forEach((title) =>
     games.push({
       id: `catalog:${title.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
@@ -77,6 +77,32 @@ export function installDevMock(): void {
       unavailableOn: new URLSearchParams(location.search).has('linux') && title !== 'Pokémon X et Y' ? 'Linux' : undefined
     })
   )
+
+  // Jeux Pokémon : rangés sous une seule tuile « Pokémon » comme le fait le vrai scan.
+  if (!noGames) {
+    const pk: Array<[string, string, boolean]> = [
+      ['Pokémon X', 'Nintendo 3DS', true],
+      ['Pokémon Y', 'Nintendo 3DS', false],
+      ['Pokémon Platine', 'Nintendo DS', false],
+      ['Pokémon Émeraude', 'Game Boy Advance', false],
+      ['Pokémon Cristal', 'Game Boy et Game Boy Color', false]
+    ]
+    games.push({ id: 'collection:pokemon', title: 'Pokémon', dir: '', exe: '', args: [], icon: null, lastPlayed: 0, available: true, collection: 'pokemon' })
+    pk.forEach(([title, console, ready]) =>
+      games.push({
+        id: `catalog:${title.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
+        title,
+        dir: '',
+        exe: '',
+        args: [],
+        icon: null,
+        lastPlayed: 0,
+        available: ready,
+        emulatorId: 'azahar',
+        pokemonConsole: console
+      })
+    )
+  }
 
   const svg = (i: number, w: number, h: number): string => {
     const hue = (i * 47) % 360
@@ -122,8 +148,17 @@ export function installDevMock(): void {
     onGameState: () => () => {},
     pickFolder: async () => null,
     openRomsFolder: async () => config.romsDir,
+    addRoms: async () => ({ added: ['Pokémon Platine'], skipped: [] }),
+    addRomFiles: async (files) => ({ added: files.map((f) => f.split(/[\/]/).pop() ?? f), skipped: [] }),
+    onDropFiles: () => () => undefined,
     pickImage: async () => null,
     pickFile: async () => null,
+    installedGames: async () =>
+      ['Fortnite', 'Forza Horizon 5', 'Rocket League', 'Hades', 'Minecraft'].map((title) => ({
+        title,
+        exe: 'C:\\Windows\\explorer.exe',
+        args: ['shell:AppsFolder\\' + title]
+      })),
     toggleFullscreen: async () => {},
     log: async (message) => console.info('[mock] journal', message),
     quit: async () => console.info('[mock] quitter'),
@@ -164,6 +199,22 @@ export function installDevMock(): void {
       { title: 'Puzzle Lab', exe: 'D:\\Jeux\\Puzzle Lab\\lab.exe' }
     ],
     stopGame: async () => console.info('[mock] arrêt du jeu'),
+    listApps: async () => [
+      {
+        id: 'pkvault',
+        title: 'Pokémon Home',
+        description:
+          'Range tes Pokémon dans des boîtes et passe-les d’un jeu à un autre (Game Boy, GBA, DS, 3DS). Livré avec le lanceur.',
+        fileHint: 'le fichier PKVault téléchargé',
+        supported: true,
+        installed: true,
+        bundled: true
+      }
+    ],
+    openAppPage: async () => undefined,
+    installApp: async () => null,
+    openApp: async () => null,
+    removeApp: async () => undefined,
     listRecipes: async () => mockRecipes,
     setRecipeInput: async () => mockRecipes,
     listBackups: async () => mockBackups,

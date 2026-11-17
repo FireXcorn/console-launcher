@@ -19,6 +19,8 @@ export function applyTheme(theme: Theme, wallpaperUrl: string | null): void {
   root.dataset.dock = theme.dockStyle
   root.dataset.dockcolors = theme.dockColors
   root.dataset.cursor = theme.cursor
+  if (theme.glass) root.dataset.glass = 'on'
+  else delete root.dataset.glass
   if (wallpaperUrl) {
     root.style.setProperty('--wallpaper', `url("${wallpaperUrl}")`)
     root.style.setProperty('--wallpaper-dim', String(theme.wallpaperDim))

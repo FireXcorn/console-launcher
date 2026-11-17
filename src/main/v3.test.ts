@@ -95,11 +95,11 @@ describe('fichiers audio de remplacement', () => {
 })
 
 describe('jeux Pokémon du catalogue', () => {
-  it('liste les 30 entrées, chacune avec un émulateur connu, sans doublon', async () => {
+  it('liste les 28 entrées, chacune avec un émulateur connu, sans doublon', async () => {
     const { pokemonEntries } = await import('./catalog')
     const { EMULATORS } = await import('../shared/emulators')
     const entries = pokemonEntries([])
-    expect(entries).toHaveLength(30)
+    expect(entries).toHaveLength(28)
     expect(new Set(entries.map((e) => e.id)).size).toBe(entries.length)
     expect(entries.every((e) => e.emulatorId && EMULATORS[e.emulatorId])).toBe(true)
     expect(entries[0].title).toBe('Pokémon Ultra-Soleil')

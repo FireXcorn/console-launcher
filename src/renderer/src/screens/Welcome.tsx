@@ -1,61 +1,49 @@
 import { useState } from 'react'
+import { ADD_KINDS, AddCards, type AddKind } from '../components/AddGame'
 import Screen from '../components/Screen'
 import { useInput } from '../hooks/useInput'
 
 interface Props {
-  /** Choisit un dossier de jeux et les ajoute tous ; renvoie le nombre de jeux ajoutés. */
-  onImport: () => Promise<number>
+  /** Ouvre l'assistant « Ajouter un jeu » sur ce type de jeu. */
+  onAdd: (kind: AddKind) => void
   /** Lance la visite guidée sur l'accueil. */
   onTour: () => void
-  /** Ferme l'assistant sans rien ajouter. */
+  /** Ferme l'écran sans rien ajouter. */
   onLater: () => void
 }
 
-/** Écran de bienvenue : ce que voit quelqu'un qui n'a encore aucun jeu dans le lanceur. */
-export default function Welcome({ onImport, onTour, onLater }: Props): JSX.Element {
-  const [message, setMessage] = useState('')
-  const [busy, setBusy] = useState(false)
-
-  const importFolder = async (): Promise<void> => {
-    setBusy(true)
-    const count = await onImport()
-    setBusy(false)
-    if (count === 0) setMessage('Aucun jeu trouvé dans ce dossier. Le lanceur cherche un programme (.exe) par sous-dossier.')
-  }
-
-  // Clavier et manette : les flèches choisissent un bouton, Valider l'active ; seul Échap (clavier) ferme.
+/** Écran de bienvenue : trois cartes pour ajouter son premier jeu, la visite guidée, ou plus tard. */
+export default function Welcome({ onAdd, onTour, onLater }: Props): JSX.Element {
+  // Sélection : 0 à 2 = les cartes, 3 = visite, 4 = plus tard.
   const [index, setIndex] = useState(0)
-  const actions = [onTour, () => void importFolder(), onLater]
+  const cards = ADD_KINDS.length
+  const actions = [...ADD_KINDS.map((k) => () => onAdd(k.id)), onTour, onLater]
   useInput((action, source) => {
-    if (action === 'left' || action === 'up') setIndex((i) => Math.max(0, i - 1))
-    else if (action === 'right' || action === 'down') setIndex((i) => Math.min(actions.length - 1, i + 1))
-    else if (action === 'confirm' && !busy) actions[index]()
+    if (action === 'left') setIndex((i) => Math.max(0, i - 1))
+    else if (action === 'right') setIndex((i) => Math.min(actions.length - 1, i + 1))
+    else if (action === 'down') setIndex((i) => (i < cards ? cards : i))
+    else if (action === 'up') setIndex((i) => (i >= cards ? 1 : i))
+    else if (action === 'confirm') actions[index]()
     else if (action === 'back' && source === 'key') onLater()
   })
   const cls = (i: number, base = ''): string => `${base}${index === i ? ' focused' : ''}`.trim()
 
   return (
-    <Screen title="Bienvenue" onBack={onLater}>
+    <Screen title="Bienvenue" onBack={onLater} hints={[{ key: 'A', label: 'Choisir' }]}>
       <div className="welcome">
-        <p>
-          Les jeux de ta console t’attendent, avec leurs outils déjà installés. Il te manque seulement <strong>ta cartouche</strong> :
-          ton propre fichier de jeu. On te montre comment faire.
-        </p>
+        <h1>Bienvenue sur ta console !</h1>
+        <p>Qu’est-ce que tu veux ajouter pour commencer ? Le lanceur te guide pas à pas.</p>
+        <AddCards focused={index < cards ? index : -1} onHover={setIndex} onPick={onAdd} />
         <div className="welcome-actions">
-          <button className={cls(0, 'primary')} disabled={busy} onClick={onTour} onMouseEnter={() => setIndex(0)}>
-            Commencer la visite
+          <button className={cls(cards)} onClick={onTour} onMouseEnter={() => setIndex(cards)}>
+            Faire la visite guidée
           </button>
-          <button className={cls(1)} disabled={busy} onClick={() => void importFolder()} onMouseEnter={() => setIndex(1)}>
-            Importer un dossier de jeux…
-          </button>
-          <button className={cls(2)} disabled={busy} onClick={onLater} onMouseEnter={() => setIndex(2)}>
+          <button className={cls(cards + 1)} onClick={onLater} onMouseEnter={() => setIndex(cards + 1)}>
             Plus tard
           </button>
         </div>
-        {message && <p className="settings-note">{message}</p>}
         <small className="welcome-hint">
-          Tu pourras toujours revoir la visite dans <em>Paramètres → Avancé</em>, et ajouter des jeux dans <em>Paramètres → Ajouter des
-          jeux</em>.
+          Tu retrouveras tout ça dans <em>Paramètres → Ajouter des jeux</em>, et la visite dans <em>Paramètres → Avancé</em>.
         </small>
       </div>
     </Screen>

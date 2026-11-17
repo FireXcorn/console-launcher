@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
+import { contextBridge, ipcRenderer, webUtils, type IpcRendererEvent } from 'electron'
 import type { Api, GameState } from '../shared/types'
 
 const api: Api = {
@@ -13,8 +13,25 @@ const api: Api = {
   },
   pickFolder: () => ipcRenderer.invoke('dialog:pickFolder'),
   openRomsFolder: () => ipcRenderer.invoke('roms:open'),
+  addRoms: () => ipcRenderer.invoke('roms:add'),
+  addRomFiles: (files) => ipcRenderer.invoke('roms:addFiles', files),
+  onDropFiles: (cb) => {
+    const over = (e: DragEvent): void => e.preventDefault()
+    const drop = (e: DragEvent): void => {
+      e.preventDefault()
+      const files = Array.from(e.dataTransfer?.files ?? []).map((f) => webUtils.getPathForFile(f))
+      if (files.length) cb(files)
+    }
+    window.addEventListener('dragover', over)
+    window.addEventListener('drop', drop)
+    return () => {
+      window.removeEventListener('dragover', over)
+      window.removeEventListener('drop', drop)
+    }
+  },
   pickImage: () => ipcRenderer.invoke('dialog:pickImage'),
-  pickFile: () => ipcRenderer.invoke('dialog:pickFile'),
+  pickFile: (program) => ipcRenderer.invoke('dialog:pickFile', program === true),
+  installedGames: () => ipcRenderer.invoke('library:installedGames'),
   toggleFullscreen: () => ipcRenderer.invoke('window:toggleFullscreen'),
   log: (message) => ipcRenderer.invoke('app:log', message),
   quit: () => ipcRenderer.invoke('app:quit'),
@@ -36,6 +53,11 @@ const api: Api = {
   exportBackup: () => ipcRenderer.invoke('backups:export'),
   importBackup: () => ipcRenderer.invoke('backups:import'),
   openBackupFolder: () => ipcRenderer.invoke('backups:folder'),
+  listApps: () => ipcRenderer.invoke('apps:list'),
+  openAppPage: (id) => ipcRenderer.invoke('apps:page', id),
+  installApp: (id, file) => ipcRenderer.invoke('apps:install', id, file),
+  openApp: (id) => ipcRenderer.invoke('apps:open', id),
+  removeApp: (id) => ipcRenderer.invoke('apps:remove', id),
   listRecipes: () => ipcRenderer.invoke('recipes:list'),
   setRecipeInput: (id, need, path) => ipcRenderer.invoke('recipes:input', id, need, path),
   runRecipeSetup: (id) => ipcRenderer.invoke('recipes:setup', id),
