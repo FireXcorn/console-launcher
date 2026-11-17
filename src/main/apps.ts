@@ -3,6 +3,7 @@ import { homedir } from 'os'
 import { basename, dirname, extname, join } from 'path'
 import { execFile, spawn } from 'child_process'
 import type { AppInfo } from '../shared/types'
+import { azaharSdmc } from './pkvault'
 
 /** Une petite application libre que le lanceur sait installer et ouvrir. */
 export interface AppDef {
@@ -34,10 +35,7 @@ export const APPS: AppDef[] = [
     platforms: ['win32', 'linux'],
     bundled: { win32: 'pkvault/PKVault.exe', linux: 'pkvault.AppImage' },
     // shortcut: chemins Azahar « standard » ; à revoir si Azahar est portable ou installé en Flatpak.
-    note: (home) =>
-      `Jeux 3DS : dans les réglages de PKVault, ajoute le dossier de sauvegardes d’Azahar : ${
-        process.platform === 'win32' ? join(process.env.APPDATA ?? join(home, 'AppData', 'Roaming'), 'Azahar', 'sdmc') : join(home, '.local/share/azahar-emu/sdmc')
-      } (créé au premier lancement d’un jeu 3DS).`
+    note: (home) => `Jeux 3DS : les sauvegardes d’Azahar (${azaharSdmc(home)}) sont reconnues dès le premier lancement d’un jeu 3DS.`
   }
 ]
 

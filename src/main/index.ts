@@ -13,12 +13,14 @@ import {
   shell
 } from 'electron'
 import { execFile, spawn } from 'child_process'
+import { addSaveGlobs, azaharSdmc, pkvaultSettingsFile, saveGlobs } from './pkvault'
 import { APPS, appInfo, appsRoot, installApp, launchPath, removeApp, startDetached } from './apps'
 import { HomeView } from './homeview'
 import { extractIcons } from './appicon'
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'fs'
 import { mkdir, writeFile } from 'fs/promises'
 import { basename, dirname, extname, join } from 'path'
+import { homedir } from 'os'
 import { playtimeKey } from '../shared/playtime'
 import { applyAutoStart } from './autostart'
 import type { ChildProcess } from 'child_process'
@@ -814,6 +816,14 @@ function registerIpc(): void {
       return 'Impossible de préparer l’application : ' + (e instanceof Error ? e.message : String(e))
     }
     if (!exe) return 'Application non installée.'
+    // Pokémon Home : toutes les sauvegardes des émulateurs sont reconnues sans réglage.
+    if (def.id === 'pkvault') {
+      try {
+        addSaveGlobs(pkvaultSettingsFile(exe), saveGlobs(romsFolder(store.get()), azaharSdmc(homedir())))
+      } catch (e) {
+        log('Pokémon Home : sauvegardes non déclarées', String(e))
+      }
+    }
     if (process.platform === 'win32' && def.id === 'pkvault') return homeView.open(exe)
     return startDetached(exe, join(app.getPath('userData'), 'apps', def.id + '.log'))
   })

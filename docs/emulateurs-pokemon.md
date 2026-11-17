@@ -45,6 +45,20 @@ Le lanceur existe aussi pour Linux (`npm run dist:linux`, fichier AppImage). Sou
 - Arrêter le jeu depuis le lanceur arrête l'émulateur ; la manette Retour + Menu maintenus n'est pas encore gérée ;
 - les jeux livrés avec leur outil (Mario Kart World, Zelda…) sont des programmes Windows : sous Linux, leur tuile porte la mention rouge « Indisponible sur Linux » et A explique d'attendre une nouvelle version.
 
+## Pokémon Home : tes sauvegardes sont reconnues toutes seules
+
+À chaque ouverture de Pokémon Home (écran **Applis**), le lanceur indique à PKVault où chercher :
+
+| Console | Où sont les sauvegardes | Émulateur |
+|---|---|---|
+| Game Boy, Game Boy Color, GBA | à côté du jeu, dans `Jeux/<console>/` (fichier `.sav`) | mGBA |
+| DS | à côté du jeu, dans `Jeux/Nintendo DS/` (`.sav`, `.dsv`) | melonDS |
+| 3DS | dossier `sdmc` d'Azahar (`~/.local/share/azahar-emu/sdmc` sous Linux, `%APPDATA%\Azahar\sdmc` sous Windows) | Azahar |
+
+Il suffit donc d'avoir lancé le jeu une fois et d'avoir sauvegardé dans le jeu (pas seulement un « état »). Tes propres chemins ajoutés dans les réglages de PKVault sont conservés.
+
+**Récupérer le fichier de sauvegarde à la main** : ouvre le dossier des jeux (Paramètres → Ajouter des jeux → *Ouvrir le dossier des jeux*) et copie le `.sav` qui porte le nom de ton jeu. Pour la 3DS, c'est `00000001.sav` dans le sous-dossier `data` du jeu, sous `sdmc`.
+
 ## Rendre un AppImage exécutable (Ubuntu)
 
 Clic droit sur le fichier → Propriétés → Permissions → « Autoriser l'exécution du fichier comme un programme ». Ou, dans un terminal :
