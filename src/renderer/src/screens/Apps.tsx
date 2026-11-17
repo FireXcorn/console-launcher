@@ -65,7 +65,7 @@ export default function AppsScreen({ onBack }: { onBack: () => void }): JSX.Elem
   return (
     <Screen title="Applis" onBack={onBack} hints={[{ key: 'A', label: 'Ouvrir' }]}>
       <div className="pokemon">
-        <div className="pokemon-row">
+        <div className="pokemon-row apps-row">
           {apps.map((app, i) => (
             <button
               key={app.id}
@@ -78,7 +78,7 @@ export default function AppsScreen({ onBack }: { onBack: () => void }): JSX.Elem
               {app.external && app.supported && !app.installed && <span className="pokemon-badge">{app.installing ? 'Installation…' : 'Installer'}</span>}
             </button>
           ))}
-          {Array.from({ length: Math.max(0, 6 - apps.length) }, (_, i) => (
+          {Array.from({ length: Math.max(0, 10 - apps.length) }, (_, i) => (
             <div key={`vide-${i}`} className="pokemon-game empty-slot" aria-hidden="true" />
           ))}
         </div>
