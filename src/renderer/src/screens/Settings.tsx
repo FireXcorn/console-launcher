@@ -112,6 +112,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
 
   const [backups, setBackups] = useState<BackupInfo[]>([])
   const [backupNote, setBackupNote] = useState('')
+  const [extractNote, setExtractNote] = useState('')
   const [confirmRestore, setConfirmRestore] = useState('')
   useEffect(() => {
     void window.api.listBackups().then(setBackups)
@@ -637,6 +638,21 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
               et tu retrouves ta partie. Un nouveau profil repart de zéro. Les parties déjà présentes vont au premier profil qui lance le
               jeu. Pour l’instant : Mario Kart World, Donkey Kong Bananza, Pokémon Pokopia et Zelda Ocarina of Time.
             </p>
+            <h3>Extraire la sauvegarde d’un jeu</h3>
+            <p className="settings-note">
+              Copie la sauvegarde d’un jeu rétro, DS ou 3DS dans un fichier de ton choix (par exemple pour la mettre ailleurs). Lance le jeu et
+              sauvegarde dans le jeu d’abord.
+            </p>
+            {games.filter((g) => g.emulated).length === 0 && <p className="settings-note">Aucun jeu sur émulateur pour l’instant.</p>}
+            {games
+              .filter((g) => g.emulated)
+              .map((g) => (
+                <div className="backup-row" key={g.id}>
+                  <div>{g.title}</div>
+                  <button onClick={() => void window.api.extractSave(g.id).then((r) => r.message && setExtractNote(r.message))}>Extraire</button>
+                </div>
+              ))}
+            {extractNote && <p className="settings-note backup-note">{extractNote}</p>}
             <h3>Sauvegarde des profils</h3>
             <p className="settings-note">
               Tes profils, ton temps de jeu et tes dernières parties sont sauvegardés automatiquement, au lancement et à la fermeture
