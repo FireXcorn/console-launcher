@@ -970,7 +970,7 @@ body {
   /* Centré sans « transform » : un décalage à la moitié d'un pixel rendrait les textes flous sur le verre. */
   left: 50%;
   margin-left: calc(var(--u) * -9.5);
-  top: calc(var(--u) * 1.2);
+  top: calc(var(--u) * 1.9);
   z-index: 3;
   display: flex;
   align-items: center;
