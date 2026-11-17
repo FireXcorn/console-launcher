@@ -6,7 +6,7 @@ import { useMoveSound } from '../audio/useSound'
 import Avatar from '../components/Avatar'
 import RecipeCard, { useRecipes } from '../components/RecipeCard'
 import { EMULATORS } from '../../../shared/emulators'
-import Screen from '../components/Screen'
+import Screen, { backNav, focusBack } from '../components/Screen'
 import { useInput } from '../hooks/useInput'
 import ThemesPanel from './ThemesPanel'
 
@@ -234,6 +234,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
   }
 
   useInput((action) => {
+    if (action !== 'back' && backNav(action)) return
     const pane = paneRef.current
     const active = document.activeElement as HTMLElement | null
     const inPane = pane !== null && pane.contains(active) && active !== pane
@@ -241,13 +242,14 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
     // Dans le panneau : haut et bas passent d'un réglage à l'autre, A l'active, B revient aux catégories.
     const step = (d: number): void => {
       const next = fields[fields.indexOf(active!) + d]
+      if (!next && d < 0) return focusBack()
       next?.focus()
       next?.scrollIntoView({ block: 'nearest' })
     }
     if (action === 'back') {
       if (inPane) active!.blur()
       else void leave()
-    } else if (action === 'up') inPane ? step(-1) : setCat((c) => Math.max(0, c - 1))
+    } else if (action === 'up') inPane ? step(-1) : cat === 0 ? focusBack() : setCat((c) => c - 1)
     else if (action === 'down') inPane ? step(1) : setCat((c) => Math.min(CATEGORIES.length - 1, c + 1))
     else if (action === 'left' && inPane) active!.blur()
     else if (action === 'confirm' || (action === 'right' && !inPane)) {

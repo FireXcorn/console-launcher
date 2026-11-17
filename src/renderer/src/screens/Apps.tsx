@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { AppInfo } from '../../../shared/types'
-import Screen from '../components/Screen'
+import Screen, { backNav, focusBack } from '../components/Screen'
 import { useInput } from '../hooks/useInput'
 
 /**
@@ -38,7 +38,9 @@ export default function AppsScreen({ onBack }: { onBack: () => void }): JSX.Elem
   }
 
   useInput((action) => {
+    if (action !== 'back' && backNav(action)) return
     if (action === 'back') onBack()
+    else if (action === 'up') focusBack()
     else if (action === 'left') setPos((p) => Math.max(p - 1, 0))
     else if (action === 'right') setPos((p) => Math.min(p + 1, apps.length - 1))
     else if (action === 'confirm' && current) void open(current)
@@ -59,6 +61,9 @@ export default function AppsScreen({ onBack }: { onBack: () => void }): JSX.Elem
               {app.icon ? <img src={app.icon} alt="" draggable={false} /> : <span className="pokemon-fallback">{app.title}</span>}
             </button>
           ))}
+          {Array.from({ length: Math.max(0, 6 - apps.length) }, (_, i) => (
+            <div key={`vide-${i}`} className="pokemon-game empty-slot" aria-hidden="true" />
+          ))}
         </div>
         {current && (
           <p className="pokemon-title">
@@ -76,11 +81,7 @@ export default function AppsScreen({ onBack }: { onBack: () => void }): JSX.Elem
             </button>
           </div>
         )}
-        {current?.note && <small className="app-note">{current.note}</small>}
         {message && <p className="settings-note">{message}</p>}
-        <small className="app-note">
-          N’utilise que tes propres sauvegardes. Garde une copie de tes sauvegardes avant de modifier quoi que ce soit.
-        </small>
       </div>
     </Screen>
   )

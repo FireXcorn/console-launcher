@@ -18,6 +18,22 @@ interface Props {
   children: ReactNode
 }
 
+const backBtn = (): HTMLElement | null => document.querySelector<HTMLElement>('.screen-head .back-btn')
+
+/** Manette : place la sélection sur le bouton Retour (en haut à gauche). */
+export function focusBack(): void {
+  backBtn()?.focus()
+}
+
+/** Manette : tant que Retour est sélectionné, A le valide et bas/droite rendent la main à l'écran. Renvoie true si l'action est consommée. */
+export function backNav(action: string): boolean {
+  const btn = backBtn()
+  if (!btn || document.activeElement !== btn) return false
+  if (action === 'confirm') btn.click()
+  else if (action === 'down' || action === 'right') btn.blur()
+  return true
+}
+
 /** Cadre commun des écrans : titre, contenu défilant et rappel des touches. */
 export default function Screen({ title, hints = [], onBack, backdrop, children }: Props): JSX.Element {
   return (
