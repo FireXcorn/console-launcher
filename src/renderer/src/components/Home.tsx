@@ -188,7 +188,7 @@ interface TopBarProps {
 const clock = (seconds: number): string => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`
 
 /** Mini lecteur « verre liquide » : pochette, morceau, avancement et pause / précédent / suivant. Absent tant que la musique ne joue pas. */
-function MiniPlayer({ media, onMedia }: { media: MediaState; onMedia: (action: MediaAction) => void }): JSX.Element {
+function MiniPlayer({ media, onMedia, large }: { media: MediaState; onMedia: (action: MediaAction) => void; large: boolean }): JSX.Element {
   // L'avancement est relu toutes les 4 s ; entre-temps, il avance à la seconde près.
   const anchor = useRef({ media, at: Date.now() })
   if (anchor.current.media !== media) anchor.current = { media, at: Date.now() }
@@ -209,7 +209,7 @@ function MiniPlayer({ media, onMedia }: { media: MediaState; onMedia: (action: M
     </button>
   )
   return (
-    <div className="mini-player">
+    <div className={`mini-player${large ? ' large' : ''}`}>
       <div className="mini-art">
         {media.art ? (
           <img src={media.art} alt="" draggable={false} />
@@ -245,7 +245,8 @@ function TopBar({ focus, profile, profiles, art, onFocus, onTop, onPickProfile, 
   const on = (i: number): boolean => focus.row === 'top' && focus.top === i
   return (
     <header className="topbar">
-      {media && <MiniPlayer media={media} onMedia={onMedia} />}
+      {/* Grand quand la sélection n'est pas sur un jeu (pas de titre de jeu à cacher), petit sinon. */}
+      {media && <MiniPlayer media={media} onMedia={onMedia} large={focus.row !== 'games'} />}
       {/* Tous les utilisateurs, comme sur la console ; celui qui joue est sélectionnable au clavier. */}
       <div className="profiles">
         {profiles.map((p) =>

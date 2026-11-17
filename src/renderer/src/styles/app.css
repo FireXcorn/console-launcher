@@ -987,7 +987,10 @@ body {
   /* L'ombre portée du texte de l'accueil (sur fond d'image) ferait un liseré sombre sous chaque ligne. */
   text-shadow: none;
   text-rendering: optimizeLegibility;
+  transform-origin: 50% 0;
+  transition: transform 0.22s ease;
 }
+.mini-player.large { transform: scale(1.5); }
 .mini-art {
   flex: none;
   display: grid;
