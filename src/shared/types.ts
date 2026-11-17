@@ -147,6 +147,11 @@ export interface MediaState {
   playing: boolean
   title: string
   artist: string
+  /** Pochette (URL `data:`) ou vide. */
+  art: string
+  /** Position et durée du morceau, en secondes (0 si inconnues). */
+  position: number
+  duration: number
 }
 
 export type MediaAction = 'playpause' | 'next' | 'previous'

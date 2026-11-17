@@ -185,10 +185,24 @@ interface TopBarProps {
   onMedia: (action: MediaAction) => void
 }
 
-/** Mini lecteur : le morceau en cours et pause / précédent / suivant. Absent tant que Spotify ou Apple Music ne jouent rien. */
+const clock = (seconds: number): string => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`
+
+/** Mini lecteur « verre liquide » : pochette, morceau, avancement et pause / précédent / suivant. Absent tant que la musique ne joue pas. */
 function MiniPlayer({ media, onMedia }: { media: MediaState; onMedia: (action: MediaAction) => void }): JSX.Element {
-  const btn = (action: MediaAction, label: string, path: JSX.Element): JSX.Element => (
-    <button className="mini-btn" aria-label={label} title={label} onClick={() => onMedia(action)}>
+  // L'avancement est relu toutes les 4 s ; entre-temps, il avance à la seconde près.
+  const anchor = useRef({ media, at: Date.now() })
+  if (anchor.current.media !== media) anchor.current = { media, at: Date.now() }
+  const [, tick] = useState(0)
+  useEffect(() => {
+    if (!media.playing) return
+    const timer = setInterval(() => tick((n) => n + 1), 1000)
+    return () => clearInterval(timer)
+  }, [media.playing])
+  const elapsed = media.playing ? (Date.now() - anchor.current.at) / 1000 : 0
+  const position = media.duration > 0 ? Math.min(media.duration, media.position + elapsed) : 0
+
+  const btn = (action: MediaAction, label: string, path: JSX.Element, big = false): JSX.Element => (
+    <button className={`mini-btn${big ? ' big' : ''}`} aria-label={label} title={label} onClick={() => onMedia(action)}>
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         {path}
       </svg>
@@ -196,13 +210,33 @@ function MiniPlayer({ media, onMedia }: { media: MediaState; onMedia: (action: M
   )
   return (
     <div className="mini-player">
-      {btn('previous', 'Précédent', <path d="M6 5h2v14H6zM20 5v14L9.5 12z" />)}
-      {btn('playpause', media.playing ? 'Pause' : 'Lecture', media.playing ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />)}
-      {btn('next', 'Suivant', <path d="M16 5h2v14h-2zM4 5v14l10.5-7z" />)}
-      <span className="mini-title">
-        {media.title || 'Musique'}
-        {media.artist && <small> · {media.artist}</small>}
-      </span>
+      <div className="mini-art">
+        {media.art ? (
+          <img src={media.art} alt="" draggable={false} />
+        ) : (
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M9 17V6l10-2v11a3 3 0 1 1-2-2.8V7.2L11 8.4V17a3 3 0 1 1-2-2.8z" />
+          </svg>
+        )}
+      </div>
+      <div className="mini-main">
+        <div className="mini-title">{media.title || 'Musique'}</div>
+        {media.artist && <div className="mini-artist">{media.artist}</div>}
+        {media.duration > 0 && (
+          <div className="mini-time">
+            <span>{clock(position)}</span>
+            <div className="mini-bar">
+              <i style={{ width: `${Math.min(100, (position / media.duration) * 100)}%` }} />
+            </div>
+            <span>-{clock(Math.max(0, media.duration - position))}</span>
+          </div>
+        )}
+        <div className="mini-controls">
+          {btn('previous', 'Précédent', <path d="M6 5h2v14H6zM20 5v14L9.5 12z" />)}
+          {btn('playpause', media.playing ? 'Pause' : 'Lecture', media.playing ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />, true)}
+          {btn('next', 'Suivant', <path d="M16 5h2v14h-2zM4 5v14l10.5-7z" />)}
+        </div>
+      </div>
     </div>
   )
 }
