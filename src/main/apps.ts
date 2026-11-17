@@ -109,10 +109,26 @@ function unzip(zip: string, dest: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const done = (err: Error | null): void => (err ? reject(err) : resolve())
     if (process.platform === 'win32') {
-      const q = (s: string): string => "'" + s.replace(/'/g, "''") + "'"
+      // Chaque fichier de l'archive est vérifié avant tout : un chemin qui sortirait du dossier (« ..\ ») la fait refuser.
+      const script = String.raw`Add-Type -AssemblyName System.IO.Compression.FileSystem
+$root = [IO.Path]::GetFullPath($env:CL_DEST).TrimEnd([char]92) + [char]92
+$z = [IO.Compression.ZipFile]::OpenRead($env:CL_ZIP)
+try {
+  foreach ($e in $z.Entries) {
+    $t = [IO.Path]::GetFullPath((Join-Path $root $e.FullName))
+    if (-not $t.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)) { throw 'Archive refusee : chemin dangereux ' + $e.FullName }
+  }
+  foreach ($e in $z.Entries) {
+    $t = [IO.Path]::GetFullPath((Join-Path $root $e.FullName))
+    if ($e.FullName.EndsWith('/')) { [void][IO.Directory]::CreateDirectory($t); continue }
+    [void][IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($t))
+    [IO.Compression.ZipFileExtensions]::ExtractToFile($e, $t, $true)
+  }
+} finally { $z.Dispose() }`
       execFile(
         'powershell.exe',
-        ['-NoProfile', '-NonInteractive', '-Command', `Expand-Archive -LiteralPath ${q(zip)} -DestinationPath ${q(dest)} -Force`],
+        ['-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(script, 'utf16le').toString('base64')],
+        { env: { ...process.env, CL_ZIP: zip, CL_DEST: dest }, windowsHide: true },
         (err) => done(err)
       )
     } else {

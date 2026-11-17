@@ -9,6 +9,7 @@ import {
   net,
   Notification,
   screen,
+  session as electronSession,
   shell
 } from 'electron'
 import { execFile, spawn } from 'child_process'
@@ -974,6 +975,8 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
+      webSecurity: true,
       // La musique de menu doit pouvoir démarrer sans clic préalable.
       autoplayPolicy: 'no-user-gesture-required'
     }
@@ -983,6 +986,11 @@ function createWindow(): void {
     win = null
   })
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+  // L'interface ne quitte jamais sa page : seule la même adresse (rechargement) est permise.
+  win.webContents.on('will-navigate', (e, url) => {
+    if (url !== win?.webContents.getURL()) e.preventDefault()
+  })
+  win.webContents.on('will-attach-webview', (e) => e.preventDefault())
   // Le titre vient des réglages, pas de la page.
   win.on('page-title-updated', (e) => e.preventDefault())
   applyBranding()
@@ -1039,6 +1047,22 @@ if (!app.requestSingleInstanceLock()) {
 
   app.whenReady().then(() => {
     app.setAppUserModelId('local.console.launcher')
+    // Aucune permission web (caméra, micro, géolocalisation, notifications…) n'est jamais accordée.
+    electronSession.defaultSession.setPermissionRequestHandler((_wc, _perm, done) => done(false))
+    // Version publiée : aucun script en ligne dans la page de l'interface (limite les dégâts d'une éventuelle injection).
+    if (app.isPackaged) {
+      electronSession.defaultSession.webRequest.onHeadersReceived((details, done) => {
+        if (!details.url.startsWith('file:')) return done({})
+        done({
+          responseHeaders: {
+            ...details.responseHeaders,
+            'Content-Security-Policy': [
+              "default-src 'self'; img-src 'self' data:; media-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; connect-src 'self'"
+            ]
+          }
+        })
+      })
+    }
     const data = app.getPath('userData')
     initLog(join(data, 'launcher.log'))
     store = new ConfigStore(join(data, 'config.json'))

@@ -102,6 +102,11 @@ export class HomeView {
       }
       this.fit()
       win.on('resize', this.fit)
+      // La page ne sort jamais de PKVault (adresse locale) : ni nouvelle fenêtre, ni navigation ailleurs.
+      view.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+      view.webContents.on('will-navigate', (e, url) => {
+        if (!url.startsWith(`http://127.0.0.1:${port}/`)) e.preventDefault()
+      })
       view.webContents.on('dom-ready', () => void view.webContents.executeJavaScript(INJECT).catch(() => undefined))
       view.webContents.on('did-navigate-in-page', (_e, url) => {
         if (url.includes('#' + HASH)) this.close()

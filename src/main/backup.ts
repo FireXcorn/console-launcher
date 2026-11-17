@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from 'fs'
-import { basename, extname, join } from 'path'
+import { basename, extname, join, resolve, sep } from 'path'
 import type { BackupInfo, Config, Profile } from '../shared/types'
 
 /** Ce qu'une sauvegarde contient : tout ce qui appartient aux joueurs, rien qui dépende de la machine. */
@@ -148,7 +148,8 @@ export function restorePatch(data: BackupData, current: Config, photosDir: strin
   const profiles = data.profiles.map((p) => {
     const photo = data.photos[p.id]
     const m = photo ? /^data:(image\/(png|jpeg|webp));base64,(.+)$/.exec(photo) : null
-    if (!m) return p
+    // Le chemin d'une photo vient du fichier importé : on ne le garde que s'il pointe dans notre dossier de photos.
+    if (!m) return { ...p, image: p.image && resolve(p.image).startsWith(resolve(photosDir) + sep) ? p.image : '' }
     mkdirSync(photosDir, { recursive: true })
     const file = join(photosDir, `${basename(p.id).replace(/[^\w-]/g, '_')}.${m[2] === 'jpeg' ? 'jpg' : m[2]}`)
     writeFileSync(file, Buffer.from(m[3], 'base64'))

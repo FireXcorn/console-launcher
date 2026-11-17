@@ -35,7 +35,8 @@ export function saveRulesFor(titles: string[], recipes: Recipe[]): string[] {
   return recipes.find((r) => r.saves?.length && wanted.has(normalizeTitle(r.title)))?.saves ?? []
 }
 
-const safe = (s: string): string => s.replace(/[^\w.-]/g, '_')
+// Un nom fait de points seuls (« .. ») remonterait d'un dossier : il est remplacé.
+const safe = (s: string): string => s.replace(/[^\w.-]/g, '_').replace(/^\.+$/, '_')
 const stamp = (t: number): string => new Date(t).toISOString().replace(/[:T]/g, '-').slice(0, 19)
 
 export class GameSaves {

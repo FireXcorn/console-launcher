@@ -18,6 +18,14 @@ const setup = () => {
 }
 
 describe('sauvegardes de jeu par profil', () => {
+  it('un identifiant de profil « .. » reste dans le rangement', () => {
+    const { base, live, saves, write } = setup()
+    write('slot', 'x')
+    saves.prepare('..', 'jeu', [live])
+    saves.prepare('autre', 'jeu', [live])
+    expect(existsSync(join(base, 'rangement', 'jeu', 'profils', '_'))).toBe(true)
+    expect(existsSync(join(base, 'rangement', 'jeu', '0'))).toBe(false)
+  })
   it('chaque profil retrouve sa partie, un nouveau profil repart de zéro', () => {
     const { live, saves, write, read } = setup()
     write('slot', 'partie de Ismail') // existait déjà avant la fonction
