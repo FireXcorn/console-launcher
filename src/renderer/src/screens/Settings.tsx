@@ -96,6 +96,19 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
   const [charactersDir, setCharactersDir] = useState(config.charactersDir)
   const [showAdvanced, setShowAdvanced] = useState(config.showAdvanced === true)
   useMoveSound(cat)
+  // La liste des catégories suit la sélection (manette comprise) : défilement explicite avec une marge.
+  useEffect(() => {
+    const nav = document.querySelector<HTMLElement>('.settings-nav')
+    const el = nav?.querySelector<HTMLElement>('.settings-cat.focused')
+    if (!nav || !el) return
+    const r = el.getBoundingClientRect()
+    const p = nav.getBoundingClientRect()
+    const margin = 40
+    if (r.bottom > p.bottom - margin) nav.scrollTop += r.bottom - p.bottom + margin
+    else if (r.top < p.top + margin) nav.scrollTop -= p.top - r.top + margin
+    if (cat === 0) nav.scrollTop = 0
+    else if (cat === CATEGORIES.length - 1) nav.scrollTop = nav.scrollHeight
+  }, [cat])
 
   const [backups, setBackups] = useState<BackupInfo[]>([])
   const [backupNote, setBackupNote] = useState('')
