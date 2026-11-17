@@ -11,4 +11,10 @@ describe('sites affichés dans le lanceur', () => {
     expect(hostAllowed('https://youtube.com.evil.org/', hosts)).toBe(false)
     expect(hostAllowed('pas une adresse', hosts)).toBe(false)
   })
+
+  it('« nom.* » accepte toutes les fins d’adresse d’un site qui déménage', () => {
+    const wild = ['anime-sama.*']
+    for (const u of ['https://anime-sama.to/', 'https://anime-sama.tv/x', 'https://www.anime-sama.fr/']) expect(hostAllowed(u, wild)).toBe(true)
+    for (const u of ['https://anime-sama.evil.com/', 'https://notanime-sama.to/', 'http://anime-sama.to/', 'https://anime-sama/']) expect(hostAllowed(u, wild)).toBe(false)
+  })
 })

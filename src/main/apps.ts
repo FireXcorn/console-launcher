@@ -34,6 +34,8 @@ export interface AppDef {
   fullscreen?: boolean
   /** Site affiché dans la fenêtre du lanceur (YouTube…) : rien à installer. */
   web?: { url: string; hosts: string[]; userAgent?: string }
+  /** Arguments du lancement ; `{profile}` devient un dossier de données réservé au lanceur (ses réglages restent à part). */
+  args?: string[]
 }
 
 export const APPS: AppDef[] = [
@@ -101,6 +103,40 @@ export const APPS: AppDef[] = [
       // L'interface « télévision » de YouTube se choisit par l'identité du navigateur.
       userAgent: 'Mozilla/5.0 (PlayStation; PlayStation 4/12.00) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Safari/605.1.15'
     }
+  },
+  {
+    id: 'animesama',
+    title: 'Anime-Sama',
+    description: 'Le site Anime-Sama, affiché dans le lanceur comme une application (sans barre de navigateur). Souris ou clavier conseillés.',
+    page: 'https://anime-sama.to/',
+    exe: '',
+    fileHint: '',
+    platforms: ['win32', 'linux'],
+    // shortcut: ce site change souvent d'adresse ; « anime-sama.* » accepte toutes les fins (.to, .tv, .fr…).
+    web: { url: 'https://anime-sama.to/', hosts: ['anime-sama.*'] }
+  },
+  {
+    id: 'firefox',
+    title: 'Firefox',
+    description: 'Le navigateur Firefox, ouvert en plein écran comme une application du lanceur. Ferme la fenêtre pour revenir.',
+    page: 'https://www.mozilla.org/firefox/new/',
+    exe: 'firefox.exe',
+    fileHint: '',
+    platforms: ['win32', 'linux'],
+    fullscreen: true,
+    // Une instance à part, avec son propre profil : sa fenêtre est celle du lanceur, et la fermer la termine.
+    args: ['-no-remote', '-profile', '{profile}'],
+    system: {
+      win32: ['%PROGRAMFILES%\\Mozilla Firefox\\firefox.exe', '%PROGRAMFILES(X86)%\\Mozilla Firefox\\firefox.exe', '%LOCALAPPDATA%\\Mozilla Firefox\\firefox.exe'],
+      linux: ['/usr/bin/firefox', '/snap/bin/firefox', '/var/lib/flatpak/exports/bin/org.mozilla.firefox', '~/.local/share/flatpak/exports/bin/org.mozilla.firefox']
+    },
+    install: {
+      win32: [{ file: 'winget', args: ['install', '--id', 'Mozilla.Firefox', '-e', '--silent', '--accept-package-agreements', '--accept-source-agreements'] }],
+      linux: [
+        { file: 'flatpak', args: ['remote-add', '--user', '--if-not-exists', 'flathub', 'https://dl.flathub.org/repo/flathub.flatpakrepo'] },
+        { file: 'flatpak', args: ['install', '--user', '-y', 'flathub', 'org.mozilla.firefox'] }
+      ]
+    }
   }
 ]
 
@@ -131,6 +167,8 @@ export function systemExe(app: AppDef, platform: NodeJS.Platform = process.platf
     const p = raw
       .replace(/%APPDATA%/gi, process.env.APPDATA ?? '')
       .replace(/%LOCALAPPDATA%/gi, process.env.LOCALAPPDATA ?? '')
+      .replace(/%PROGRAMFILES%/gi, process.env.ProgramFiles ?? '')
+      .replace(/%PROGRAMFILES\(X86\)%/gi, process.env['ProgramFiles(x86)'] ?? '')
       .replace(/^~/, homedir())
     try {
       lstatSync(p)

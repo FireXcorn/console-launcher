@@ -58,7 +58,11 @@ export interface WebAppOptions {
 export function hostAllowed(url: string, hosts: string[]): boolean {
   try {
     const u = new URL(url)
-    return u.protocol === 'https:' && hosts.some((h) => u.hostname === h || u.hostname.endsWith('.' + h))
+    if (u.protocol !== 'https:') return false
+    // « nom.* » : ce nom avec n'importe quelle fin (.to, .tv, .fr…), pour un site qui change d'adresse.
+    const wild = (h: string): boolean =>
+      h.endsWith('.*') && new RegExp('^(.+\\.)?' + h.slice(0, -2).replace(/[.]/g, '\\.') + '\\.[a-z]{2,}$').test(u.hostname)
+    return hosts.some((h) => u.hostname === h || u.hostname.endsWith('.' + h) || wild(h))
   } catch {
     return false
   }
@@ -95,9 +99,11 @@ export class WebApp {
       // Aucune permission (caméra, micro, position, notifications…) pour un site affiché ici.
       wc.session.setPermissionRequestHandler((_wc, _perm, done) => done(false))
       wc.setWindowOpenHandler(() => ({ action: 'deny' }))
-      wc.on('will-navigate', (e, url) => {
+      const guard = (e: { preventDefault: () => void }, url: string): void => {
         if (!hostAllowed(url, opts.hosts)) e.preventDefault()
-      })
+      }
+      wc.on('will-navigate', guard)
+      wc.on('will-redirect', guard)
       this.view = view
       win.contentView.addChildView(view)
       this.fit = (): void => {

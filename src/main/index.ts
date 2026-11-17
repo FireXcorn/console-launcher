@@ -888,8 +888,11 @@ function registerIpc(): void {
       if (launcher.isRunning) return null
       const cover = coverOf(def.title)
       const iconPng = cover ? await squareIconPng(cover) : null
+      const profile = join(app.getPath('userData'), 'apps', def.id + '-profil')
+      if (def.args?.some((a) => a.includes('{profile}'))) mkdirSync(profile, { recursive: true })
+      const args = (def.args ?? []).map((a) => a.split('{profile}').join(profile))
       launcher.launch(
-        { id: 'app:' + def.id, title: def.title, dir: dirname(exe), exe: basename(exe), exePath: exe, args: [], iconPath: cover, lastPlayed: 0, app: true },
+        { id: 'app:' + def.id, title: def.title, dir: dirname(exe), exe: basename(exe), exePath: exe, args, iconPath: cover, lastPlayed: 0, app: true },
         iconPng
       )
       return null
