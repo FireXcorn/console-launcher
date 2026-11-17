@@ -245,6 +245,11 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
       if (!next && d < 0) return focusBack()
       next?.focus()
       next?.scrollIntoView({ block: 'nearest' })
+      // Aux deux bouts, on va jusqu'au bout du panneau pour voir aussi le texte qui entoure le premier/dernier réglage.
+      if (next && pane) {
+        if (next === fields[fields.length - 1]) pane.scrollTo({ top: pane.scrollHeight })
+        else if (next === fields[0]) pane.scrollTo({ top: 0 })
+      }
     }
     if (action === 'back') {
       if (inPane) active!.blur()
@@ -665,6 +670,7 @@ export default function SettingsScreen({ config, games, art, onSave, onRescan, o
   return (
     <Screen
       title="Paramètres de la console"
+      hideStatus
       onBack={() => void leave()}
       hints={[
         { key: 'A', label: 'Ouvrir' },

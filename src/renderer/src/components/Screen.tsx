@@ -15,6 +15,8 @@ interface Props {
   onBack: () => void
   /** Image de fond derrière le contenu (ex. fond du jeu sélectionné). */
   backdrop?: ReactNode
+  /** Masque l'heure, le Wi-Fi et la batterie. */
+  hideStatus?: boolean
   children: ReactNode
 }
 
@@ -35,7 +37,7 @@ export function backNav(action: string): boolean {
 }
 
 /** Cadre commun des écrans : titre, contenu défilant et rappel des touches. */
-export default function Screen({ title, hints = [], onBack, backdrop, children }: Props): JSX.Element {
+export default function Screen({ title, hints = [], onBack, backdrop, hideStatus, children }: Props): JSX.Element {
   return (
     <div className="screen">
       {backdrop}
@@ -53,9 +55,11 @@ export default function Screen({ title, hints = [], onBack, backdrop, children }
           </svg>
         </button>
         <h1>{title}</h1>
-        <div className="screen-status">
-          <StatusCluster />
-        </div>
+        {!hideStatus && (
+          <div className="screen-status">
+            <StatusCluster />
+          </div>
+        )}
       </header>
       <div className="screen-body">{children}</div>
       <footer className="screen-foot">
