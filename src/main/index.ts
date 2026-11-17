@@ -419,6 +419,15 @@ function portableRomsDir(): string {
 
 const romsFolder = (cfg: Config): string => portableRomsDir() || cfg.romsDir
 
+/** Ajout de jeux (sélecteur ou glisser-déposer) : signale les titres déjà pris et les émulateurs manquants. */
+function addRomFiles(files: string[]): ReturnType<typeof addRoms> {
+  const cfg = store.get()
+  return addRoms(romsFolder(cfg), files, {
+    takenTitles: cfg.emulated.map((e) => e.title),
+    hasEmulator: (id) => bundledEmulatorPath(id) !== undefined
+  })
+}
+
 /** Jeux déposés dans le dossier des jeux ; un jeu ajouté à la main sous le même titre garde la priorité. */
 function withRoms(cfg: Config): Config {
   const own = new Set(cfg.emulated.map((e) => emulatedId(e.title)))
@@ -1002,13 +1011,10 @@ function registerIpc(): void {
       properties: ['openFile', 'multiSelections'],
       filters: [{ name: 'Jeux Game Boy, GBA, DS, 3DS', extensions: ROM_EXTENSIONS }]
     })
-    return r.canceled ? null : addRoms(romsFolder(store.get()), r.filePaths)
+    return r.canceled ? null : addRomFiles(r.filePaths)
   })
   ipcMain.handle('roms:addFiles', (_e, files: unknown) =>
-    addRoms(
-      romsFolder(store.get()),
-      Array.isArray(files) ? files.filter((f): f is string => typeof f === 'string').slice(0, 200) : []
-    )
+    addRomFiles(Array.isArray(files) ? files.filter((f): f is string => typeof f === 'string').slice(0, 200) : [])
   )
   ipcMain.handle('emulators:bundled', () => {
     const found: Record<string, string> = {}
