@@ -6,6 +6,11 @@ const api: Api = {
   setConfig: (patch) => ipcRenderer.invoke('config:set', patch),
   scan: () => ipcRenderer.invoke('library:scan'),
   launch: (id) => ipcRenderer.invoke('game:launch', id),
+  onWebAppState: (cb) => {
+    const listener = (_e: IpcRendererEvent, open: boolean): void => cb(open)
+    ipcRenderer.on('webapp:state', listener)
+    return () => ipcRenderer.removeListener('webapp:state', listener)
+  },
   onGameState: (cb) => {
     const listener = (_e: IpcRendererEvent, state: GameState): void => cb(state)
     ipcRenderer.on('game:state', listener)

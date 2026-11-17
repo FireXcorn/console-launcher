@@ -320,6 +320,8 @@ export interface Api {
   scan(): Promise<Game[]>
   launch(id: string): Promise<void>
   onGameState(cb: (state: GameState) => void): () => void
+  /** Un site (YouTube) s'ouvre (true) ou se ferme (false) dans le lanceur. */
+  onWebAppState(cb: (open: boolean) => void): () => void
   pickFolder(): Promise<string | null>
   /** Ouvre le dossier des jeux dans l'explorateur de fichiers (le crée au besoin) et donne son chemin. */
   openRomsFolder(): Promise<string>

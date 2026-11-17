@@ -15,6 +15,7 @@ import {
 import { execFile, spawn } from 'child_process'
 import { findSaveFile } from './savefile'
 import { mediaCommand } from './media'
+import { WebApp } from './webapp'
 import { addSaveGlobs, azaharSdmc, pkvaultSettingsFile, saveGlobs } from './pkvault'
 import { APPS, appInfo, appsRoot, installApp, installAutomatically, launchPath, removeApp, startDetached } from './apps'
 import { HomeView } from './homeview'
@@ -427,6 +428,12 @@ function withRoms(cfg: Config): Config {
 
 /** Windows : Pokémon Home (écran Applis) s'affiche dans la fenêtre du lanceur ; ailleurs, il s'ouvre à part. */
 const homeView = new HomeView(() => win, log)
+/** Sites affichés dans le lanceur (YouTube) : le son de menu se coupe pendant ce temps. */
+const webApp = new WebApp(
+  () => win,
+  log,
+  (open) => win?.webContents.send('webapp:state', open)
+)
 
 const recipePaths = (): RecipePaths => ({ toolsDir: bundledDir('tools'), outRoot: join(app.getPath('userData'), 'games') })
 
@@ -852,6 +859,7 @@ function registerIpc(): void {
   ipcMain.handle('apps:open', async (_e, id: unknown) => {
     const def = APPS.find((a) => a.id === id)
     if (!def) return 'Application inconnue.'
+    if (def.web) return webApp.open({ ...def.web, partition: 'persist:webapp-' + def.id, swapConfirm: store.get().swapConfirm })
     let exe: string | null
     try {
       exe = launchPath(def, appsRoot(app.getPath('userData')), bundledDir('emulators'))
@@ -1157,6 +1165,7 @@ if (!app.requestSingleInstanceLock()) {
 
   app.on('will-quit', () => {
     homeView.close()
+    webApp.close()
     globalShortcut.unregisterAll()
     try {
       autoBackup(join(app.getPath('userData'), 'backups'), store.get())

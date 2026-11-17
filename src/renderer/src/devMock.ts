@@ -146,6 +146,7 @@ export function installDevMock(): void {
     scan: async () => games,
     launch: async (id) => console.info('[mock] lancement', id),
     onGameState: () => () => {},
+    onWebAppState: () => () => {},
     pickFolder: async () => null,
     openRomsFolder: async () => config.romsDir,
     addRoms: async () => ({ added: ['Pokémon Platine'], skipped: [] }),

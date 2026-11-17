@@ -130,6 +130,17 @@ export default function App(): JSX.Element | null {
     return list
   }, [])
 
+  // Un site (YouTube) ouvert dans le lanceur : la musique de menu se tait, puis revient à sa fermeture.
+  useEffect(
+    () =>
+      window.api.onWebAppState((open) => {
+        window.clearTimeout(resumeTimer.current)
+        if (open) engine.setSuspended(true)
+        else resumeTimer.current = window.setTimeout(() => engine.setSuspended(false), RESUME_AUDIO_DELAY_MS)
+      }),
+    []
+  )
+
   useEffect(() => {
     window.api.getConfig().then(setConfig)
     rescan()

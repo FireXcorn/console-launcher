@@ -32,6 +32,8 @@ export interface AppDef {
   shellApp?: Partial<Record<NodeJS.Platform, string>>
   /** Ouverte en plein écran sans bordure par-dessus le lanceur, comme un jeu (Windows). */
   fullscreen?: boolean
+  /** Site affiché dans la fenêtre du lanceur (YouTube…) : rien à installer. */
+  web?: { url: string; hosts: string[]; userAgent?: string }
 }
 
 export const APPS: AppDef[] = [
@@ -83,6 +85,21 @@ export const APPS: AppDef[] = [
     system: { win32: ['%LOCALAPPDATA%\\Microsoft\\WindowsApps\\AppleMusic.exe'] },
     install: {
       win32: [{ file: 'winget', args: ['install', '--id', '9PFHDD62MXS1', '--source', 'msstore', '--accept-package-agreements', '--accept-source-agreements'] }]
+    }
+  },
+  {
+    id: 'youtube',
+    title: 'YouTube',
+    description: 'YouTube dans le lanceur, en interface télévision, à la manette. Connexion avec un code depuis ton téléphone.',
+    page: 'https://www.youtube.com/tv',
+    exe: '',
+    fileHint: '',
+    platforms: ['win32', 'linux'],
+    web: {
+      url: 'https://www.youtube.com/tv',
+      hosts: ['youtube.com', 'google.com', 'gstatic.com'],
+      // L'interface « télévision » de YouTube se choisit par l'identité du navigateur.
+      userAgent: 'Mozilla/5.0 (PlayStation; PlayStation 4/12.00) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Safari/605.1.15'
     }
   }
 ]
@@ -170,7 +187,7 @@ export function appInfo(app: AppDef, root: string, bundledRoot = ''): AppInfo {
     description: app.description,
     fileHint: app.fileHint,
     supported,
-    installed: bundled || exePath !== null || (supported && systemExe(app) !== null),
+    installed: bundled || exePath !== null || (supported && (app.web !== undefined || systemExe(app) !== null)),
     bundled,
     external: app.system !== undefined,
     canInstall: app.install?.[process.platform] !== undefined,
