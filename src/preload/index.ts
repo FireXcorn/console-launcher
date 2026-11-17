@@ -51,6 +51,7 @@ const api: Api = {
   createBackup: () => ipcRenderer.invoke('backups:create'),
   restoreBackup: (name) => ipcRenderer.invoke('backups:restore', name),
   exportBackup: () => ipcRenderer.invoke('backups:export'),
+  extractSave: (id) => ipcRenderer.invoke('game:extractSave', id),
   importBackup: () => ipcRenderer.invoke('backups:import'),
   openBackupFolder: () => ipcRenderer.invoke('backups:folder'),
   listApps: () => ipcRenderer.invoke('apps:list'),

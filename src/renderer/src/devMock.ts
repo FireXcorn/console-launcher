@@ -221,6 +221,7 @@ export function installDevMock(): void {
     createBackup: async () => mockBackups,
     restoreBackup: async () => true,
     exportBackup: async () => null,
+    extractSave: async () => ({ ok: false, message: 'Aucune sauvegarde trouvée (aperçu).' }),
     importBackup: async () => false,
     openBackupFolder: async () => undefined,
     runRecipeSetup: async () => true,

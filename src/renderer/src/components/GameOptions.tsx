@@ -17,6 +17,7 @@ export default function GameOptions({ game, config, onChange, onClose }: Props):
   const [title, setTitle] = useState(override.title ?? game.title)
   const [index, setIndex] = useState(0)
   const [confirmRemove, setConfirmRemove] = useState(false)
+  const [note, setNote] = useState('')
   const titleRef = useRef<HTMLInputElement>(null)
   useMoveSound(index)
 
@@ -37,6 +38,7 @@ export default function GameOptions({ game, config, onChange, onClose }: Props):
     { id: 'title', label: 'Renommer' },
     { id: 'cover', label: 'Choisir une jaquette…' },
     ...(override.icon ? [{ id: 'clear', label: 'Retirer ma jaquette' }] : []),
+    ...(game.emulated ? [{ id: 'extract', label: 'Extraire la sauvegarde…' }] : []),
     ...(game.emulated ? [{ id: 'remove', label: 'Retirer ce jeu de la bibliothèque' }] : []),
     { id: 'close', label: 'Fermer' }
   ]
@@ -45,6 +47,7 @@ export default function GameOptions({ game, config, onChange, onClose }: Props):
     if (id === 'title') titleRef.current?.focus()
     else if (id === 'cover') void pickCover()
     else if (id === 'clear') clearCover()
+    else if (id === 'extract') void window.api.extractSave(game.id).then((r) => r.message && setNote(r.message))
     else if (id === 'remove') setConfirmRemove(true)
     else onClose()
   }
@@ -90,6 +93,7 @@ export default function GameOptions({ game, config, onChange, onClose }: Props):
               </li>
             ))}
           </ul>
+          {note && <p className="panel-sub">{note}</p>}
         </div>
       </div>
 

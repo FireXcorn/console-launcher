@@ -356,6 +356,8 @@ export interface Api {
   restoreBackup(name: string): Promise<boolean>
   /** Enregistre la sauvegarde du jour dans un fichier choisi ; renvoie le chemin, ou null si annulé. */
   exportBackup(): Promise<string | null>
+  /** Copie la sauvegarde d'un jeu émulé dans un fichier choisi par l'utilisateur. `message` est vide si l'action est annulée. */
+  extractSave(id: string): Promise<{ ok: boolean; message: string }>
   /** Restaure depuis un fichier choisi ; renvoie faux s'il est annulé ou illisible. */
   importBackup(): Promise<boolean>
   /** Ouvre le dossier des sauvegardes. */

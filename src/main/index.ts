@@ -13,11 +13,12 @@ import {
   shell
 } from 'electron'
 import { execFile, spawn } from 'child_process'
+import { findSaveFile } from './savefile'
 import { addSaveGlobs, azaharSdmc, pkvaultSettingsFile, saveGlobs } from './pkvault'
 import { APPS, appInfo, appsRoot, installApp, launchPath, removeApp, startDetached } from './apps'
 import { HomeView } from './homeview'
 import { extractIcons } from './appicon'
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'fs'
 import { mkdir, writeFile } from 'fs/promises'
 import { basename, dirname, extname, join } from 'path'
 import { homedir } from 'os'
@@ -751,6 +752,24 @@ function registerIpc(): void {
   ipcMain.handle('library:scan', () => scan())
   ipcMain.handle('library:findPrograms', (_e, dir: unknown) => (typeof dir === 'string' ? findPrograms(dir) : []))
   ipcMain.handle('game:stop', () => launcher.stop())
+  // « Extraire la sauvegarde » : la source est trouvée ici, seule la destination vient de l'utilisateur.
+  ipcMain.handle('game:extractSave', async (_e, id: unknown) => {
+    const game = typeof id === 'string' ? games.find((g) => g.id === id) : undefined
+    if (!game?.emulated) return { ok: false, message: 'Ce jeu n’a pas de sauvegarde à extraire.' }
+    const rom = game.args.find((a) => ROM_EXTENSIONS.includes(extname(a).slice(1).toLowerCase()) && existsSync(a))
+    const save = rom ? findSaveFile(rom, azaharSdmc(homedir())) : null
+    if (!save) return { ok: false, message: 'Aucune sauvegarde trouvée : lance le jeu, sauvegarde dans le jeu, puis réessaie.' }
+    const name = game.title.replace(/[\\/:*?"<>|]/g, ' ').trim() || 'sauvegarde'
+    const r = await dialog.showSaveDialog(win!, { defaultPath: join(app.getPath('documents'), name + extname(save)) })
+    if (r.canceled || !r.filePath) return { ok: false, message: '' }
+    try {
+      copyFileSync(save, r.filePath)
+      log('sauvegarde extraite', game.title, r.filePath)
+      return { ok: true, message: `Sauvegarde copiée : ${r.filePath}` }
+    } catch (err) {
+      return { ok: false, message: 'Copie impossible : ' + (err instanceof Error ? err.message : String(err)) }
+    }
+  })
   // Sauvegardes des joueurs : profils, temps de jeu, dernières parties.
   const backupsDir = (): string => join(app.getPath('userData'), 'backups')
   const restoreFrom = (text: string): boolean => {
