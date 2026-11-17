@@ -1,0 +1,16 @@
+TU NE TROUVES PAS LE FICHIER .EXE ?
+
+Ce dossier contient seulement le CODE du projet (« Source code »). Le programme n'est pas dedans.
+
+Pour avoir le programme :
+
+1. Va sur cette page :
+   https://github.com/FireXcorn/console-launcher/releases/latest
+
+2. Dans la liste « Assets », telecharge :
+   - Windows : Console-Launcher-Windows.zip
+   - Ubuntu (Linux) : Console-Launcher-Linux.tar.gz
+   (ne prends PAS « Source code »)
+
+3. Fais un clic droit sur le zip > « Extraire tout… », puis ouvre le dossier
+   « Console Launcher » et double-clique sur « Console Launcher.exe ».
