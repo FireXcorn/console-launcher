@@ -1,4 +1,4 @@
-import { chmodSync, closeSync, copyFileSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, rmSync, statSync } from 'fs'
+import { chmodSync, lstatSync, closeSync, copyFileSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, rmSync, statSync } from 'fs'
 import { homedir } from 'os'
 import { basename, dirname, extname, join } from 'path'
 import { execFile, spawn } from 'child_process'
@@ -21,6 +21,11 @@ export interface AppDef {
   bundled?: Partial<Record<NodeJS.Platform, string>>
   /** Phrase affichée une fois l'application prête (ex. où sont les sauvegardes à lui indiquer). */
   note?: (home: string) => string
+  /**
+   * Application déjà installée sur l'ordinateur (pas livrée par le lanceur) : emplacements habituels de son programme,
+   * par système. `%APPDATA%`, `%LOCALAPPDATA%` et `~` sont remplacés.
+   */
+  system?: Partial<Record<NodeJS.Platform, string[]>>
 }
 
 export const APPS: AppDef[] = [
@@ -36,8 +41,39 @@ export const APPS: AppDef[] = [
     bundled: { win32: 'pkvault/PKVault.exe', linux: 'pkvault.AppImage' },
     // shortcut: chemins Azahar « standard » ; à revoir si Azahar est portable ou installé en Flatpak.
     note: (home) => `Jeux 3DS : les sauvegardes d’Azahar (${azaharSdmc(home)}) sont reconnues dès le premier lancement d’un jeu 3DS.`
+  },
+  {
+    id: 'spotify',
+    title: 'Spotify',
+    description: 'Ta musique Spotify. Ouvre l’application Spotify déjà installée sur ton ordinateur.',
+    page: 'https://www.spotify.com/download/',
+    exe: 'Spotify.exe',
+    fileHint: '',
+    platforms: ['win32', 'linux'],
+    // shortcut: emplacements habituels (installateur classique, Microsoft Store, paquets Linux) ; à compléter si Spotify est ailleurs.
+    system: {
+      win32: ['%APPDATA%\\Spotify\\Spotify.exe', '%LOCALAPPDATA%\\Microsoft\\WindowsApps\\Spotify.exe'],
+      linux: ['/usr/bin/spotify', '/snap/bin/spotify', '/var/lib/flatpak/exports/bin/com.spotify.Client', '~/.local/share/flatpak/exports/bin/com.spotify.Client']
+    }
   }
 ]
+
+/** Programme d'une application déjà installée sur l'ordinateur, ou null. (Un alias du Microsoft Store n'est pas un fichier ordinaire : on teste avec lstat.) */
+export function systemExe(app: AppDef, platform: NodeJS.Platform = process.platform): string | null {
+  for (const raw of app.system?.[platform] ?? []) {
+    const p = raw
+      .replace(/%APPDATA%/gi, process.env.APPDATA ?? '')
+      .replace(/%LOCALAPPDATA%/gi, process.env.LOCALAPPDATA ?? '')
+      .replace(/^~/, homedir())
+    try {
+      lstatSync(p)
+      return p
+    } catch {
+      // absent à cet endroit : on essaie le suivant
+    }
+  }
+  return null
+}
 
 export const appsRoot = (userData: string): string => join(userData, 'apps')
 
@@ -84,8 +120,9 @@ export function appInfo(app: AppDef, root: string, bundledRoot = ''): AppInfo {
     description: app.description,
     fileHint: app.fileHint,
     supported,
-    installed: bundled || exePath !== null,
+    installed: bundled || exePath !== null || (supported && systemExe(app) !== null),
     bundled,
+    external: app.system !== undefined,
     note: supported ? app.note?.(homedir()) : undefined
   }
 }
@@ -93,7 +130,7 @@ export function appInfo(app: AppDef, root: string, bundledRoot = ''): AppInfo {
 /** Chemin du programme à lancer. Le programme livré est copié hors du lanceur (lecture seule) et rendu exécutable. */
 export function launchPath(app: AppDef, root: string, bundledRoot = ''): string | null {
   const src = bundledExe(app, bundledRoot)
-  if (!src) return findExe(join(root, app.id), app.exe)
+  if (!src) return findExe(join(root, app.id), app.exe) ?? systemExe(app)
   const dest = join(root, app.id, basename(src))
   if (!existsSync(dest) || statSync(dest).size !== statSync(src).size) {
     mkdirSync(join(root, app.id), { recursive: true })
@@ -205,7 +242,13 @@ export async function startDetached(exe: string, log: string, waitMs = 4000): Pr
         resolve(`Le programme s’est arrêté (${why}).${tail ? ' ' + tail : ''}`)
       }
       child.once('error', (e) => fail(e.message))
-      child.once('exit', (code, signal) => fail(signal ?? `code ${code}`))
+      // Un lanceur qui se termine sans erreur (code 0) a simplement passé la main à l'application : c'est un succès.
+      child.once('exit', (code, signal) => {
+        if (code === 0) {
+          clearTimeout(timer)
+          resolve(null)
+        } else fail(signal ?? `code ${code}`)
+      })
     })
   } finally {
     closeSync(fd)

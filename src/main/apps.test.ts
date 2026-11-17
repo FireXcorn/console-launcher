@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync, existsSync, statSync } from 'fs'
 import { tmpdir } from 'os'
 import { basename, join } from 'path'
 import { describe, expect, it } from 'vitest'
-import { APPS, type AppDef, appInfo, findExe, installApp, launchPath, removeApp, startDetached } from './apps'
+import { APPS, type AppDef, appInfo, findExe, installApp, launchPath, removeApp, startDetached, systemExe } from './apps'
 
 // Application factice : le chemin « téléchargé puis choisi » reste testé même si toutes les applis réelles sont livrées.
 const pkhex: AppDef = {
@@ -56,5 +56,16 @@ describe('applis', () => {
     const dir = mkdtempSync(join(tmpdir(), 'applis-'))
     const why = await startDetached(join(dir, 'absent.exe'), join(dir, 'x.log'), 1500)
     expect(why).toMatch(/s’est arrêté/)
+  })
+
+  it('une application déjà installée sur l’ordinateur est trouvée, sinon elle est proposée à l’installation', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'sys-'))
+    const exe = join(dir, 'Spotify.exe')
+    const spotify: AppDef = { ...pkhex, id: 'spotify', system: { win32: [join(dir, 'absent.exe'), exe] } }
+    expect(systemExe(spotify, 'win32')).toBeNull()
+    expect(appInfo(spotify, dir).installed).toBe(false)
+    writeFileSync(exe, 'x')
+    expect(systemExe(spotify, 'win32')).toBe(exe)
+    expect(systemExe(spotify, 'linux')).toBeNull()
   })
 })

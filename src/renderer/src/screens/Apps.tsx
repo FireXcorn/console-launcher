@@ -74,11 +74,13 @@ export default function AppsScreen({ onBack }: { onBack: () => void }): JSX.Elem
         {current?.supported && !current.installed && (
           <div className="field-row">
             <button className="primary" onClick={() => void window.api.openAppPage(current.id)}>
-              1. Ouvrir la page de téléchargement
+              {current.external ? `Installer ${current.title}` : '1. Ouvrir la page de téléchargement'}
             </button>
-            <button disabled={busy} onClick={() => void install(current)}>
-              2. Choisir {current.fileHint}…
-            </button>
+            {!current.external && (
+              <button disabled={busy} onClick={() => void install(current)}>
+                2. Choisir {current.fileHint}…
+              </button>
+            )}
           </div>
         )}
         {message && <p className="settings-note">{message}</p>}

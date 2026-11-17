@@ -129,6 +129,8 @@ export interface AppInfo {
   icon?: string | null
   /** Livrée avec le lanceur : rien à télécharger, ni à retirer. */
   bundled?: boolean
+  /** Application installée à part sur l'ordinateur (ex. Spotify) : le lanceur ne fait que l'ouvrir. */
+  external?: boolean
   /** Précision affichée sous la description (ex. dossier de sauvegardes à indiquer). */
   note?: string
 }
