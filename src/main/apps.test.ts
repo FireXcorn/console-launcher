@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync, existsSync, statSync } from 'fs'
 import { tmpdir } from 'os'
 import { basename, join } from 'path'
 import { describe, expect, it } from 'vitest'
-import { APPS, type AppDef, appInfo, findExe, installApp, launchPath, removeApp } from './apps'
+import { APPS, type AppDef, appInfo, findExe, installApp, launchPath, removeApp, startDetached } from './apps'
 
 // Application factice : le chemin « téléchargé puis choisi » reste testé même si toutes les applis réelles sont livrées.
 const pkhex: AppDef = {
@@ -50,5 +50,11 @@ describe('applis', () => {
     expect(appInfo(pkhex, root).installed).toBe(true)
     removeApp(pkhex, root)
     expect(existsSync(join(root, 'pkhex'))).toBe(false)
+  })
+
+  it('un programme qui ne démarre pas renvoie une raison au lieu de se taire',async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'applis-'))
+    const why = await startDetached(join(dir, 'absent.exe'), join(dir, 'x.log'), 1500)
+    expect(why).toMatch(/s’est arrêté/)
   })
 })

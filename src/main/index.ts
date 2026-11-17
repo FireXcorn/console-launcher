@@ -13,7 +13,7 @@ import {
   shell
 } from 'electron'
 import { execFile, spawn } from 'child_process'
-import { APPS, appInfo, appsRoot, installApp, launchPath, removeApp } from './apps'
+import { APPS, appInfo, appsRoot, installApp, launchPath, removeApp, startDetached } from './apps'
 import { HomeView } from './homeview'
 import { extractIcons } from './appicon'
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'fs'
@@ -815,8 +815,7 @@ function registerIpc(): void {
     }
     if (!exe) return 'Application non installée.'
     if (process.platform === 'win32' && def.id === 'pkvault') return homeView.open(exe)
-    spawn(exe, [], { cwd: dirname(exe), detached: true, stdio: 'ignore' }).unref()
-    return null
+    return startDetached(exe, join(app.getPath('userData'), 'apps', def.id + '.log'))
   })
   ipcMain.handle('apps:remove', (_e, id: unknown) => {
     const def = APPS.find((a) => a.id === id)

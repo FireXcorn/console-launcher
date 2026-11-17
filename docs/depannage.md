@@ -38,6 +38,16 @@
 | Le lanceur a dit que `config.json` était illisible | Rien n'est perdu : le fichier abîmé est gardé à côté (`config.json.casse-…`) et la dernière copie de secours (`config.json.bak`) est reprise si elle est valide. Le journal `launcher.log` le précise. |
 | Mes réglages sont revenus à zéro après avoir modifié `config.json` à la main | Le fichier doit rester du JSON valide (une virgule oubliée suffit à le rendre illisible : dans ce cas, voir la ligne précédente). Ferme le **lanceur** avant de le modifier, sinon il réécrit ses réglages à sa fermeture. Le caractère invisible (BOM) ajouté par certains éditeurs est maintenant accepté. |
 
+## Linux : Pokémon Home ne s'ouvre pas
+
+Pokémon Home (PKVault) affiche sa fenêtre avec WebKitGTK, qu'Ubuntu n'installe pas toujours. Le lanceur le détecte et affiche la commande à taper. Dans un terminal :
+
+```
+sudo apt install libwebkit2gtk-4.1-0
+```
+
+Puis rouvre Pokémon Home dans « Applis ». Si ça ne marche toujours pas, la raison est écrite dans `apps/pkvault.log`, dans le dossier de données du lanceur.
+
 ## Le journal
 
 Le fichier `launcher.log`, dans le dossier de données du lanceur, indique ce qui s'est passé : analyse de la bibliothèque, lancements, détection des émulateurs, erreurs. Joins-le (sans informations personnelles) quand tu ouvres un ticket.
