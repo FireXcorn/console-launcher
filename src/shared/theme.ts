@@ -123,7 +123,8 @@ export const BUILTIN_THEMES: Theme[] = [
   }),
   base('verre-liquide-sombre', 'Verre liquide sombre', {
     base: 'dark',
-    colors: { bg: '#2c2a6b', surface: '#3d3b86', slot: '#35337a', bar: '#3d3b86', icon: '#eaf2ff', text: '#f6f9ff', accent: '#9bb8ff' },
+    // Gris du thème « Sombre » d'origine (plus de bleu nuit).
+    colors: { bg: '#2b2b2b', surface: '#3a3a3a', slot: '#343434', bar: '#383838', icon: '#cfcfcf', text: '#f4f4f4', accent: '#5aa2ff' },
     tileRadius: 2,
     dockStyle: 'floating',
     cursor: 'iridescent',
