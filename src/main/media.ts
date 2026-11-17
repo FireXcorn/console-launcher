@@ -76,9 +76,9 @@ export function parseWindowsMedia(out: string): MediaState {
 const gdbus = (args: string[]): Promise<string> =>
   new Promise((resolve) => execFile('gdbus', ['call', '--session', ...args], { timeout: 4000 }, (err, out) => resolve(err ? '' : String(out))))
 
-/** Premier lecteur MPRIS (Linux) de la liste des services du bus de session. */
+/** Spotify (Linux) parmi les services du bus de session : pas le navigateur ni un autre lecteur, comme sous Windows. */
 export function pickMprisPlayer(names: string): string | null {
-  return /org\.mpris\.MediaPlayer2\.[\w.-]+/.exec(names)?.[0] ?? null
+  return /org\.mpris\.MediaPlayer2\.spotify[\w.-]*/i.exec(names)?.[0] ?? null
 }
 
 /** Lit « Playing » et les champs `xesam:title` / `xesam:artist` des réponses `gdbus`. */
