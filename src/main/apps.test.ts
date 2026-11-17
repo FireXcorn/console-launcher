@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync, existsSync, statSync } from 'fs'
 import { tmpdir } from 'os'
 import { basename, join } from 'path'
 import { describe, expect, it } from 'vitest'
-import { APPS, type AppDef, appInfo, findExe, installApp, launchPath, removeApp, startDetached, systemExe } from './apps'
+import { APPS, type AppDef, appInfo, findExe, installApp, launchPath, installAutomatically, removeApp, startDetached, systemExe } from './apps'
 
 // Application factice : le chemin « téléchargé puis choisi » reste testé même si toutes les applis réelles sont livrées.
 const pkhex: AppDef = {
@@ -67,5 +67,12 @@ describe('applis', () => {
     writeFileSync(exe, 'x')
     expect(systemExe(spotify, 'win32')).toBe(exe)
     expect(systemExe(spotify, 'linux')).toBeNull()
+  })
+
+  it('Apple Music : Windows seulement, installé par winget ; une installation impossible sur ce système le dit', async () => {
+    const music = APPS.find((a) => a.id === 'applemusic')!
+    expect(music.platforms).toEqual(['win32'])
+    expect(music.install?.win32?.[0]).toMatchObject({ file: 'winget' })
+    expect(await installAutomatically(music, 'linux')).toMatch(/impossible/)
   })
 })

@@ -131,6 +131,12 @@ export interface AppInfo {
   bundled?: boolean
   /** Application installée à part sur l'ordinateur (ex. Spotify) : le lanceur ne fait que l'ouvrir. */
   external?: boolean
+  /** Le lanceur sait l'installer tout seul (en arrière-plan). */
+  canInstall?: boolean
+  /** Installation en cours en arrière-plan. */
+  installing?: boolean
+  /** Raison du dernier échec d'installation. */
+  installError?: string
   /** Précision affichée sous la description (ex. dossier de sauvegardes à indiquer). */
   note?: string
 }
@@ -341,6 +347,8 @@ export interface Api {
   openAppPage(id: string): Promise<void>
   /** Installe l'application depuis le fichier téléchargé ; renvoie un message d'erreur, ou null si tout va bien. */
   installApp(id: string, file: string): Promise<string | null>
+  /** Lance l'installation automatique (en arrière-plan) d'une application ; l'état se lit ensuite dans `listApps`. */
+  installAppAuto(id: string): Promise<void>
   /** Lance l'application installée ; renvoie un message d'erreur, ou null. */
   openApp(id: string): Promise<string | null>
   /** Retire l'application installée. */

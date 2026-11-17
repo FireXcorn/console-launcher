@@ -15,7 +15,7 @@ import {
 import { execFile, spawn } from 'child_process'
 import { findSaveFile } from './savefile'
 import { addSaveGlobs, azaharSdmc, pkvaultSettingsFile, saveGlobs } from './pkvault'
-import { APPS, appInfo, appsRoot, installApp, launchPath, removeApp, startDetached } from './apps'
+import { APPS, appInfo, appsRoot, installApp, installAutomatically, launchPath, removeApp, startDetached } from './apps'
 import { HomeView } from './homeview'
 import { extractIcons } from './appicon'
 import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'fs'
@@ -809,14 +809,33 @@ function registerIpc(): void {
     await shell.openPath(backupsDir())
   })
   ipcMain.handle('apps:list', () =>
-    APPS.map((a) => {
+    APPS.filter((a) => a.platforms.includes(process.platform)).map((a) => {
       const cover = coverOf(a.title)
-      return { ...appInfo(a, appsRoot(app.getPath('userData')), bundledDir('emulators')), icon: cover ? imageDataUrl(cover) : null }
+      const run = appInstalls.get(a.id)
+      return {
+        ...appInfo(a, appsRoot(app.getPath('userData')), bundledDir('emulators')),
+        icon: cover ? imageDataUrl(cover) : null,
+        installing: run === 'running',
+        installError: run && run !== 'running' ? run : undefined
+      }
     })
   )
   ipcMain.handle('apps:page', async (_e, id: unknown) => {
     const def = APPS.find((a) => a.id === id)
     if (def) await shell.openExternal(def.page)
+  })
+  // Installation automatique en arrière-plan : « running » tant qu'elle dure, sinon la raison de l'échec (absent = rien en cours).
+  const appInstalls = new Map<string, string>()
+  ipcMain.handle('apps:installAuto', (_e, id: unknown) => {
+    const def = APPS.find((a) => a.id === id)
+    if (!def || appInstalls.get(def.id) === 'running') return
+    appInstalls.set(def.id, 'running')
+    log('installation automatique', def.id)
+    void installAutomatically(def).then((err) => {
+      log('installation automatique terminée', def.id, err ?? 'ok')
+      if (err) appInstalls.set(def.id, err)
+      else appInstalls.delete(def.id)
+    })
   })
   ipcMain.handle('apps:install', async (_e, id: unknown, file: unknown) => {
     const def = APPS.find((a) => a.id === id)

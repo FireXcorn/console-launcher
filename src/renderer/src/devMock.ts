@@ -213,6 +213,7 @@ export function installDevMock(): void {
     ],
     openAppPage: async () => undefined,
     installApp: async () => null,
+    installAppAuto: async () => undefined,
     openApp: async () => null,
     removeApp: async () => undefined,
     listRecipes: async () => mockRecipes,

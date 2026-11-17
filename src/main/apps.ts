@@ -26,6 +26,8 @@ export interface AppDef {
    * par système. `%APPDATA%`, `%LOCALAPPDATA%` et `~` sont remplacés.
    */
   system?: Partial<Record<NodeJS.Platform, string[]>>
+  /** Installation automatique en arrière-plan, par système : commandes lancées l'une après l'autre (gestionnaire de paquets du système). */
+  install?: Partial<Record<NodeJS.Platform, { file: string; args: string[] }[]>>
 }
 
 export const APPS: AppDef[] = [
@@ -54,9 +56,51 @@ export const APPS: AppDef[] = [
     system: {
       win32: ['%APPDATA%\\Spotify\\Spotify.exe', '%LOCALAPPDATA%\\Microsoft\\WindowsApps\\Spotify.exe'],
       linux: ['/usr/bin/spotify', '/snap/bin/spotify', '/var/lib/flatpak/exports/bin/com.spotify.Client', '~/.local/share/flatpak/exports/bin/com.spotify.Client']
+    },
+    install: {
+      win32: [{ file: 'winget', args: ['install', '--id', 'Spotify.Spotify', '-e', '--silent', '--accept-package-agreements', '--accept-source-agreements'] }],
+      // shortcut: Linux sans Flatpak : pas d'installation automatique (il faudrait les droits administrateur), la page officielle sert.
+      linux: [
+        { file: 'flatpak', args: ['remote-add', '--user', '--if-not-exists', 'flathub', 'https://dl.flathub.org/repo/flathub.flatpakrepo'] },
+        { file: 'flatpak', args: ['install', '--user', '-y', 'flathub', 'com.spotify.Client'] }
+      ]
+    }
+  },
+  {
+    id: 'applemusic',
+    title: 'Apple Music',
+    description: 'Ta musique Apple Music. Ouvre l’application Apple Music (Microsoft Store) installée sur ton ordinateur.',
+    page: 'https://apps.microsoft.com/detail/9PFHDD62MXS1',
+    exe: 'AppleMusic.exe',
+    fileHint: '',
+    platforms: ['win32'],
+    system: { win32: ['%LOCALAPPDATA%\\Microsoft\\WindowsApps\\AppleMusic.exe'] },
+    install: {
+      win32: [{ file: 'winget', args: ['install', '--id', '9PFHDD62MXS1', '--source', 'msstore', '--accept-package-agreements', '--accept-source-agreements'] }]
     }
   }
 ]
+
+/**
+ * Installe l'application avec le gestionnaire de paquets du système, sans rien demander (les commandes sont fixes, jamais saisies).
+ * Renvoie null si elle est installée à la fin, sinon la raison de l'échec.
+ */
+export async function installAutomatically(app: AppDef, platform: NodeJS.Platform = process.platform): Promise<string | null> {
+  const steps = app.install?.[platform]
+  if (!steps) return 'Installation automatique impossible sur ce système : utilise la page de téléchargement.'
+  for (const step of steps) {
+    const err = await new Promise<string | null>((resolve) =>
+      execFile(step.file, step.args, { windowsHide: true, timeout: 15 * 60 * 1000 }, (e, _out, stderr) => {
+        if (!e) return resolve(null)
+        if ((e as NodeJS.ErrnoException).code === 'ENOENT') return resolve(`${step.file} est introuvable sur cet ordinateur.`)
+        // winget renvoie une erreur quand l'application est déjà là : on juge sur le résultat à la fin.
+        resolve(String(stderr).trim().split(/\r?\n/).pop() || e.message)
+      })
+    )
+    if (err && systemExe(app, platform) === null) return err
+  }
+  return systemExe(app, platform) === null ? 'L’installation s’est terminée mais l’application reste introuvable.' : null
+}
 
 /** Programme d'une application déjà installée sur l'ordinateur, ou null. (Un alias du Microsoft Store n'est pas un fichier ordinaire : on teste avec lstat.) */
 export function systemExe(app: AppDef, platform: NodeJS.Platform = process.platform): string | null {
@@ -123,6 +167,7 @@ export function appInfo(app: AppDef, root: string, bundledRoot = ''): AppInfo {
     installed: bundled || exePath !== null || (supported && systemExe(app) !== null),
     bundled,
     external: app.system !== undefined,
+    canInstall: app.install?.[process.platform] !== undefined,
     note: supported ? app.note?.(homedir()) : undefined
   }
 }
