@@ -204,6 +204,7 @@ if ($env:CL_SETTLE) { $settle = [int]$env:CL_SETTLE }
 $start = Get-Date
 $seen = $false
 $firstWindow = $null
+$goneSince = $null
 $ready = $false
 $logHitAt = $null
 $pids = [uint32[]]@()
@@ -270,6 +271,13 @@ while ($true) {
       }
     } else {
       $h = $W::LargestWindowOf($pids)
+      # Application (CL_APP) : sa fenêtre fermée (l'application reste en veille dans la zone de notification), on rend la main.
+      if ($env:CL_APP -eq '1' -and $null -ne $firstWindow) {
+        if ($h -eq [IntPtr]::Zero) {
+          if ($null -eq $goneSince) { $goneSince = $now }
+          elseif (($now - $goneSince).TotalSeconds -ge 1.5) { Write-Output 'CLOSED'; break }
+        } else { $goneSince = $null }
+      }
       if ($h -ne [IntPtr]::Zero) {
         if ($null -eq $firstWindow) { $firstWindow = $now }
         if (($now - $firstWindow).TotalSeconds -lt 25) {
@@ -301,7 +309,9 @@ export function startWindowDresser(
   iconPng: string | null,
   onReady: () => void = () => undefined,
   watch?: EmulatorWatch,
-  onLog: (line: string) => void = () => undefined
+  onLog: (line: string) => void = () => undefined,
+  appMode = false,
+  onClosed: () => void = () => undefined
 ): ChildProcess {
   const child = spawn(
     'powershell.exe',
@@ -312,6 +322,7 @@ export function startWindowDresser(
         CL_DIR: dir,
         CL_TITLE: title,
         CL_ICON: iconPng ?? '',
+        CL_APP: appMode ? '1' : '',
         CL_EMU: watch ? '1' : '',
         CL_READY: watch?.readyTitle ?? '',
         CL_LOG: watch?.readyLog ?? '',
@@ -337,6 +348,8 @@ export function startWindowDresser(
           notified = true
           onReady()
         }
+      } else if (line === 'CLOSED') {
+        onClosed()
       } else if (line.startsWith('LOG ')) {
         onLog(line.slice(4))
       }
@@ -452,8 +465,12 @@ export class Launcher {
         if (!settled) this.onWindowReady()
       },
       game.emulated ? game.watch : undefined,
-      this.onLog
+      this.onLog,
+      game.app === true,
+      () => finish({ status: 'idle' })
     )
+    // Application : si le suivi de sa fenêtre s'arrête sans l'avoir vue, on ne reste pas bloqué sur l'écran noir.
+    if (game.app) dresser?.once('exit', () => finish({ status: 'idle' }))
     dresser?.once('error', () => {
       // La surveillance de la fenêtre est facultative : le jeu tourne quand même.
     })
@@ -483,6 +500,8 @@ export class Launcher {
       finish({ status: 'error', id: game.id, message: `Lancement impossible : ${err.message}` })
     })
     child.once('exit', async (code) => {
+      // Application : c'est la fenêtre qui décide (voir CLOSED) ; son processus principal reste en veille.
+      if (game.app) return
       // Le processus lancé peut n'être qu'un relais : on attend que plus rien ne tourne dans le dossier.
       let sawGame = false
       while ((await countProcessesUnder(game.dir)) > 0) {

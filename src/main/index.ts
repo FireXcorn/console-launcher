@@ -195,7 +195,7 @@ const launcher: Launcher = new Launcher(
       unregisterStop()
       if (session) {
         const seconds = Math.round((Date.now() - session.start) / 1000)
-        if (seconds >= 5) addPlaytime(session.id, seconds)
+        if (seconds >= 5 && !session.id.startsWith('app:')) addPlaytime(session.id, seconds)
         if (session.saves) {
           try {
             const done = savesStore().collect(session.saves.profile, session.saves.key, session.saves.dirs)
@@ -844,7 +844,7 @@ function registerIpc(): void {
     log('installation de l’application', def.id, err ?? 'ok')
     return err
   })
-  ipcMain.handle('apps:open', (_e, id: unknown) => {
+  ipcMain.handle('apps:open', async (_e, id: unknown) => {
     const def = APPS.find((a) => a.id === id)
     if (!def) return 'Application inconnue.'
     let exe: string | null
@@ -863,6 +863,24 @@ function registerIpc(): void {
       }
     }
     if (process.platform === 'win32' && def.id === 'pkvault') return homeView.open(exe)
+    // Application du Microsoft Store (Apple Music) : l'explorateur l'ouvre au premier plan, ce que l'alias seul ne garantit pas.
+    const shellApp = def.shellApp?.[process.platform]
+    if (shellApp) {
+      execFile('explorer.exe', ['shell:AppsFolder\\' + shellApp], () => undefined)
+      return null
+    }
+    // Spotify : plein écran sans bordure comme un jeu ; le lanceur revient quand sa fenêtre est fermée (la musique continue).
+    // shortcut: suivi par dossier d'installation, donc seulement pour l'installation classique ; la version du Store s'ouvre à part.
+    if (def.fullscreen && process.platform === 'win32' && !/WindowsApps/i.test(exe)) {
+      if (launcher.isRunning) return null
+      const cover = coverOf(def.title)
+      const iconPng = cover ? await squareIconPng(cover) : null
+      launcher.launch(
+        { id: 'app:' + def.id, title: def.title, dir: dirname(exe), exe: basename(exe), exePath: exe, args: [], iconPath: cover, lastPlayed: 0, app: true },
+        iconPng
+      )
+      return null
+    }
     return startDetached(exe, join(app.getPath('userData'), 'apps', def.id + '.log'))
   })
   ipcMain.handle('apps:remove', (_e, id: unknown) => {

@@ -28,6 +28,10 @@ export interface AppDef {
   system?: Partial<Record<NodeJS.Platform, string[]>>
   /** Installation automatique en arrière-plan, par système : commandes lancées l'une après l'autre (gestionnaire de paquets du système). */
   install?: Partial<Record<NodeJS.Platform, { file: string; args: string[] }[]>>
+  /** Application du Microsoft Store : identifiant à donner à l'explorateur (`shell:AppsFolder\<id>`) pour qu'elle s'ouvre au premier plan. */
+  shellApp?: Partial<Record<NodeJS.Platform, string>>
+  /** Ouverte en plein écran sans bordure par-dessus le lanceur, comme un jeu (Windows). */
+  fullscreen?: boolean
 }
 
 export const APPS: AppDef[] = [
@@ -52,6 +56,7 @@ export const APPS: AppDef[] = [
     exe: 'Spotify.exe',
     fileHint: '',
     platforms: ['win32', 'linux'],
+    fullscreen: true,
     // shortcut: emplacements habituels (installateur classique, Microsoft Store, paquets Linux) ; à compléter si Spotify est ailleurs.
     system: {
       win32: ['%APPDATA%\\Spotify\\Spotify.exe', '%LOCALAPPDATA%\\Microsoft\\WindowsApps\\Spotify.exe'],
@@ -74,6 +79,7 @@ export const APPS: AppDef[] = [
     exe: 'AppleMusic.exe',
     fileHint: '',
     platforms: ['win32'],
+    shellApp: { win32: 'AppleInc.AppleMusicWin_nzyj5cx40ttqa!App' },
     system: { win32: ['%LOCALAPPDATA%\\Microsoft\\WindowsApps\\AppleMusic.exe'] },
     install: {
       win32: [{ file: 'winget', args: ['install', '--id', '9PFHDD62MXS1', '--source', 'msstore', '--accept-package-agreements', '--accept-source-agreements'] }]

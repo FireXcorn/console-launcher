@@ -23,6 +23,8 @@ export interface ScannedGame {
   sourceTitle?: string
   /** D'où prendre l'icône de la tuile quand le jeu n'a pas de jaquette. */
   iconFrom?: string
+  /** Application (Spotify…) lancée en plein écran comme un jeu : le lanceur revient dès que sa fenêtre est fermée, sans l'arrêter. */
+  app?: boolean
   /** Suivi du chargement d'un jeu émulé (écran noir, questions, signal « le jeu tourne »). */
   watch?: EmulatorWatch
 }
