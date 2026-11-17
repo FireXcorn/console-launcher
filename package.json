@@ -1,6 +1,6 @@
 {
   "name": "console-launcher",
-  "version": "2.3.10",
+  "version": "2.3.11",
   "description": "Lanceur de jeux plein écran façon menu de console",
   "license": "MIT",
   "private": true,

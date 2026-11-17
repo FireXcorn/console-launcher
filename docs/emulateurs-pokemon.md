@@ -57,7 +57,7 @@ Le lanceur existe aussi pour Linux (`npm run dist:linux`, fichier AppImage). Sou
 
 Il suffit donc d'avoir lancé le jeu une fois et d'avoir sauvegardé dans le jeu (pas seulement un « état »). Tes propres chemins ajoutés dans les réglages de PKVault sont conservés.
 
-**Récupérer le fichier de sauvegarde à la main** : ouvre le dossier des jeux (Paramètres → Ajouter des jeux → *Ouvrir le dossier des jeux*) et copie le `.sav` qui porte le nom de ton jeu. Pour la 3DS, c'est `00000001.sav` dans le sous-dossier `data` du jeu, sous `sdmc`.
+**Récupérer le fichier de sauvegarde à la main** : ouvre le dossier des jeux (Paramètres → Ajouter des jeux → *Ouvrir le dossier des jeux*) et copie le `.sav` qui porte le nom de ton jeu. Pour la 3DS, c'est le fichier `main` dans `data/00000001` du jeu, sous `sdmc`.
 
 ## Rendre un AppImage exécutable (Ubuntu)
 

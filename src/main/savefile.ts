@@ -4,7 +4,7 @@ import { basename, dirname, extname, join } from 'path'
 const SAVE_EXT = ['.sav', '.dsv', '.srm']
 const THREE_DS = ['.3ds', '.cci', '.cxi']
 
-/** Sauvegardes 3DS d'Azahar : `00000001.sav` dans un dossier `data` ; la plus récemment modifiée. */
+/** Sauvegardes 3DS d'Azahar : le fichier `main` du dossier `data/00000001` d'un jeu ; la plus récemment modifiée. */
 function newestThreeDsSave(sdmc: string, depth = 9): string | null {
   let best: { file: string; time: number } | null = null
   const walk = (dir: string, left: number): void => {
@@ -17,7 +17,7 @@ function newestThreeDsSave(sdmc: string, depth = 9): string | null {
     for (const e of entries) {
       const full = join(dir, e.name)
       if (e.isDirectory() && left > 0) walk(full, left - 1)
-      else if (e.isFile() && e.name === '00000001.sav' && basename(dir) === 'data') {
+      else if (e.isFile() && e.name === 'main' && basename(dir) === '00000001' && basename(dirname(dir)) === 'data') {
         const time = statSync(full).mtimeMs
         if (!best || time > best.time) best = { file: full, time }
       }

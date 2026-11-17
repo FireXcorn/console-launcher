@@ -23,7 +23,7 @@ const slashed = (p: string): string => p.replace(/\\/g, '/').replace(/\/+$/, '')
 export function saveGlobs(romsDir: string, sdmcDir: string): string[] {
   const globs: string[] = []
   if (romsDir) globs.push(`${slashed(romsDir)}/**/*.sav`, `${slashed(romsDir)}/**/*.dsv`)
-  if (sdmcDir) globs.push(`${slashed(sdmcDir)}/**/data/00000001.sav`)
+  if (sdmcDir) globs.push(`${slashed(sdmcDir)}/**/data/00000001/main`)
   return globs
 }
 

@@ -9,7 +9,7 @@ describe('sauvegardes reconnues par Pokémon Home', () => {
     expect(saveGlobs('C:\\Jeux\\', 'C:\\Azahar\\sdmc')).toEqual([
       'C:/Jeux/**/*.sav',
       'C:/Jeux/**/*.dsv',
-      'C:/Azahar/sdmc/**/data/00000001.sav'
+      'C:/Azahar/sdmc/**/data/00000001/main'
     ])
     expect(saveGlobs('', '')).toEqual([])
   })
