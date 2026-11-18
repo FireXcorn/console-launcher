@@ -16,6 +16,10 @@ const STEPS: Step[] = [
     text: 'Un jeu « Cartouche vide » n’a pas encore son fichier. Sélectionne-le et appuie sur A : une fenêtre s’ouvre, tu y choisis ton fichier de jeu (.nup) ou ta ROM, et le lanceur prépare tout seul le jeu.'
   },
   {
+    title: 'Zelda déjà construit ?',
+    text: 'Tu as déjà construit Zelda Ocarina of Time avec ReLink, Longshot ou Hookshot ? Pas besoin de recommencer : sélectionne la tuile Zelda, appuie sur A et indique le dossier de ton jeu (celui qui contient le dossier « bin »).'
+  },
+  {
     target: '.topbar .avatar',
     title: 'Ton profil',
     text: 'En haut à gauche : ton profil. Chaque profil a ses propres sauvegardes de jeu, comme sur la console.'
