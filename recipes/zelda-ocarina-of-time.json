@@ -1,23 +1,23 @@
 {
   "id": "zelda-ocarina-of-time",
   "title": "Zelda Ocarina of Time Remake",
-  "tool": "hookshot-builder",
+  "tool": "relink",
   "base": "need:out",
-  "exe": "bin/hookshot.exe",
+  "exe": "bin/relink-game.exe",
   "args": [],
   "borderless": true,
   "needs": [
     {
       "id": "out",
-      "label": "Dossier où HookshotBuilder a construit le jeu",
+      "label": "Dossier où Project ReLink a construit le jeu",
       "kind": "folder"
     }
   ],
   "setup": {
-    "exe": "HookshotBuilder.exe",
-    "note": "Dans la fenêtre qui s'ouvre, choisis ton fichier du jeu (.nup) et un dossier d'installation ; indique ensuite ce même dossier ci-dessous."
+    "exe": "ReLink.exe",
+    "note": "Dans la fenêtre qui s'ouvre, choisis ton fichier du jeu (.nup, avec la mise à jour v131072) et un dossier d'installation ; indique ensuite ce même dossier ci-dessous."
   },
-  "doneFile": "bin/hookshot.exe",
+  "doneFile": "bin/relink-game.exe",
   "saves": [
     "user/save"
   ],

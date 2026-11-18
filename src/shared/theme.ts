@@ -135,12 +135,6 @@ export const BUILTIN_THEMES: Theme[] = [
     colors: { bg: '#fbeff2', surface: '#ffffff', slot: '#fff6f8', bar: '#fff3f6', icon: '#a05a6e', text: '#4a2c36', accent: '#e0507a' },
     tileRadius: 2.2,
     dockColors: 'mono'
-  }),
-  base('foret', 'Forêt', {
-    base: 'light',
-    colors: { bg: '#e9efe6', surface: '#ffffff', slot: '#f3f8f1', bar: '#f1f6ee', icon: '#4f6b4a', text: '#26331f', accent: '#3f8f4a' },
-    tileRadius: 0.5,
-    cursor: 'solid'
   })
 ].map((t) => ({ ...t }))
 

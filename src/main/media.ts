@@ -50,6 +50,7 @@ if ($p.Thumbnail -and $env:CL_MEDIA_KNOWN -ne $key) {
   art = $art
   position = [math]::Round(($tl.Position - $tl.StartTime).TotalSeconds)
   duration = [math]::Round(($tl.EndTime - $tl.StartTime).TotalSeconds)
+  app = if ($s.SourceAppUserModelId -match 'Spotify') { 'spotify' } else { 'applemusic' }
 } | ConvertTo-Json -Compress
 `
 
@@ -66,7 +67,8 @@ export function parseWindowsMedia(out: string): MediaState {
       artist: String(raw.artist ?? '').slice(0, 120),
       art: typeof raw.art === 'string' && raw.art.startsWith('data:image/') ? raw.art : '',
       position: secs(raw.position),
-      duration: secs(raw.duration)
+      duration: secs(raw.duration),
+      app: raw.app === 'spotify' || raw.app === 'applemusic' ? raw.app : undefined
     }
   } catch {
     return NO_MEDIA
@@ -93,6 +95,7 @@ export function parseMpris(status: string, metadata: string, position = ''): Med
     title: unescape(title),
     artist: unescape(artist),
     art: '',
+    app: 'spotify',
     position: micro(position),
     duration: micro(/'mpris:length': <(?:int64 |uint64 )?\d+>/.exec(metadata)?.[0] ?? '')
   }

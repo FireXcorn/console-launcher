@@ -8,65 +8,10 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
-    "start": "electron-vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "dist": "electron-vite build && electron-builder --win dir",
     "dist:linux": "electron-vite build && electron-builder --linux AppImage"
-  },
-  "build": {
-    "appId": "local.console.launcher",
-    "productName": "Console Launcher",
-    "electronFuses": {
-      "runAsNode": false,
-      "enableNodeOptionsEnvironmentVariable": false,
-      "enableNodeCliInspectArguments": false
-    },
-    "files": [
-      "out/**/*"
-    ],
-    "directories": {
-      "output": "dist"
-    },
-    "win": {
-      "target": "dir",
-      "icon": "build/icon.ico",
-      "extraResources": [
-        {
-          "from": "tools-src",
-          "to": "tools"
-        },
-        {
-          "from": "emulators-src/win",
-          "to": "emulators"
-        }
-      ]
-    },
-    "linux": {
-      "target": "AppImage",
-      "icon": "build/icon.png",
-      "extraResources": [
-        {
-          "from": "emulators-src/linux",
-          "to": "emulators"
-        }
-      ],
-      "category": "Game"
-    },
-    "extraResources": [
-      {
-        "from": "recipes",
-        "to": "recipes"
-      },
-      {
-        "from": "covers-src",
-        "to": "covers"
-      },
-      {
-        "from": "backdrops-src",
-        "to": "backdrops"
-      }
-    ]
   },
   "dependencies": {
     "react": "^19.3.1",
@@ -83,5 +28,33 @@
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
     "vitest": "^5.1.0"
+  },
+  "build": {
+    "appId": "com.fire.consolelauncher",
+    "productName": "Console Launcher",
+    "directories": { "output": "dist", "buildResources": "build" },
+    "files": ["out/**/*", "package.json"],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": "dir",
+      "extraResources": [
+        { "from": "backdrops-src", "to": "backdrops" },
+        { "from": "covers-src", "to": "covers" },
+        { "from": "recipes", "to": "recipes" },
+        { "from": "tools-src", "to": "tools" },
+        { "from": "emulators-src/win", "to": "emulators" }
+      ]
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "target": "AppImage",
+      "category": "Game",
+      "extraResources": [
+        { "from": "backdrops-src", "to": "backdrops" },
+        { "from": "covers-src", "to": "covers" },
+        { "from": "recipes", "to": "recipes" },
+        { "from": "emulators-src/linux", "to": "emulators" }
+      ]
+    }
   }
 }

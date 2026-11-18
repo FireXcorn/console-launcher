@@ -185,31 +185,38 @@ interface TopBarProps {
   onMedia: (action: MediaAction) => void
 }
 
-const clock = (seconds: number): string => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`
+interface MiniPlayerProps {
+  media: MediaState
+  onMedia: (action: MediaAction) => void
+  /** Sélectionné (souris ou manette) : il grandit, et A ou un clic ouvre l'appli de musique. */
+  focused: boolean
+  onHover: () => void
+}
 
-/** Mini lecteur « verre liquide » : pochette, morceau, avancement et pause / précédent / suivant. Absent tant que la musique ne joue pas. */
-function MiniPlayer({ media, onMedia, large }: { media: MediaState; onMedia: (action: MediaAction) => void; large: boolean }): JSX.Element {
-  // L'avancement est relu toutes les 4 s ; entre-temps, il avance à la seconde près.
-  const anchor = useRef({ media, at: Date.now() })
-  if (anchor.current.media !== media) anchor.current = { media, at: Date.now() }
-  const [, tick] = useState(0)
-  useEffect(() => {
-    if (!media.playing) return
-    const timer = setInterval(() => tick((n) => n + 1), 1000)
-    return () => clearInterval(timer)
-  }, [media.playing])
-  const elapsed = media.playing ? (Date.now() - anchor.current.at) / 1000 : 0
-  const position = media.duration > 0 ? Math.min(media.duration, media.position + elapsed) : 0
-
+/** Mini lecteur « verre liquide » : pochette, morceau et pause / précédent / suivant. Absent tant que la musique ne joue pas. */
+function MiniPlayer({ media, onMedia, focused, onHover }: MiniPlayerProps): JSX.Element {
   const btn = (action: MediaAction, label: string, path: JSX.Element, big = false): JSX.Element => (
-    <button className={`mini-btn${big ? ' big' : ''}`} aria-label={label} title={label} onClick={() => onMedia(action)}>
+    <button
+      className={`mini-btn${big ? ' big' : ''}`}
+      aria-label={label}
+      title={label}
+      onClick={(e) => {
+        e.stopPropagation()
+        onMedia(action)
+      }}
+    >
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         {path}
       </svg>
     </button>
   )
   return (
-    <div className={`mini-player${large ? ' large' : ''}`}>
+    <div
+      className={`mini-player${focused ? ' focused' : ''}${media.app ? ' openable' : ''}`}
+      title={media.app ? 'Ouvrir l’application de musique' : undefined}
+      onMouseMove={(e) => pointerMoved(e) && !focused && onHover()}
+      onClick={() => media.app && void window.api.openApp(media.app)}
+    >
       <div className="mini-art">
         {media.art ? (
           <img src={media.art} alt="" draggable={false} />
@@ -222,15 +229,6 @@ function MiniPlayer({ media, onMedia, large }: { media: MediaState; onMedia: (ac
       <div className="mini-main">
         <div className="mini-title">{media.title || 'Musique'}</div>
         {media.artist && <div className="mini-artist">{media.artist}</div>}
-        {media.duration > 0 && (
-          <div className="mini-time">
-            <span>{clock(position)}</span>
-            <div className="mini-bar">
-              <i style={{ width: `${Math.min(100, (position / media.duration) * 100)}%` }} />
-            </div>
-            <span>-{clock(Math.max(0, media.duration - position))}</span>
-          </div>
-        )}
         <div className="mini-controls">
           {btn('previous', 'Précédent', <path d="M6 5h2v14H6zM20 5v14L9.5 12z" />)}
           {btn('playpause', media.playing ? 'Pause' : 'Lecture', media.playing ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />, true)}
@@ -243,10 +241,11 @@ function MiniPlayer({ media, onMedia, large }: { media: MediaState; onMedia: (ac
 
 function TopBar({ focus, profile, profiles, art, onFocus, onTop, onPickProfile, media, onMedia }: TopBarProps): JSX.Element {
   const on = (i: number): boolean => focus.row === 'top' && focus.top === i
+  // Rangée du haut : avatar (0), mini lecteur (1, seulement s'il y a de la musique), état du système (dernier).
+  const statusIndex = media ? 2 : 1
   return (
     <header className="topbar">
-      {/* Grand quand la sélection n'est pas sur un jeu (pas de titre de jeu à cacher), petit sinon. */}
-      {media && <MiniPlayer media={media} onMedia={onMedia} large={focus.row !== 'games'} />}
+      {media && <MiniPlayer media={media} onMedia={onMedia} focused={on(1)} onHover={() => onFocus({ ...focus, row: 'top', top: 1 })} />}
       {/* Tous les utilisateurs, comme sur la console ; celui qui joue est sélectionnable au clavier. */}
       <div className="profiles">
         {profiles.map((p) =>
@@ -268,10 +267,10 @@ function TopBar({ focus, profile, profiles, art, onFocus, onTop, onPickProfile, 
         )}
       </div>
       <button
-        className={`status${on(1) ? ' focused' : ''}`}
+        className={`status${on(statusIndex) ? ' focused' : ''}`}
         title="État du système"
-        onMouseMove={(e) => pointerMoved(e) && !on(1) && onFocus({ ...focus, row: 'top', top: 1 })}
-        onClick={() => onTop(1)}
+        onMouseMove={(e) => pointerMoved(e) && !on(statusIndex) && onFocus({ ...focus, row: 'top', top: statusIndex })}
+        onClick={() => onTop(statusIndex)}
       >
         <StatusCluster />
       </button>

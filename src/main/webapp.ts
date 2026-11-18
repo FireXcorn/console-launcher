@@ -3,24 +3,34 @@ import { BrowserWindow, WebContentsView } from 'electron'
 /**
  * Un site (YouTube…) affiché DANS la fenêtre du lanceur, par-dessus l'accueil. La manette n'est lisible que par la page qui
  * a le focus : un petit script posé sur la page la lit et la signale au lanceur, qui envoie alors de vraies touches du clavier.
- * Le bouton « Retour au lanceur » (ou le bouton View / Retour de la manette) referme tout.
+ * Le bouton « Retour au lanceur » (verre liquide), la touche F4 (ou Maj + F4) ou le bouton View de la manette referme tout.
  */
 const PAD_PREFIX = '__launcher_pad:'
 
 // Touches envoyées à la page pour chaque action de la manette.
 const KEYS: Record<string, string> = { up: 'Up', down: 'Down', left: 'Left', right: 'Right', confirm: 'Return', back: 'Escape' }
 
+/**
+ * Bouton « Retour au lanceur » en verre liquide (flou, reflets, bord lumineux), posé sur la page d'un site ou de Pokémon Home.
+ * `onClick` : code JavaScript exécuté dans la page au clic.
+ */
+export const glassBackButton = (onClick: string): string => `(() => {
+  const b = document.createElement('button')
+  b.textContent = '← Retour au lanceur'
+  b.title = 'F4'
+  b.style.cssText = 'position:fixed;z-index:2147483647;left:16px;bottom:16px;padding:10px 20px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:linear-gradient(135deg,rgba(255,255,255,.32),rgba(255,255,255,.08));backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%);color:#fff;font:600 14px system-ui,sans-serif;text-shadow:0 1px 2px rgba(0,0,0,.5);box-shadow:inset 0 1px 1px rgba(255,255,255,.7),inset 0 -1px 2px rgba(255,255,255,.18),0 8px 24px rgba(0,0,0,.35);cursor:pointer;transition:transform .15s ease,background .15s ease'
+  b.onmouseenter = () => { b.style.transform = 'scale(1.05)' }
+  b.onmouseleave = () => { b.style.transform = 'none' }
+  b.onclick = () => { ${onClick} }
+  const attach = () => document.body && document.body.appendChild(b)
+  attach(); document.addEventListener('DOMContentLoaded', attach)
+})()`
 /** Script de la page : bouton « Retour » et lecture de la manette (croix, stick, A, B, View). `swap` : A et B inversés. */
 const injectScript = (swap: boolean): string => `(() => {
   if (window.__clPad) return
   window.__clPad = true
   const send = (a) => console.log('${PAD_PREFIX}' + a)
-  const b = document.createElement('button')
-  b.textContent = '← Retour au lanceur'
-  b.style.cssText = 'position:fixed;z-index:2147483647;left:12px;bottom:12px;padding:8px 16px;border-radius:999px;border:0;background:#e60012;color:#fff;font:600 14px sans-serif;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4);opacity:.85'
-  b.onclick = () => send('close')
-  const attach = () => document.body && document.body.appendChild(b)
-  attach(); document.addEventListener('DOMContentLoaded', attach)
+  ${glassBackButton("send('close')")}
   const held = {}
   setInterval(() => {
     const now = Date.now()
@@ -52,6 +62,11 @@ export interface WebAppOptions {
   partition: string
   /** Valider avec le bouton de droite (réglage « manette »). */
   swapConfirm: boolean
+}
+
+/** F4 ou Maj + F4 : referme le site (aucune autre touche modificatrice, pour ne pas gêner les raccourcis du site). */
+export function isCloseShortcut(input: { key: string; control?: boolean; alt?: boolean; meta?: boolean }): boolean {
+  return input.key === 'F4' && !input.control && !input.alt && !input.meta
 }
 
 /** Le domaine fait-il partie des sites autorisés ? */
@@ -102,6 +117,13 @@ export class WebApp {
       const guard = (e: { preventDefault: () => void }, url: string): void => {
         if (!hostAllowed(url, opts.hosts)) e.preventDefault()
       }
+      // Retour au lanceur au clavier : F4 ou Maj + F4 .
+      wc.on('before-input-event', (e, input) => {
+        if (input.type === 'keyDown' && isCloseShortcut(input)) {
+          e.preventDefault()
+          this.close()
+        }
+      })
       wc.on('will-navigate', guard)
       wc.on('will-redirect', guard)
       this.view = view

@@ -97,6 +97,7 @@ export function defaultConfig(): Config {
     profiles: [defaultProfile()],
     activeProfile: 'p1',
     emulated: [],
+    customApps: [],
     recipeInputs: {},
     showAdvanced: false,
     tourDone: false,

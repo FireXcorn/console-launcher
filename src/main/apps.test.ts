@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync, existsSync, statSync } from 'fs'
 import { tmpdir } from 'os'
 import { basename, join } from 'path'
 import { describe, expect, it } from 'vitest'
-import { APPS, type AppDef, appInfo, findExe, installApp, launchPath, installAutomatically, removeApp, startDetached, systemExe } from './apps'
+import { APPS, type AppDef, appInfo, customAppKind, findExe, normalizeCustomApps, installApp, launchPath, installAutomatically, removeApp, startDetached, systemExe } from './apps'
 
 // Application factice : le chemin « téléchargé puis choisi » reste testé même si toutes les applis réelles sont livrées.
 const pkhex: AppDef = {
@@ -15,6 +15,30 @@ const pkhex: AppDef = {
   platforms: ['win32']
 }
 const pkvault = APPS.find((a) => a.id === 'pkvault')!
+
+describe('applis perso', () => {
+  it('garde un site https ou un programme qui existe, refuse le reste', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'perso-'))
+    const exe = join(dir, 'Jeu.exe')
+    writeFileSync(exe, 'x')
+    expect(customAppKind('https://www.netflix.com/browse')).toBe('web')
+    expect(customAppKind(exe)).toBe('exe')
+    for (const bad of ['http://site.fr', 'javascript:alert(1)', 'file:///C:/x.exe', join(dir, 'absent.exe'), dir, '', 42]) expect(customAppKind(bad)).toBeNull()
+    const apps = normalizeCustomApps([
+      { id: 'a1', title: ' Netflix ', target: 'https://www.netflix.com', image: 'C:/x.png' },
+      { id: 'a2', title: '', target: 'https://ok.fr', image: '' },
+      { id: 'a3', title: 'Mal', target: 'javascript:alert(1)', image: '' },
+      { id: '../x', title: 'Id', target: exe, image: '' },
+      { id: 'a5', title: 'Jeu', target: exe, image: 'virus.exe' },
+      null
+    ])
+    expect(apps).toEqual([
+      { id: 'a1', title: 'Netflix', target: 'https://www.netflix.com', image: 'C:/x.png' },
+      { id: 'a5', title: 'Jeu', target: exe, image: '' }
+    ])
+    expect(normalizeCustomApps('pas une liste')).toEqual([])
+  })
+})
 
 describe('applis', () => {
   it('trouve le programme dans un sous-dossier, sans tenir compte des majuscules', () => {

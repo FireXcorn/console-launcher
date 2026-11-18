@@ -1,11 +1,12 @@
 import { BrowserWindow, WebContentsView } from 'electron'
 import { execFile, spawn, type ChildProcess } from 'child_process'
 import { dirname } from 'path'
+import { glassBackButton, isCloseShortcut } from './webapp'
 
 /**
  * Pokémon Home (PKVault) affiché DANS la fenêtre du lanceur. PKVault sert son interface sur une adresse locale
  * (127.0.0.1) : le lanceur le démarre, cache la fenêtre propre du programme et affiche cette page par-dessus
- * l'accueil. Le bouton « Retour au lanceur » (ou le bouton Retour de la manette) referme tout.
+ * l'accueil. Le bouton « Retour au lanceur » (verre liquide), la touche F4 (ou Maj + F4) ou le bouton Retour de la manette referme tout.
  */
 // shortcut: Windows seulement (la fenêtre de PKVault est cachée avec user32) ; sous Linux elle reste visible à côté.
 const PORTS = Array.from({ length: 24 }, (_, i) => 49152 + i)
@@ -26,14 +27,10 @@ while ((Get-Date) -lt $end) {
 
 /** Bouton « Retour » posé sur la page, et bouton Retour (View) de la manette : ils changent l'ancre de l'adresse. */
 const INJECT = `(() => {
-  if (document.getElementById('__cl_back')) return
+  if (window.__clBack) return
+  window.__clBack = true
   const go = () => { location.hash = '${HASH}' + Date.now() }
-  const b = document.createElement('button')
-  b.id = '__cl_back'
-  b.textContent = '← Retour au lanceur'
-  b.style.cssText = 'position:fixed;z-index:2147483647;left:12px;bottom:12px;padding:8px 16px;border-radius:999px;border:0;background:#e60012;color:#fff;font:600 14px sans-serif;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)'
-  b.onclick = go
-  document.body.appendChild(b)
+  ${glassBackButton('go()')}
   let held = false
   setInterval(() => {
     const on = [...navigator.getGamepads()].some((g) => g && g.buttons[8] && g.buttons[8].pressed)
@@ -106,6 +103,12 @@ export class HomeView {
       view.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
       view.webContents.on('will-navigate', (e, url) => {
         if (!url.startsWith(`http://127.0.0.1:${port}/`)) e.preventDefault()
+      })
+      view.webContents.on('before-input-event', (e, input) => {
+        if (input.type === 'keyDown' && isCloseShortcut(input)) {
+          e.preventDefault()
+          this.close()
+        }
       })
       view.webContents.on('dom-ready', () => void view.webContents.executeJavaScript(INJECT).catch(() => undefined))
       view.webContents.on('did-navigate-in-page', (_e, url) => {

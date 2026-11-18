@@ -12,6 +12,10 @@ describe('mini lecteur', () => {
       position: 20,
       duration: 111
     })
+    expect(parseWindowsMedia('{"available":true,"app":"applemusic"}').app).toBe('applemusic')
+    expect(parseWindowsMedia('{"available":true,"app":"spotify"}').app).toBe('spotify')
+    expect(parseWindowsMedia('{"available":true,"app":"autre"}').app).toBeUndefined()
+    expect(parseMpris("(<'Playing'>,)", '').app).toBe('spotify')
     expect(parseWindowsMedia('{"available":false}')).toEqual(NO_MEDIA)
     expect(parseWindowsMedia('pas du json')).toEqual(NO_MEDIA)
   })
