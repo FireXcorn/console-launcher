@@ -39,10 +39,10 @@ Chaque sous-dossier devient une série ; le nom du fichier devient le nom du per
 **Paramètres de la console → Thèmes.**
 
 <p align="center">
-  <img src="images/themes.jpg" alt="Catégorie Thèmes des paramètres" width="560">
+  <img src="images/themes-v2.jpg" alt="Catégorie Thèmes des paramètres" width="560">
 </p>
 
-Cinq thèmes sont fournis (Clair, Sombre, Minuit, Sakura, Forêt). Pour chacun tu peux régler, **en direct** :
+Six thèmes sont fournis (Clair, Sombre, Minuit, Verre liquide, Verre liquide sombre, Sakura). Pour chacun tu peux régler, **en direct** :
 
 | Réglage | Effet |
 |---|---|

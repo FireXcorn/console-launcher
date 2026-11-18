@@ -12,7 +12,7 @@ Pour chaque jeu, tu indiques **quel émulateur** ouvrir et **quel fichier** lui 
 > Le lanceur ne fournit ni émulateur ni jeu. Utilise des émulateurs téléchargés depuis leur site officiel et des jeux que tu possèdes et que tu as copiés toi-même. Voir [ce qui est inclus et ce qui ne l'est pas](fichiers-de-jeu.md).
 
 <p align="center">
-  <img src="images/emulateurs.jpg" alt="Catégorie « Ajouter des jeux » des paramètres" width="560">
+  <img src="images/parametres-v2.jpg" alt="Catégorie « Ajouter des jeux » des paramètres : Jeux rétro, Jeu de mon PC, Jeu Switch 2" width="560">
 </p>
 
 Pour apprendre la méthode complète avec n'importe quel outil : [Intégrer toi-même un outil](integrer-un-outil.md).

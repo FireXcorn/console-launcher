@@ -1,6 +1,19 @@
 # Journal des versions
 
-## À venir
+## 2.4.0
+
+- **Mini lecteur de musique** en haut de l'accueil : il apparaît dès que Spotify ou Apple Music joue (sous Linux : Spotify), grandit quand on le sélectionne, ouvre l'appli avec A ; précédent / pause / suivant avec L / Y / R ou au clavier.
+- **Thèmes « Verre liquide » et « Verre liquide sombre ».**
+- **Applis** : YouTube, Discord, Spotify, Apple Music, Firefox… Les sites s'ouvrent dans la fenêtre du lanceur ; retour avec le bouton « Retour au lanceur », F4 (ou Maj + F4) ou le bouton View de la manette.
+- **Ajouter ses propres applis** : un site (`https://…`, ouvert dans le lanceur) ou un programme du PC, avec une image au choix ; Y retire une appli ajoutée.
+- **Options d'un jeu** (+ ou Tab) : renommer, choisir une jaquette, extraire la sauvegarde, retirer le jeu.
+- **Écran Pokémon** : Y ajoute des fichiers de jeu (ou glisser-déposer), + ouvre les options du jeu.
+- **Pokémon Home** : les sauvegardes des émulateurs sont reconnues automatiquement ; copie de secours de la sauvegarde en quittant un jeu.
+- **Jeu de mon PC** : jeux Steam et Epic Games détectés en plus du Microsoft Store / Xbox.
+- **Ajout de jeux rétro** : titres corrigés, doublons et émulateur manquant signalés, copie sans figer la fenêtre.
+- **Documentation** : README refait avec de nouvelles captures.
+
+## 2.3.0
 
 - **Ajouter un jeu, pas à pas** : nouvel assistant en trois cartes (« Jeux rétro », « Jeu de mon PC », « Jeu Switch 2 ») à l’accueil du premier lancement, dans Paramètres et dans l’écran Pokémon. Les jeux installés sur le PC (Microsoft Store et Xbox, Steam, Epic ; pas les outils ni les applications) se choisissent dans une liste ; chaque ajout est enregistré tout de suite. Un jeu PC sans jaquette prend automatiquement l’icône du programme (celle du bureau) comme tuile.
 - **Paramètres** : catégories rangées par groupes, « Ajouter des jeux » en premier, liste compacte des jeux ajoutés, déplacement d’un réglage à l’autre à la manette.
