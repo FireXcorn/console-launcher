@@ -13,11 +13,11 @@ import {
   shell
 } from 'electron'
 import { execFile, spawn } from 'child_process'
-import { findSaveFile } from './savefile'
+import { backupSave, findSaveFile } from './savefile'
 import { mediaCommand } from './media'
 import { WebApp } from './webapp'
-import { addSaveGlobs, azaharSdmc, pkvaultSettingsFile, saveGlobs } from './pkvault'
-import { APPS, appInfo, appsRoot, installApp, installAutomatically, launchPath, removeApp, startDetached } from './apps'
+import { addSaveGlobs, adoptOldPkvaultData, azaharSdmc, linuxDocumentsDir, pkvaultDir, pkvaultSettingsFile, saveGlobs } from './pkvault'
+import { APPS, appInfo, appsRoot, customAppKind, installApp, installAutomatically, launchPath, normalizeCustomApps, removeApp, startDetached } from './apps'
 import { HomeView } from './homeview'
 import { extractIcons } from './appicon'
 import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'fs'
@@ -181,6 +181,20 @@ function hideLauncher(): void {
   }
 }
 
+/** À la fermeture d'un jeu émulé : copie de secours de sa sauvegarde (dossier « sauvegardes-extraites » des données du lanceur). */
+function backupEmulatedSave(id: string): void {
+  const game = games.find((g) => g.id === id)
+  if (!game?.emulated) return
+  try {
+    const rom = game.args.find((a) => ROM_EXTENSIONS.includes(extname(a).slice(1).toLowerCase()) && existsSync(a))
+    const save = rom ? findSaveFile(rom, azaharSdmc(homedir())) : null
+    const dest = save ? backupSave(save, join(app.getPath('userData'), 'sauvegardes-extraites'), game.title) : null
+    if (dest) log('sauvegarde extraite', game.title, dest)
+  } catch (e) {
+    log('sauvegarde non extraite', String(e))
+  }
+}
+
 /** Sauvegardes préparées pour le jeu qui démarre ; elles passent dans la session dès qu'il tourne. */
 let pendingSaves: { profile: string; key: string; dirs: string[] } | null = null
 
@@ -206,6 +220,7 @@ const launcher: Launcher = new Launcher(
             log('sauvegardes du jeu : rangement impossible', String(e))
           }
         }
+        backupEmulatedSave(session.id)
         session = null
       }
     }
@@ -825,8 +840,8 @@ function registerIpc(): void {
     mkdirSync(backupsDir(), { recursive: true })
     await shell.openPath(backupsDir())
   })
-  ipcMain.handle('apps:list', () =>
-    APPS.filter((a) => a.platforms.includes(process.platform)).map((a) => {
+  ipcMain.handle('apps:list', () => [
+    ...APPS.filter((a) => a.platforms.includes(process.platform)).map((a) => {
       const cover = coverOf(a.title)
       const run = appInstalls.get(a.id)
       return {
@@ -835,8 +850,30 @@ function registerIpc(): void {
         installing: run === 'running',
         installError: run && run !== 'running' ? run : undefined
       }
-    })
-  )
+    }),
+    ...normalizeCustomApps(store.get().customApps).map((c) => {
+      const image = c.image && existsSync(c.image) ? c.image : coverOf(c.title)
+      return {
+      id: 'custom:' + c.id,
+      title: c.title,
+      description: (customAppKind(c.target) === 'web' ? 'Site ajouté par toi, ouvert dans le lanceur (F4 pour revenir). ' : 'Programme ajouté par toi. ') + 'Y pour le retirer.',
+      fileHint: '',
+      supported: true,
+      installed: true,
+      custom: true,
+      icon: image ? imageDataUrl(image) : null
+    }})
+  ])
+  ipcMain.handle('apps:addCustom', (_e, title: unknown, target: unknown, image: unknown) => {
+    const name = typeof title === 'string' ? title.trim().slice(0, 40) : ''
+    if (!name) return 'Donne un nom à l’appli.'
+    if (!customAppKind(target)) return 'Choisis un programme, ou une adresse qui commence par https://'
+    const entry = { id: Date.now().toString(36), title: name, target: target as string, image: typeof image === 'string' ? image : '' }
+    const list = normalizeCustomApps([...normalizeCustomApps(store.get().customApps), entry])
+    store.set({ customApps: list })
+    log('appli perso ajoutée', name)
+    return null
+  })
   ipcMain.handle('apps:page', async (_e, id: unknown) => {
     const def = APPS.find((a) => a.id === id)
     if (def) await shell.openExternal(def.page)
@@ -866,6 +903,14 @@ function registerIpc(): void {
     return err
   })
   ipcMain.handle('apps:open', async (_e, id: unknown) => {
+    if (typeof id === 'string' && id.startsWith('custom:')) {
+      const c = normalizeCustomApps(store.get().customApps).find((x) => 'custom:' + x.id === id)
+      if (!c) return 'Application introuvable.'
+      if (customAppKind(c.target) === 'web') {
+        return webApp.open({ url: c.target, hosts: [new URL(c.target).hostname], partition: 'persist:webapp-custom-' + c.id, swapConfirm: store.get().swapConfirm })
+      }
+      return startDetached(c.target, join(app.getPath('userData'), 'apps', 'custom-' + c.id + '.log'))
+    }
     const def = APPS.find((a) => a.id === id)
     if (!def) return 'Application inconnue.'
     if (def.web) return webApp.open({ ...def.web, partition: 'persist:webapp-' + def.id, swapConfirm: store.get().swapConfirm })
@@ -879,7 +924,11 @@ function registerIpc(): void {
     // Pokémon Home : toutes les sauvegardes des émulateurs sont reconnues sans réglage.
     if (def.id === 'pkvault') {
       try {
-        addSaveGlobs(pkvaultSettingsFile(exe), saveGlobs(romsFolder(store.get()), azaharSdmc(homedir())))
+        if (process.platform === 'linux' && adoptOldPkvaultData(join(linuxDocumentsDir(homedir()), 'pkvault'), pkvaultDir(exe))) {
+          log('Pokémon Home : données de ~/Documents/pkvault recopiées dans', pkvaultDir(exe))
+        }
+        const gameDirs = games.flatMap((g) => (g.emulated ? g.args.filter((a) => ROM_EXTENSIONS.includes(extname(a).slice(1).toLowerCase())).map((a) => dirname(a)) : []))
+        addSaveGlobs(pkvaultSettingsFile(exe), saveGlobs(romsFolder(store.get()), azaharSdmc(homedir()), gameDirs))
       } catch (e) {
         log('Pokémon Home : sauvegardes non déclarées', String(e))
       }
@@ -906,9 +955,15 @@ function registerIpc(): void {
       )
       return null
     }
-    return startDetached(exe, join(app.getPath('userData'), 'apps', def.id + '.log'))
+    // Linux : PKVault doit lire les réglages où le lanceur vient d'y déclarer les sauvegardes.
+    const env = def.id === 'pkvault' && process.platform === 'linux' ? { PKVAULT_PATH: pkvaultDir(exe) } : undefined
+    return startDetached(exe, join(app.getPath('userData'), 'apps', def.id + '.log'), 4000, env)
   })
   ipcMain.handle('apps:remove', (_e, id: unknown) => {
+    if (typeof id === 'string' && id.startsWith('custom:')) {
+      store.set({ customApps: normalizeCustomApps(store.get().customApps).filter((x) => 'custom:' + x.id !== id) })
+      return
+    }
     const def = APPS.find((a) => a.id === id)
     if (def) removeApp(def, appsRoot(app.getPath('userData')))
   })

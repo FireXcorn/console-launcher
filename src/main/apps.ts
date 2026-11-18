@@ -2,7 +2,7 @@ import { chmodSync, lstatSync, closeSync, copyFileSync, existsSync, mkdirSync, o
 import { homedir } from 'os'
 import { basename, dirname, extname, join } from 'path'
 import { execFile, spawn } from 'child_process'
-import type { AppInfo } from '../shared/types'
+import type { AppInfo, CustomApp } from '../shared/types'
 import { azaharSdmc } from './pkvault'
 
 /** Une petite application libre que le lanceur sait installer et ouvrir. */
@@ -43,7 +43,7 @@ export const APPS: AppDef[] = [
     id: 'pkvault',
     title: 'Pokémon Home',
     description:
-      'Range tes Pokémon dans des boîtes et passe-les d’un jeu à un autre (Game Boy, GBA, DS, 3DS). Livré avec le lanceur. Il garde une copie de tes sauvegardes avant chaque modification.',
+      'Range tes Pokémon dans des boîtes et passe-les d’un jeu à un autre (Game Boy, GBA, DS, 3DS). Livré avec le lanceur. Il garde une copie de tes sauvegardes avant chaque modification. F4 (ou Maj + F4) pour revenir au lanceur.',
     page: 'https://github.com/Chnapy/PKVault/releases/latest',
     exe: 'PKVault.exe',
     fileHint: 'le fichier PKVault téléchargé',
@@ -114,6 +114,21 @@ export const APPS: AppDef[] = [
     platforms: ['win32', 'linux'],
     // shortcut: ce site change souvent d'adresse ; « anime-sama.* » accepte toutes les fins (.to, .tv, .fr…).
     web: { url: 'https://anime-sama.to/', hosts: ['anime-sama.*'] }
+  },
+  {
+    id: 'discord',
+    title: 'Discord',
+    description: 'Discord dans le lanceur (version web), sans rien installer. Connexion avec ton compte ; souris ou clavier conseillés. F4 (ou Maj + F4) pour revenir au lanceur.',
+    page: 'https://discord.com/app',
+    exe: '',
+    fileHint: '',
+    platforms: ['win32', 'linux'],
+    // shortcut: version web ; les hôtes de connexion (hCaptcha, Google) sont autorisés, à compléter si une étape de connexion est bloquée.
+    web: {
+      url: 'https://discord.com/app',
+      hosts: ['discord.com', 'discordapp.com', 'discordapp.net', 'discord.gg', 'discord.media', 'hcaptcha.com', 'google.com', 'gstatic.com'],
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'
+    }
   },
   {
     id: 'firefox',
@@ -304,6 +319,37 @@ export function removeApp(app: AppDef, root: string): void {
   rmSync(join(root, app.id), { recursive: true, force: true })
 }
 
+/** Appli ajoutée par l'utilisateur : « web » pour une adresse https, « exe » pour un programme qui existe, sinon null. */
+export function customAppKind(target: unknown): 'web' | 'exe' | null {
+  if (typeof target !== 'string' || !target || target.length > 1000) return null
+  if (/^https:\/\//i.test(target)) {
+    try {
+      return new URL(target).hostname ? 'web' : null
+    } catch {
+      return null
+    }
+  }
+  // Un chemin absolu vers un fichier (jamais une adresse d'un autre protocole : javascript:, file:, http:…).
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(target) || /^[a-z]{2,}:/i.test(target)) return null
+  try {
+    return statSync(target).isFile() ? 'exe' : null
+  } catch {
+    return null
+  }
+}
+
+/** Applis perso lues dans les réglages (non fiables) : seules les entrées utilisables sont gardées. */
+export function normalizeCustomApps(raw: unknown): CustomApp[] {
+  if (!Array.isArray(raw)) return []
+  return raw.flatMap((r: Partial<CustomApp> | null) => {
+    if (!r || typeof r !== 'object' || typeof r.id !== 'string' || !/^[a-z0-9]{1,20}$/.test(r.id)) return []
+    const title = typeof r.title === 'string' ? r.title.trim().slice(0, 40) : ''
+    if (!title || !customAppKind(r.target)) return []
+    const image = typeof r.image === 'string' && /\.(png|jpe?g|webp|ico)$/i.test(r.image) ? r.image : ''
+    return [{ id: r.id, title, target: r.target as string, image }]
+  })
+}
+
 /** Linux : PKVault affiche sa fenêtre avec WebKitGTK ; sans lui, il s'arrête aussitôt et sans rien dire. */
 export const WEBKIT_HELP =
   'Pokémon Home a besoin d’une bibliothèque Linux (WebKitGTK). Ouvre un terminal et tape : sudo apt install libwebkit2gtk-4.1-0 — puis réessaie.'
@@ -326,13 +372,13 @@ export function hasWebkit(): Promise<boolean | null> {
  * la raison (fin de son journal) au lieu de ne rien dire. Sa sortie va dans `log`, jamais dans un tube :
  * un tube fermé ferait planter le programme à sa première ligne.
  */
-export async function startDetached(exe: string, log: string, waitMs = 4000): Promise<string | null> {
+export async function startDetached(exe: string, log: string, waitMs = 4000, env?: Record<string, string>): Promise<string | null> {
   if (process.platform === 'linux' && (await hasWebkit()) === false) return WEBKIT_HELP
   mkdirSync(dirname(log), { recursive: true })
   const fd = openSync(log, 'w')
   try {
     return await new Promise<string | null>((resolve) => {
-      const child = spawn(exe, [], { cwd: dirname(exe), detached: true, stdio: ['ignore', fd, fd] })
+      const child = spawn(exe, [], { cwd: dirname(exe), detached: true, stdio: ['ignore', fd, fd], env: env ? { ...process.env, ...env } : undefined })
       const timer = setTimeout(() => {
         child.unref()
         resolve(null)

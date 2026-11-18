@@ -67,6 +67,7 @@ const api: Api = {
   installAppAuto: (id) => ipcRenderer.invoke('apps:installAuto', id),
   openApp: (id) => ipcRenderer.invoke('apps:open', id),
   removeApp: (id) => ipcRenderer.invoke('apps:remove', id),
+  addCustomApp: (title, target, image) => ipcRenderer.invoke('apps:addCustom', title, target, image),
   listRecipes: () => ipcRenderer.invoke('recipes:list'),
   setRecipeInput: (id, need, path) => ipcRenderer.invoke('recipes:input', id, need, path),
   runRecipeSetup: (id) => ipcRenderer.invoke('recipes:setup', id),

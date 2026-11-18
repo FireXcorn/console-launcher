@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, statSync } from 'fs'
+import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync } from 'fs'
 import { basename, dirname, extname, join } from 'path'
 
 const SAVE_EXT = ['.sav', '.dsv', '.srm']
@@ -25,6 +25,20 @@ function newestThreeDsSave(sdmc: string, depth = 9): string | null {
   }
   if (existsSync(sdmc)) walk(sdmc, depth)
   return (best as { file: string } | null)?.file ?? null
+}
+
+/**
+ * Copie de secours de la sauvegarde d'un jeu : un seul fichier par jeu (`Titre.ext`), la dernière copie écrase la précédente.
+ * Renvoie le fichier écrit, ou null si le titre ne donne aucun nom.
+ */
+export function backupSave(save: string, destDir: string, title: string): string | null {
+  const name = title.replace(/[\\/:*?"<>|]/g, ' ').trim()
+  if (!name || /^\.+$/.test(name)) return null
+  mkdirSync(destDir, { recursive: true })
+  const ext = basename(save) === 'main' ? '.main' : extname(save)
+  const dest = join(destDir, name + ext)
+  copyFileSync(save, dest)
+  return dest
 }
 
 /**

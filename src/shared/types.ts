@@ -139,6 +139,18 @@ export interface AppInfo {
   installError?: string
   /** Précision affichée sous la description (ex. dossier de sauvegardes à indiquer). */
   note?: string
+  /** Ajoutée par l'utilisateur (programme ou site) : il peut la retirer. */
+  custom?: boolean
+}
+
+/** Appli ajoutée par l'utilisateur dans « Applis » : un programme de l'ordinateur ou un site (https) ouvert dans le lanceur. */
+export interface CustomApp {
+  id: string
+  title: string
+  /** Chemin du programme, ou adresse `https://…`. */
+  target: string
+  /** Image choisie (chemin), ou vide. */
+  image: string
 }
 
 /** Ce que joue le lecteur de musique du système (Spotify, Apple Music…), pour le mini lecteur du lanceur. */
@@ -152,6 +164,8 @@ export interface MediaState {
   /** Position et durée du morceau, en secondes (0 si inconnues). */
   position: number
   duration: number
+  /** Application de musique qui joue (pour l'ouvrir d'un clic sur le mini lecteur). */
+  app?: 'spotify' | 'applemusic'
 }
 
 export type MediaAction = 'playpause' | 'next' | 'previous'
@@ -225,6 +239,8 @@ export interface Config {
   activeProfile: string
   /** Jeux lancés par un émulateur (Mario Kart World, etc.). */
   emulated: EmulatedGame[]
+  /** Applis ajoutées par l'utilisateur dans « Applis ». */
+  customApps: CustomApp[]
   /** Affiche aussi les exclusivités Switch 2 que l'on n'a pas installées. */
   showMissingGames: boolean
   /** Dossier où l'utilisateur dépose des jaquettes nommées d'après le titre du jeu. */
@@ -372,6 +388,8 @@ export interface Api {
   installAppAuto(id: string): Promise<void>
   /** Lance l'application installée ; renvoie un message d'erreur, ou null. */
   openApp(id: string): Promise<string | null>
+  /** Ajoute une appli perso (programme ou adresse https) ; renvoie un message d'erreur, ou null. */
+  addCustomApp(title: string, target: string, image: string): Promise<string | null>
   /** Retire l'application installée. */
   removeApp(id: string): Promise<void>
   /** Jeux livrés avec leur outil (recettes) et leur état. */

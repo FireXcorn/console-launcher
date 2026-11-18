@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import type { AppInfo } from '../../../shared/types'
 import Screen, { backNav, focusBack } from '../components/Screen'
 import { useInput } from '../hooks/useInput'
+import AddCustomApp from '../components/AddCustomApp'
+import ConfirmDialog from '../components/ConfirmDialog'
 
 /**
  * « Applis » : une jaquette par application (Pokémon Home…). Une application livrée s'ouvre d'un clic, dans la
@@ -34,6 +36,10 @@ export default function AppsScreen({ onBack }: { onBack: () => void }): JSX.Elem
     await refresh()
   }
 
+  const [adding, setAdding] = useState(false)
+  const [removing, setRemoving] = useState<AppInfo | null>(null)
+  // La dernière case (après les applis) est « + Ajouter une appli ».
+  const onAdd = pos === apps.length
   const current: AppInfo | undefined = apps[pos]
 
   const install = async (app: AppInfo): Promise<void> => {
@@ -58,12 +64,18 @@ export default function AppsScreen({ onBack }: { onBack: () => void }): JSX.Elem
     if (action === 'back') onBack()
     else if (action === 'up') focusBack()
     else if (action === 'left') setPos((p) => Math.max(p - 1, 0))
-    else if (action === 'right') setPos((p) => Math.min(p + 1, apps.length - 1))
+    else if (action === 'right') setPos((p) => Math.min(p + 1, apps.length))
+    else if (action === 'confirm' && onAdd) setAdding(true)
     else if (action === 'confirm' && current) void open(current)
+    else if (action === 'option' && current?.custom) setRemoving(current)
   })
 
   return (
-    <Screen title="Applis" onBack={onBack} hints={[{ key: 'A', label: 'Ouvrir' }]}>
+    <Screen
+      title="Applis"
+      onBack={onBack}
+      hints={[{ key: 'A', label: onAdd ? 'Ajouter' : 'Ouvrir' }, ...(current?.custom ? [{ key: 'Y', label: 'Retirer' }] : [])]}
+    >
       <div className="pokemon">
         <div className="pokemon-row apps-row">
           {apps.map((app, i) => (
@@ -78,7 +90,15 @@ export default function AppsScreen({ onBack }: { onBack: () => void }): JSX.Elem
               {app.external && app.supported && !app.installed && <span className="pokemon-badge">{app.installing ? 'Installation…' : 'Installer'}</span>}
             </button>
           ))}
-          {Array.from({ length: Math.max(0, 10 - apps.length) }, (_, i) => (
+          <button
+            className={`pokemon-game add-app${onAdd ? ' focused' : ''}`}
+            onMouseEnter={() => setPos(apps.length)}
+            onClick={() => setAdding(true)}
+            aria-label="Ajouter une appli"
+          >
+            <span className="pokemon-fallback">+ Ajouter une appli</span>
+          </button>
+          {Array.from({ length: Math.max(0, 9 - apps.length) }, (_, i) => (
             <div key={`vide-${i}`} className="pokemon-game empty-slot" aria-hidden="true" />
           ))}
         </div>
@@ -109,8 +129,34 @@ export default function AppsScreen({ onBack }: { onBack: () => void }): JSX.Elem
           </div>
         )}
         {current?.installError && !current.installing && <p className="settings-note warn">{current.installError}</p>}
+        {onAdd && (
+          <p className="pokemon-title">
+            Ajouter une appli
+            <small>Un programme de ton ordinateur, ou un site (Netflix, Twitch…) qui s’ouvre dans le lanceur.</small>
+          </p>
+        )}
         {message && <p className="settings-note">{message}</p>}
       </div>
+      {adding && (
+        <AddCustomApp
+          onDone={(added) => {
+            setAdding(false)
+            if (added) void refresh()
+          }}
+        />
+      )}
+      {removing && (
+        <ConfirmDialog
+          title="Retirer cette appli ?"
+          message={`« ${removing.title} » disparaîtra des Applis (le programme n'est pas supprimé).`}
+          confirmLabel="Retirer"
+          onCancel={() => setRemoving(null)}
+          onConfirm={() => {
+            void window.api.removeApp(removing.id).then(refresh)
+            setRemoving(null)
+          }}
+        />
+      )}
     </Screen>
   )
 }

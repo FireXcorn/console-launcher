@@ -340,8 +340,15 @@ export default function App(): JSX.Element | null {
       setEditingId(configRef.current?.activeProfile ?? null)
       setOrigin('mypage')
       setScreen('mypage')
+    } else if (index === 1 && media) {
+      // Mini lecteur : ouvre l'appli de musique qui joue.
+      if (media.app) void window.api.openApp(media.app)
     } else setPanel('status')
-  }, [])
+  }, [media])
+  // La musique s'arrête alors que la sélection était sur l'état du système (index 2) : elle y reste.
+  useEffect(() => {
+    if (!media) setFocus((f) => (f.row === 'top' && f.top > 1 ? { ...f, top: 1 } : f))
+  }, [media])
 
   const handleAction = useCallback(
     (action: Action, source: InputSource) => {
@@ -380,7 +387,7 @@ export default function App(): JSX.Element | null {
             ? { ...f, game: clamp(f.game + step, Math.max(0, homeGames.length - 1)) }
             : f.row === 'dock'
               ? { ...f, dock: clamp(f.dock + step, DOCK.length - 1) }
-              : { ...f, top: clamp(f.top + step, 1) }
+              : { ...f, top: clamp(f.top + step, media ? 2 : 1) }
         )
       } else if (action === 'down') {
         setFocus((f) =>
@@ -503,7 +510,7 @@ export default function App(): JSX.Element | null {
       {screen === 'news' && <NewsScreen onBack={back} />}
       {screen === 'apps' && <AppsScreen onBack={back} />}
       {screen === 'pokemon' && (
-        <PokemonScreen games={games.filter((g) => g.pokemonConsole)} onPlay={(g) => (g.available ? launchGame(g) : setAddKind('retro'))} onAdd={() => setAddKind('retro')} backdrop={config.gameBackdrop !== false} onBack={back} />
+        <PokemonScreen games={games.filter((g) => g.pokemonConsole)} onPlay={(g) => (g.available ? launchGame(g) : setAddKind('retro'))} onAdd={() => setAddKind('retro')} onOptions={(g) => setOptionsId(g.id)} backdrop={config.gameBackdrop !== false} onBack={back} />
       )}
       {screen === 'mypage' && editing && (
         <MyPageScreen

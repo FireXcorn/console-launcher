@@ -32,12 +32,15 @@ export default function PokemonScreen({
   onPlay,
   backdrop,
   onAdd,
+  onOptions,
   onBack
 }: {
   games: Game[]
   backdrop: boolean
   /** Ouvre le choix des fichiers de jeu à ajouter. */
   onAdd: () => void
+  /** Ouvre les options du jeu (jaquette perso…). */
+  onOptions: (game: Game) => void
   onPlay: (game: Game) => void
   onBack: () => void
 }): JSX.Element {
@@ -60,7 +63,8 @@ export default function PokemonScreen({
 
   useInput((action) => {
     if (action === 'back') onBack()
-    else if (action === 'menu') onAdd()
+    else if (action === 'menu' && current) onOptions(current)
+    else if (action === 'option') onAdd()
     else if (action === 'left') move(0, -1)
     else if (action === 'right') move(0, 1)
     else if (action === 'up') move(-1, 0)
@@ -75,7 +79,8 @@ export default function PokemonScreen({
       backdrop={<GameBackdrop art={art} active />}
       hints={[
         { key: 'A', label: 'Jouer' },
-        { key: '+', label: 'Ajouter mes jeux' }
+        { key: '+', label: 'Options du jeu' },
+        { key: 'Y', label: 'Ajouter mes jeux' }
       ]}
     >
       <div className={`pokemon${art ? ' has-art' : ''}`}>
