@@ -1,5 +1,5 @@
 # Remplit tools-src\ (dossier local, ignoré par git) avec les outils propres, sans aucun fichier de jeu :
-#   pokopia, dkb-setup, eglantine, hookshot-builder. Les chemins des archives se règlent ci-dessous.
+#   pokopia, dkb-setup, eglantine, relink. Les chemins des archives se règlent ci-dessous.
 param(
   [string]$Downloads = "$env:USERPROFILE\Downloads",
   [string]$Eglantine = "$env:USERPROFILE\Desktop\eglantine-windows-x86_64"
@@ -28,7 +28,8 @@ if (-not (Test-Path (Join-Path $root 'eglantine'))) {
   Copy-Item $Eglantine (Join-Path $root 'eglantine') -Recurse
   Write-Host 'ok : eglantine'
 }
-$hb = Join-Path $root 'hookshot-builder'
-New-Item -ItemType Directory -Force $hb | Out-Null
-Copy-Item (Join-Path $Downloads 'HookshotBuilder.exe') $hb -Force
-Write-Host 'ok : hookshot-builder'
+# Remplace HookshotBuilder, détecté par Windows Defender comme Trojan:Win32/Cloxer.
+if (-not (Test-Path (Join-Path $root 'relink'))) {
+  Copy-Item (Join-Path $Downloads 'ProjectReLink-v0.7.9.1-Windows-x64') (Join-Path $root 'relink') -Recurse
+  Write-Host 'ok : relink'
+}
