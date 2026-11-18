@@ -52,6 +52,16 @@ describe('recettes', () => {
     expect(recipeInfo(gui, paths, { zel: { out: 'G/Z' } }, present(tool, 'G/Z/bin/z.exe')).state).toBe('ready')
   })
 
+  it('accepte le même jeu déjà construit par un autre outil (altExes)', () => {
+    const tool = 'T/bld/Builder.exe'
+    const alt: Recipe = { ...gui, altExes: ['bin/longshot.exe'] }
+    const inputs = { zel: { out: 'G/L' } }
+    expect(recipeInfo(alt, paths, inputs, present(tool)).state).toBe('needs-setup')
+    const exists = present(tool, 'G/L/bin/longshot.exe')
+    expect(recipeInfo(alt, paths, inputs, exists).state).toBe('ready')
+    expect(norm(recipeEntries([alt], paths, inputs, exists)[0].emulatorExe)).toBe('G/L/bin/longshot.exe')
+  })
+
   it('remplace {entrée} et {out} dans la commande de préparation', () => {
     const args = setupArgs(cli, paths, { jeu: { nup: 'D:/jeu.nup' } }).map(norm)
     expect(args).toEqual(['--nup', 'D:/jeu.nup', '--dest', 'O/jeu'])

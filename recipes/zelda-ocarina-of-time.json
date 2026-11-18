@@ -4,12 +4,13 @@
   "tool": "relink",
   "base": "need:out",
   "exe": "bin/relink-game.exe",
+  "altExes": ["bin/longshot.exe", "bin/hookshot.exe"],
   "args": [],
   "borderless": true,
   "needs": [
     {
       "id": "out",
-      "label": "Dossier où Project ReLink a construit le jeu",
+      "label": "Dossier du jeu construit (ReLink, Longshot ou Hookshot)",
       "kind": "folder"
     }
   ],
@@ -21,5 +22,5 @@
   "saves": [
     "user/save"
   ],
-  "guide": "Construis le jeu avec ton fichier (.nup), puis indique le dossier obtenu."
+  "guide": "Construis le jeu avec ton fichier (.nup), puis indique le dossier obtenu. Déjà construit avec Longshot ou Hookshot ? Indique directement son dossier."
 }

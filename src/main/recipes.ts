@@ -20,6 +20,8 @@ export interface Recipe {
   base?: string
   /** Programme qui lance le jeu, relatif à ce dossier. */
   exe: string
+  /** Programmes acceptés à la place de `exe` : le même jeu construit par un autre outil (ex. Longshot pour ReLink). */
+  altExes?: string[]
   args?: string[]
   readyTitle?: string
   settleMs?: number
@@ -90,7 +92,7 @@ export function recipeInfo(r: Recipe, paths: RecipePaths, inputs: RecipeInputs, 
   const setupNeeds = (r.needs ?? []).filter((n) => `need:${n.id}` !== r.base)
   if (setupNeeds.some((n) => !n.optional && !(given[n.id] && exists(given[n.id])))) return { ...base, state: 'needs-input' }
   const dir = gameBase(r, paths, inputs)
-  const built = !!dir && exists(join(dir, r.doneFile ?? r.exe))
+  const built = !!dir && (exists(join(dir, r.doneFile ?? r.exe)) || (r.altExes ?? []).some((e) => exists(join(dir, e))))
   if (!built) return { ...base, state: 'needs-setup' }
   return { ...base, state: 'ready' }
 }
@@ -105,7 +107,7 @@ export function recipeEntries(recipes: Recipe[], paths: RecipePaths, inputs: Rec
     const gameFile = r.gameFileFrom ? (inputs[r.id]?.[r.gameFileFrom] ?? '') : ''
     entries.push({
       title: r.title,
-      emulatorExe: join(dir, r.exe),
+      emulatorExe: join(dir, [r.exe, ...(r.altExes ?? [])].find((e) => exists(join(dir, e))) ?? r.exe),
       gameFile,
       args: r.args ?? [],
       readyTitle: r.readyTitle ?? '',
